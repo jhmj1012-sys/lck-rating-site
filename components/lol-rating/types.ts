@@ -1,9 +1,12 @@
-﻿export type MatchStatus = "scheduled" | "finished";
+export type MatchStatus = "scheduled" | "finished";
 export type PlayerRole = "TOP" | "JGL" | "MID" | "ADC" | "SUP";
+export type PredictionLifecycleState = "open" | "locked" | "settled";
+export type NotificationType = "prediction_joined" | "prediction_hit" | "prediction_missed" | "coin_earned" | "system";
 export type PredictionBlockReason =
   | "unauthenticated"
   | "profile-required"
   | "locked"
+  | "unavailable"
   | "needs-selection"
   | null;
 
@@ -18,7 +21,9 @@ export interface PlayerRating {
 
 export interface MatchComment {
   id: string;
+  userId: string | null;
   user: string;
+  userSummary: PublicUserSummary | null;
   createdLabel: string;
   likes: number;
   text: string;
@@ -29,6 +34,29 @@ export interface PredictionSummary {
   teamA: number;
   teamB: number;
   totalVotes: number;
+}
+
+export interface LockedPredictionOddsSide {
+  oddsPercent: number;
+  hitBonusCoins: number;
+}
+
+export interface LockedPredictionOdds {
+  teamA: LockedPredictionOddsSide;
+  teamB: LockedPredictionOddsSide;
+}
+
+export interface NotificationItem {
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  relatedMatchId: string | null;
+  createdAt: string;
+  createdLabel: string;
+  isRead: boolean;
+  rewardCoins: number | null;
+  appliedOddsPercent: number | null;
 }
 
 export interface MatchData {
@@ -48,7 +76,14 @@ export interface MatchData {
   totalRatings: number;
   mvp: string;
   predictionLocked: boolean;
+  predictionLifecycleState: PredictionLifecycleState;
   predictionSummary: PredictionSummary;
+  lockedDistribution: PredictionSummary | null;
+  lockedOdds: LockedPredictionOdds | null;
+  myPredictionOddsPercent: number | null;
+  myPredictionBonusCoins: number | null;
+  myPredictionSettlementResult: "hit" | "miss" | null;
+  myPredictionSettlementCoins: number;
   players: PlayerRating[];
   commentsList: MatchComment[];
   myPredictionTeam: string | null;
@@ -68,7 +103,12 @@ export interface MatchListItem {
   score: string;
   ratingParticipants: number;
   predictionVotes: number;
+  predictionRateA: number;
+  predictionRateB: number;
   predictionLocked: boolean;
+  predictionLifecycleState: PredictionLifecycleState;
+  lockedDistribution: PredictionSummary | null;
+  lockedOdds: LockedPredictionOdds | null;
 }
 
 export interface MatchDateGroup {
@@ -93,6 +133,7 @@ export interface MatchSetSummary {
   id: string;
   setNumber: number;
   title: string;
+  isPlayed: boolean;
   winnerTeam: string | null;
   durationLabel: string;
   scoreLabel: string;
@@ -116,6 +157,7 @@ export interface SetDetailData {
   matchId: string;
   setNumber: number;
   title: string;
+  isPlayed: boolean;
   winnerTeam: string | null;
   durationLabel: string;
   scoreLabel: string;
@@ -155,11 +197,71 @@ export interface UserProfile {
   teamBadge: string;
   ownedPersonas: string[];
   selectedProfileTheme?: string | null;
+  predictionAccuracy: number;
   predictionStats: {
+    total: number;
     hit: number;
     miss: number;
     streak: number;
   };
+}
+
+export interface TeamStandingItem {
+  rank: number;
+  teamCode: string;
+  wins: number;
+  losses: number;
+  setDiff: number;
+  winRate: number;
+}
+
+export interface PredictionLeaderboardItem {
+  userId: string;
+  rank: number;
+  nickname: string;
+  userSummary: PublicUserSummary | null;
+  points: number;
+  accuracy: number;
+  hit: number;
+  miss: number;
+}
+
+export interface PublicUserSummary {
+  userId: string;
+  nickname: string;
+  bio: string;
+  teamBadge: string;
+  points: number;
+  predictionAccuracy: number;
+  predictionStyleLabel: string;
+  level: number;
+}
+
+export interface HomeHeroStats {
+  todayMatches: number;
+  totalPredictions: number;
+  totalRatings: number;
+  totalComments: number;
+  updatedLabel: string;
+}
+
+export interface HomeCommentFeedItem {
+  id: string;
+  userId: string | null;
+  user: string;
+  userSummary: PublicUserSummary | null;
+  matchLabel: string;
+  text: string;
+  createdLabel: string;
+}
+
+export interface HomePlayerLeaderboardItem {
+  rank: number;
+  playerId: string;
+  playerName: string;
+  teamCode: string;
+  averageRating: number;
+  ratingCount: number;
 }
 
 export interface DashboardData {
@@ -174,6 +276,16 @@ export interface ScheduleHubData {
   selectedWeekId: string | null;
   featuredMatchId: string | null;
   userProfile: UserProfile;
+  standings: TeamStandingItem[];
+  predictionLeaderboard: PredictionLeaderboardItem[];
+  heroStats: HomeHeroStats;
+  featuredMatch: MatchData | null;
+  todayMatches: MatchData[];
+  recentFinishedMatches: MatchData[];
+  recentComments: HomeCommentFeedItem[];
+  playerLeaderboard: HomePlayerLeaderboardItem[];
+  notifications: NotificationItem[];
+  unreadNotificationCount: number;
 }
 
 export interface RosterPlayerItem {
@@ -212,6 +324,10 @@ export interface MyPredictionItem {
   resultLabel: string;
   submittedAt: string;
   updatedAt: string;
+  lockedOddsPercent: number | null;
+  lockedBonusCoins: number | null;
+  settlementCoins: number;
+  wasUnderdogPick: boolean;
 }
 
 export interface MyRatingItem {
@@ -255,6 +371,20 @@ export interface MyStoreItem {
   equipped: boolean;
 }
 
+export interface PredictionInsightItem {
+  label: string;
+  value: string;
+  description: string;
+}
+
+export interface PredictionComparisonItem {
+  label: string;
+  myValue: string;
+  averageValue: string;
+  delta: string;
+  summary: string;
+}
+
 export interface MyPageData {
   profile: UserProfile & {
     bio: string | null;
@@ -266,4 +396,9 @@ export interface MyPageData {
   comments: MyCommentItem[];
   pointLedger: MyPointLedgerItem[];
   storeItems: MyStoreItem[];
+  notifications: NotificationItem[];
+  unreadNotificationCount: number;
+  predictionInsights: PredictionInsightItem[];
+  predictionComparison: PredictionComparisonItem[];
+  predictionStyleLabel: string;
 }

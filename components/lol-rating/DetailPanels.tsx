@@ -5,6 +5,7 @@ import { startTransition, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
+import { PublicUserTrigger } from "./PublicUserTrigger";
 import type { MatchComment, MatchData, MatchSetSummary, PlayerRole, SetDetailData, SetPlayerRating } from "./types";
 import { TeamLogo, getTeamDisplayName } from "./team-branding";
 import { Avatar, Badge, Button, Card, CardContent, CardHeader, Progress, SectionTitle } from "./ui";
@@ -108,6 +109,21 @@ export function MatchOverviewPanel({ match, sets }: { match: MatchData; sets: Ma
           <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">세트 평점 {match.totalRatings.toLocaleString()}</div>
           <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">댓글 {match.comments.toLocaleString()}</div>
         </div>
+
+        {match.lockedOdds && match.lockedDistribution ? (
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl border border-sky-100 bg-sky-50 px-4 py-3 text-sm text-slate-700">
+              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">Locked Distribution</div>
+              <div className="mt-2 font-semibold text-slate-950">{match.teamA} {match.lockedDistribution.teamA}% · {match.teamB} {match.lockedDistribution.teamB}%</div>
+              <div className="mt-1 text-slate-600">마감 시점 참여 {match.lockedDistribution.totalVotes}건 기준</div>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Locked Odds</div>
+              <div className="mt-2 font-semibold text-slate-950">{match.teamA} {match.lockedOdds.teamA.oddsPercent}% · {match.teamB} {match.lockedOdds.teamB.oddsPercent}%</div>
+              <div className="mt-1 text-slate-600">적중 시 추가 {match.lockedOdds.teamA.hitBonusCoins} / {match.lockedOdds.teamB.hitBonusCoins} Coin</div>
+            </div>
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   );
@@ -130,28 +146,52 @@ export function MatchSetLinks({ matchId, sets }: { matchId: string; sets: MatchS
           </div>
         ) : (
           sets.map((set) => (
-            <Link
-              key={set.id}
-              href={`/matches/${matchId}/sets/${set.setNumber}`}
-              className="grid gap-3 rounded-[24px] border border-slate-200 bg-white px-5 py-4 transition hover:bg-slate-50 md:grid-cols-[96px_minmax(0,1fr)_140px_120px]"
-            >
-              <div>
-                <div className="text-lg font-black text-slate-950">SET {set.setNumber}</div>
-                <div className="text-sm text-slate-500">{set.durationLabel}</div>
+            set.isPlayed ? (
+              <Link
+                key={set.id}
+                href={`/matches/${matchId}/sets/${set.setNumber}`}
+                className="grid gap-3 rounded-[24px] border border-slate-200 bg-white px-5 py-4 transition hover:bg-slate-50 md:grid-cols-[96px_minmax(0,1fr)_140px_120px]"
+              >
+                <div>
+                  <div className="text-lg font-black text-slate-950">SET {set.setNumber}</div>
+                  <div className="text-sm text-slate-500">{set.durationLabel}</div>
+                </div>
+                <div>
+                  <div className="font-semibold text-slate-950">{set.winnerTeam ? `${getTeamDisplayName(set.winnerTeam)} 승리` : "결과 미정"}</div>
+                  <div className="mt-1 text-sm text-slate-600">{set.note || "세트 메모 없음"}</div>
+                </div>
+                <div className="text-sm text-slate-600">
+                  <div>스코어 {set.scoreLabel}</div>
+                  <div className="mt-1">평점 {set.ratingParticipants.toLocaleString()}</div>
+                </div>
+                <div className="text-sm text-slate-600">
+                  <div>TOP</div>
+                  <div className="mt-1 font-semibold text-slate-950">{set.topPerformer ?? "-"}</div>
+                </div>
+              </Link>
+            ) : (
+              <div
+                key={set.id}
+                aria-disabled="true"
+                className="grid gap-3 rounded-[24px] border border-dashed border-slate-200 bg-slate-50 px-5 py-4 opacity-80 md:grid-cols-[96px_minmax(0,1fr)_140px_120px]"
+              >
+                <div>
+                  <div className="text-lg font-black text-slate-950">SET {set.setNumber}</div>
+                  <div className="text-sm text-slate-500">미진행</div>
+                </div>
+                <div>
+                  <div className="font-semibold text-slate-950">미진행 세트</div>
+                  <div className="mt-1 text-sm text-slate-600">{set.note || "세트 메모 없음"}</div>
+                </div>
+                <div className="text-sm text-slate-600">
+                  <div>스코어 {set.scoreLabel}</div>
+                  <div className="mt-1">평점 0</div>
+                </div>
+                <div className="flex items-start justify-start md:justify-end">
+                  <span className="rounded-full bg-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600">클릭 불가</span>
+                </div>
               </div>
-              <div>
-                <div className="font-semibold text-slate-950">{set.winnerTeam ? `${getTeamDisplayName(set.winnerTeam)} 승리` : "결과 미정"}</div>
-                <div className="mt-1 text-sm text-slate-600">{set.note || "세트 메모 없음"}</div>
-              </div>
-              <div className="text-sm text-slate-600">
-                <div>스코어 {set.scoreLabel}</div>
-                <div className="mt-1">평점 {set.ratingParticipants.toLocaleString()}</div>
-              </div>
-              <div className="text-sm text-slate-600">
-                <div>TOP</div>
-                <div className="mt-1 font-semibold text-slate-950">{set.topPerformer ?? "-"}</div>
-              </div>
-            </Link>
+            )
           ))
         )}
       </CardContent>
@@ -205,10 +245,23 @@ export function MatchEngagementPanel({ match }: { match: MatchData }) {
           <SectionTitle
             eyebrow="Prediction"
             title="경기 예측"
-            description="경기 시작 10분 전까지 팀을 바꿔가며 예측할 수 있고, 마감 이후에는 결과 중심으로 전환됩니다."
+            description="예측에 참여하면 코인을 얻고, 적중 시 추가 코인을 받을 수 있습니다. 마감 전까지는 팀 선택을 바꿀 수 있습니다."
           />
         </CardHeader>
         <CardContent className="space-y-4 pt-5">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-[24px] border border-sky-100 bg-sky-50 px-4 py-3 text-sm text-slate-700">
+              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">Reward</div>
+              <div className="mt-2 font-semibold text-slate-950">참여 보상 +10 Coin</div>
+              <div className="mt-1 text-slate-600">선택만 완료해도 코인이 쌓입니다.</div>
+            </div>
+            <div className="rounded-[24px] border border-amber-100 bg-amber-50 px-4 py-3 text-sm text-slate-700">
+              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-700">Bonus</div>
+              <div className="mt-2 font-semibold text-slate-950">적중 시 추가 +5 Coin</div>
+              <div className="mt-1 text-slate-600">팬 평균과 비교하면서 적중률도 함께 기록됩니다.</div>
+            </div>
+          </div>
+
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-3">
             <div className="text-sm text-slate-700">
               {predictionLockedNow
@@ -231,7 +284,7 @@ export function MatchEngagementPanel({ match }: { match: MatchData }) {
 
               return (
                 <button
-                  key={team}
+                  key={`${match.id}-${team}-${index}`}
                   onClick={() => {
                     if (selectable) {
                       setSelectedSide(team);
@@ -263,14 +316,42 @@ export function MatchEngagementPanel({ match }: { match: MatchData }) {
               ? "로그인 후 예측에 참여할 수 있습니다."
               : blockReason === "profile-required"
                 ? "닉네임을 먼저 설정하면 예측과 댓글에 참여할 수 있습니다."
-              : blockReason === "locked"
-                  ? "이 경기는 예측이 마감되었습니다."
-                  : blockReason === "needs-selection"
-                    ? "먼저 팀을 선택해 주세요."
+                : blockReason === "unavailable"
+                  ? "아직 대진이 확정되지 않아 예측할 수 없습니다."
+                : blockReason === "locked"
+                    ? "이 경기는 예측이 마감되었습니다. 종료 후에는 결과와 적중 보상을 확인할 수 있습니다."
+                    : blockReason === "needs-selection"
+                    ? "먼저 팀을 선택해 주세요. 선택을 완료하면 참여 코인이 즉시 반영됩니다."
                     : match.myPredictionTeam
-                      ? `현재 내 선택: ${getTeamDisplayName(match.myPredictionTeam)} · 마감 전까지 변경할 수 있습니다.`
-                      : `현재 대세: ${getPredictionLeader(match.predictionSummary, match)}`}
+                      ? `현재 내 선택: ${getTeamDisplayName(match.myPredictionTeam)} · 마감 전까지 변경할 수 있고, 적중 시 추가 코인을 받습니다.`
+                      : `현재 대세: ${getPredictionLeader(match.predictionSummary, match)} · 지금 참여하면 +10 Coin`}
           </div>
+
+          {match.lockedOdds && match.lockedDistribution ? (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Locked Distribution</div>
+                <div className="mt-2 font-semibold text-slate-950">{match.teamA} {match.lockedDistribution.teamA}% · {match.teamB} {match.lockedDistribution.teamB}%</div>
+                <div className="mt-1 text-slate-600">예측 마감 후 확정된 참여 분포입니다.</div>
+              </div>
+              <div className="rounded-2xl border border-sky-100 bg-sky-50 px-4 py-3 text-sm text-slate-700">
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">Locked Rewards</div>
+                <div className="mt-2 font-semibold text-slate-950">{match.teamA} +{match.lockedOdds.teamA.hitBonusCoins} Coin · {match.teamB} +{match.lockedOdds.teamB.hitBonusCoins} Coin</div>
+                <div className="mt-1 text-slate-600">확정 배당 {match.lockedOdds.teamA.oddsPercent}% / {match.lockedOdds.teamB.oddsPercent}%</div>
+              </div>
+            </div>
+          ) : null}
+
+          {match.myPredictionSettlementResult ? (
+            <div className={cn(
+              "rounded-2xl px-4 py-3 text-sm",
+              match.myPredictionSettlementResult === "hit" ? "border border-emerald-200 bg-emerald-50 text-emerald-800" : "border border-slate-200 bg-slate-50 text-slate-700",
+            )}>
+              {match.myPredictionSettlementResult === "hit"
+                ? `정산 완료: 적중으로 +${match.myPredictionSettlementCoins} Coin이 지급되었습니다.`
+                : "정산 완료: 선택 결과가 빗나갔고, 참여 코인은 유지됩니다."}
+            </div>
+          ) : null}
 
           {predictionFeedback ? <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{predictionFeedback}</div> : null}
 
@@ -280,7 +361,7 @@ export function MatchEngagementPanel({ match }: { match: MatchData }) {
             onClick={async () => {
               setPendingPrediction(true);
               const error = await postJson(`/api/matches/${match.id}/prediction`, { selectedTeam: selectedSide });
-              setPredictionFeedback(error ?? "예측을 등록했습니다.");
+              setPredictionFeedback(error ?? "예측을 등록했습니다. 참여 코인이 반영되었습니다.");
               setPendingPrediction(false);
               if (!error) {
                 refresh();
@@ -289,6 +370,8 @@ export function MatchEngagementPanel({ match }: { match: MatchData }) {
           >
             {blockReason === "locked"
               ? "예측 마감"
+              : blockReason === "unavailable"
+                ? "대진 확정 대기"
               : blockReason === "unauthenticated"
                   ? "로그인 후 예측 참여"
                   : blockReason === "profile-required"
@@ -315,8 +398,8 @@ export function MatchEngagementPanel({ match }: { match: MatchData }) {
               !canWrite
                 ? "댓글은 로그인 후 작성할 수 있습니다."
                 : !hasNickname
-                  ? "닉네임을 먼저 설정하면 댓글을 작성할 수 있습니다."
-                  : "경기 인상이나 분석 포인트를 남겨보세요."
+                ? "닉네임을 먼저 설정하면 댓글을 작성할 수 있습니다."
+                  : "경기 인상이나 분석 메모를 남겨보세요."
             }
             className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-900 outline-none"
             disabled={!canWrite || !hasNickname || pendingComment}
@@ -344,7 +427,11 @@ export function MatchEngagementPanel({ match }: { match: MatchData }) {
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10 text-xs font-bold text-slate-800">{getInitials(comment.user)}</Avatar>
                   <div>
-                    <div className="font-semibold text-slate-950">{comment.user}</div>
+                    <PublicUserTrigger
+                      summary={comment.userSummary}
+                      label={comment.user}
+                      className="font-semibold text-slate-950"
+                    />
                     <div className="text-xs text-slate-500">{comment.createdLabel}</div>
                   </div>
                 </div>
@@ -457,16 +544,29 @@ export function SetRatingPanel({ data }: { data: SetDetailData }) {
 
   return (
     <Card>
-      <CardHeader>
-        <SectionTitle
-          eyebrow="Set Rating"
-          title={`${data.title} 선수 평점`}
-          description="좌우 대칭 보드에서 여러 선수 점수를 한 번에 드래그한 뒤 일괄 저장할 수 있습니다."
-        />
-      </CardHeader>
+        <CardHeader>
+          <SectionTitle
+            eyebrow="Set Rating"
+            title={`${data.title} 선수 평점`}
+            description="세트가 끝난 뒤 선수 평점을 남기면 코인을 얻고, 평점 보드에서 팬 평균과 바로 비교할 수 있습니다."
+          />
+        </CardHeader>
       <CardContent className="space-y-5 pt-5">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="rounded-[24px] border border-sky-100 bg-sky-50 px-4 py-3 text-sm text-slate-700">
+            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">Reward</div>
+            <div className="mt-2 font-semibold text-slate-950">선수 1명 저장마다 +2 Coin</div>
+            <div className="mt-1 text-slate-600">한 번에 여러 명을 저장하면 코인도 함께 누적됩니다.</div>
+          </div>
+          <div className="rounded-[24px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Use</div>
+            <div className="mt-2 font-semibold text-slate-950">모은 코인은 프로필 꾸미기에 사용</div>
+            <div className="mt-1 text-slate-600">팀 배지, 인장, 테마 효과 같은 보상으로 이어집니다.</div>
+          </div>
+        </div>
+
         <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-          {disabledReason ?? `현재 선택한 변경 ${changedRatings.length}건을 저장할 수 있습니다.`}
+          {disabledReason ?? `현재 선택한 변경 ${changedRatings.length}건을 저장할 수 있습니다. 저장 시 ${changedRatings.length * 2} Coin이 반영됩니다.`}
         </div>
 
         <div className="space-y-4">
@@ -526,7 +626,7 @@ export function SetRatingPanel({ data }: { data: SetDetailData }) {
               const error = await postJson(`/api/matches/${data.matchId}/sets/${data.setNumber}/ratings`, {
                 ratings: changedRatings,
               });
-              setFeedback(error ?? "세트 평점을 저장했습니다.");
+              setFeedback(error ?? `세트 평점을 저장했습니다. ${changedRatings.length * 2} Coin이 반영되었습니다.`);
               setPending(false);
               if (!error) {
                 startTransition(() => router.refresh());
@@ -554,8 +654,8 @@ export function SetRatingsBoard({ data }: { data: SetDetailData }) {
         />
       </CardHeader>
       <CardContent className="grid gap-4 pt-5 md:grid-cols-2">
-        {[{ team: data.teamA, players: data.teamAPlayers }, { team: data.teamB, players: data.teamBPlayers }].map((group) => (
-          <div key={group.team} className="rounded-[24px] border border-slate-200 bg-white p-4">
+        {[{ team: data.teamA, players: data.teamAPlayers }, { team: data.teamB, players: data.teamBPlayers }].map((group, index) => (
+          <div key={`${data.id}-${group.team}-${index}`} className="rounded-[24px] border border-slate-200 bg-white p-4">
             <div className="mb-4 flex items-center gap-3">
               <TeamLogo team={group.team} size={48} />
               <div>

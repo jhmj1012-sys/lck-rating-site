@@ -1,6 +1,6 @@
 ﻿import { cn } from "./utils";
 
-export type TeamId = "T1" | "GEN" | "KT" | "DRX" | "HLE" | "DK" | "NS" | "BRO" | "BFX" | "DNS";
+export type TeamId = "T1" | "GEN" | "KT" | "KRX" | "HLE" | "DK" | "NS" | "BRO" | "BFX" | "DNS";
 
 type TeamMeta = {
   id: TeamId;
@@ -16,7 +16,7 @@ export const TEAM_BRANDING: Record<TeamId, TeamMeta> = {
   T1: { id: "T1", name: "T1", logoText: "T1", sub: "ESPORTS", primary: "#C8102E", bg: "#0A0002", shape: "shield" },
   GEN: { id: "GEN", name: "Gen.G", logoText: "GEN", sub: "GEN.G", primary: "#C9A227", bg: "#090703", shape: "hex" },
   KT: { id: "KT", name: "KT", logoText: "KT", sub: "ROLSTER", primary: "#E4002B", bg: "#080003", shape: "bolt" },
-  DRX: { id: "DRX", name: "KRX", logoText: "KRX", sub: "KRX", primary: "#1C6EAF", bg: "#020810", shape: "octa" },
+  KRX: { id: "KRX", name: "KRX", logoText: "KRX", sub: "KRX", primary: "#1C6EAF", bg: "#020810", shape: "octa" },
   HLE: { id: "HLE", name: "HLE", logoText: "HLE", sub: "HANWHA", primary: "#E84F1C", bg: "#0A0300", shape: "flame" },
   DK: { id: "DK", name: "DK", logoText: "DK", sub: "DPLUS KIA", primary: "#003DA5", bg: "#01020A", shape: "hex" },
   NS: { id: "NS", name: "NS", logoText: "NS", sub: "REDFORCE", primary: "#E4002B", bg: "#080003", shape: "shield2" },
@@ -32,8 +32,8 @@ export function normalizeTeamName(team: string): TeamId | null {
     GEN: "GEN",
     GENG: "GEN",
     KT: "KT",
-    DRX: "DRX",
-    KRX: "DRX",
+    DRX: "KRX",
+    KRX: "KRX",
     HLE: "HLE",
     DK: "DK",
     NS: "NS",

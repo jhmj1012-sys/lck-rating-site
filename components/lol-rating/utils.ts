@@ -39,11 +39,15 @@ export function getStatusLabel(status: MatchStatus) {
 }
 
 export function getPredictionStateLabel(match: MatchData) {
+  if (match.teamA === "TBD" || match.teamB === "TBD") {
+    return "대진 확정 전";
+  }
+
   return match.predictionLocked ? "예측 마감" : "예측 가능";
 }
 
 export function isPredictionOpen(match: MatchData) {
-  return match.status === "scheduled" && !match.predictionLocked && !match.myPredictionTeam;
+  return match.status === "scheduled" && !match.predictionLocked && match.teamA !== "TBD" && match.teamB !== "TBD" && !match.myPredictionTeam;
 }
 
 export function getPredictionBlockReason(match: MatchData, canWrite: boolean, selectedTeam: string, hasNickname = true): PredictionBlockReason {
@@ -53,6 +57,10 @@ export function getPredictionBlockReason(match: MatchData, canWrite: boolean, se
 
   if (!hasNickname) {
     return "profile-required";
+  }
+
+  if (match.teamA === "TBD" || match.teamB === "TBD") {
+    return "unavailable";
   }
 
   if (match.status !== "scheduled" || match.predictionLocked) {

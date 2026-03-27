@@ -3,10 +3,13 @@
 import { cache } from "react";
 
 import type {
+  NotificationType,
+  PredictionSettlementResult,
   StoreShape,
   StoredComment,
   StoredMatch,
   StoredMatchSet,
+  StoredNotification,
   StoredPointLedgerEntry,
   StoredTeamRosterEntry,
   StoredUser,
@@ -14,6 +17,9 @@ import type {
 import { createId, mutateStore, readStore } from "@/lib/store";
 import type {
   DashboardData,
+  HomeCommentFeedItem,
+  HomeHeroStats,
+  HomePlayerLeaderboardItem,
   MatchComment,
   MatchMonthGroup,
   MatchData,
@@ -23,8 +29,12 @@ import type {
   MatchSetSummary,
   MatchWeekGroup,
   MyCommentItem,
+  NotificationItem,
   MyPageData,
   MyPointLedgerItem,
+  PublicUserSummary,
+  PredictionComparisonItem,
+  PredictionInsightItem,
   RosterPlayerItem,
   TeamRosterDetail,
   TeamRosterSummary,
@@ -33,22 +43,112 @@ import type {
   MyStoreItem,
   PlayerRating,
   PlayerRole,
+  PredictionLeaderboardItem,
   ScheduleHubData,
   SetDetailData,
   SetPlayerRating,
+  TeamStandingItem,
   UserProfile,
   WeekSchedule,
 } from "@/components/lol-rating/types";
 
 const relativeTime = new Intl.RelativeTimeFormat("ko", { numeric: "auto" });
 const roleOrder: Record<PlayerRole, number> = { TOP: 0, JGL: 1, MID: 2, ADC: 3, SUP: 4 };
-const POINTS = {
+const scheduleWeekdayOrder = [4, 5, 6, 0, 1, 2, 3] as const;
+const DEMO_NOW_ISO = "2026-04-16T12:00:00+09:00";
+const DEMO_NOW_MS = new Date(DEMO_NOW_ISO).getTime();
+const COINS = {
   predictionSubmit: 10,
   predictionHit: 5,
   commentSubmit: 4,
   legacyRatingSubmit: 8,
   setRatingPerPlayer: 2,
 } as const;
+
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function createNotification(
+  store: StoreShape,
+  input: Omit<StoredNotification, "id" | "createdAt"> & { createdAt?: string },
+) {
+  const duplicate = store.notifications.find(
+    (notification) =>
+      notification.userId === input.userId &&
+      notification.type === input.type &&
+      notification.relatedMatchId === input.relatedMatchId &&
+      notification.title === input.title &&
+      notification.rewardCoins === input.rewardCoins &&
+      notification.appliedOddsPercent === input.appliedOddsPercent,
+  );
+  if (duplicate) {
+    return duplicate;
+  }
+
+  const created = {
+    id: createId(store, "notifications", "notification"),
+    userId: input.userId,
+    type: input.type,
+    title: input.title,
+    body: input.body,
+    relatedMatchId: input.relatedMatchId,
+    createdAt: input.createdAt ?? new Date().toISOString(),
+    isRead: input.isRead,
+    rewardCoins: input.rewardCoins,
+    appliedOddsPercent: input.appliedOddsPercent,
+    metadata: input.metadata,
+  } satisfies StoredNotification;
+  store.notifications.push(created);
+  return created;
+}
+
+function getMatchResult(match: StoredMatch) {
+  if (match.status !== "finished" || match.scoreA === null || match.scoreB === null) {
+    return null;
+  }
+
+  return match.scoreA > match.scoreB ? match.teamAId : match.teamBId;
+}
+
+function buildLockedDistribution(store: StoreShape, match: StoredMatch) {
+  const votes = store.predictions.filter((prediction) => prediction.matchId === match.id);
+  const totalVotes = votes.length;
+  if (totalVotes === 0) {
+    return { teamA: 50, teamB: 50, totalVotes: 0 };
+  }
+
+  const teamAVotes = votes.filter((prediction) => prediction.teamId === match.teamAId).length;
+  const teamA = Math.round((teamAVotes / totalVotes) * 100);
+  return {
+    teamA,
+    teamB: 100 - teamA,
+    totalVotes,
+  };
+}
+
+function buildLockedOddsFromDistribution(distribution: { teamA: number; teamB: number; totalVotes: number }) {
+  const createSide = (sharePct: number) => {
+    const oddsPercent = Math.round(clamp(120 + ((85 - sharePct) / 70) * 80, 120, 200));
+    const hitBonusCoins = Math.round(clamp(20 + ((85 - sharePct) / 70) * 40, 20, 60));
+    return { oddsPercent, hitBonusCoins };
+  };
+
+  return {
+    teamA: createSide(distribution.teamA),
+    teamB: createSide(distribution.teamB),
+  };
+}
+
+function getPredictionLifecycleState(match: StoredMatch) {
+  if (match.predictionSettledAt) {
+    return "settled" as const;
+  }
+  if (match.predictionLocked || DEMO_NOW_MS >= getPredictionDeadlineAt(match.scheduledAt).getTime()) {
+    return "locked" as const;
+  }
+  return "open" as const;
+}
 
 function average(values: number[]) {
   if (values.length === 0) {
@@ -66,6 +166,50 @@ function getPublicName(user: StoredUser | null | undefined) {
   return user?.nickname ?? "닉네임 미설정";
 }
 
+function getSelectedBadgeLabel(store: StoreShape, user: StoredUser) {
+  if (!user.selectedBadge) {
+    return user.role === "admin" ? "운영자" : "기본 배지";
+  }
+
+  return store.profileStoreItems.find((item) => item.id === user.selectedBadge)?.label ?? user.selectedBadge;
+}
+
+function getUserPredictionStyleLabel(store: StoreShape, userId: string) {
+  const resolvedPredictions = store.predictions.filter(
+    (prediction) => prediction.userId === userId && prediction.settlementResult !== null,
+  );
+  const underdogPickRate =
+    resolvedPredictions.length > 0
+      ? Math.round((resolvedPredictions.filter((prediction) => prediction.wasUnderdogPick).length / resolvedPredictions.length) * 100)
+      : 0;
+
+  return getPredictionStyleLabel(underdogPickRate);
+}
+
+function buildPublicUserSummary(store: StoreShape, userId: string | null): PublicUserSummary | null {
+  if (!userId) {
+    return null;
+  }
+
+  const user = getUserById(store, userId);
+  if (!user) {
+    return null;
+  }
+
+  const profile = buildProfile(store, user);
+
+  return {
+    userId: user.id,
+    nickname: getPublicName(user),
+    bio: user.bio ?? "아직 소개 문구가 없습니다.",
+    teamBadge: getSelectedBadgeLabel(store, user),
+    points: profile.points,
+    predictionAccuracy: profile.predictionAccuracy,
+    predictionStyleLabel: getUserPredictionStyleLabel(store, user.id),
+    level: profile.level,
+  };
+}
+
 function getUserPointBalance(store: StoreShape, userId: string) {
   return store.pointLedger
     .filter((entry) => entry.userId === userId)
@@ -81,7 +225,7 @@ function appendPointLedgerEntry(
   const delta = input.type === "earn" ? input.amount : -input.amount;
   const nextBalance = currentBalance + delta;
   if (nextBalance < 0) {
-    throw new Error("포인트가 부족합니다.");
+    throw new Error("코인이 부족합니다.");
   }
 
   store.pointLedger.push({
@@ -97,17 +241,131 @@ function appendPointLedgerEntry(
   });
 }
 
+function settlePredictionForMatch(store: StoreShape, match: StoredMatch) {
+  if (!match.lockedDistribution) {
+    match.lockedDistribution = buildLockedDistribution(store, match);
+  }
+  if (!match.lockedOdds) {
+    match.lockedOdds = buildLockedOddsFromDistribution(match.lockedDistribution);
+  }
+  if (match.predictionSettledAt) {
+    return;
+  }
+
+  const winnerTeamId = getMatchResult(match);
+  if (!winnerTeamId) {
+    return;
+  }
+
+  const teamA = getTeamById(store, match.teamAId);
+  const teamB = getTeamById(store, match.teamBId);
+  if (!teamA || !teamB || !match.lockedOdds || !match.lockedDistribution) {
+    return;
+  }
+
+  const predictions = store.predictions.filter((prediction) => prediction.matchId === match.id);
+  for (const prediction of predictions) {
+    if (prediction.settledAt) {
+      continue;
+    }
+
+    const isHit = prediction.teamId === winnerTeamId;
+    const pickedTeamCode = prediction.teamId === match.teamAId ? teamA.code : teamB.code;
+    const winnerTeamCode = winnerTeamId === match.teamAId ? teamA.code : teamB.code;
+    const appliedSide = prediction.teamId === match.teamAId ? match.lockedOdds.teamA : match.lockedOdds.teamB;
+    const pickedShare = prediction.teamId === match.teamAId ? match.lockedDistribution.teamA : match.lockedDistribution.teamB;
+    const timestamp = new Date().toISOString();
+
+    prediction.settledAt = timestamp;
+    prediction.settlementResult = isHit ? "hit" : "miss";
+    prediction.appliedOddsPercent = appliedSide.oddsPercent;
+    prediction.wasUnderdogPick = pickedShare < 50;
+
+    if (isHit) {
+      prediction.settlementCoins = appliedSide.hitBonusCoins;
+      const ledgerReferenceId = `${prediction.id}:settlement`;
+      const existingLedger = store.pointLedger.some(
+        (entry) => entry.referenceType === "prediction_settlement" && entry.referenceId === ledgerReferenceId,
+      );
+      if (!existingLedger) {
+        appendPointLedgerEntry(store, {
+          userId: prediction.userId,
+          type: "earn",
+          amount: appliedSide.hitBonusCoins,
+          reason: `예측 적중 추가 코인 (배당 ${appliedSide.oddsPercent}%)`,
+          referenceType: "prediction_settlement",
+          referenceId: ledgerReferenceId,
+        });
+      }
+      createNotification(store, {
+        userId: prediction.userId,
+        type: "prediction_hit",
+        title: `${teamA.code} vs ${teamB.code} 예측 적중`,
+        body: `${pickedTeamCode} 적중. 마감 기준 배당 ${appliedSide.oddsPercent}%가 적용되어 +${appliedSide.hitBonusCoins} Coin을 획득했습니다.`,
+        relatedMatchId: match.id,
+        isRead: false,
+        rewardCoins: appliedSide.hitBonusCoins,
+        appliedOddsPercent: appliedSide.oddsPercent,
+        metadata: {
+          pickedTeam: pickedTeamCode,
+          winnerTeam: winnerTeamCode,
+          sharePct: pickedShare,
+        },
+        createdAt: timestamp,
+      });
+    } else {
+      prediction.settlementCoins = 0;
+      createNotification(store, {
+        userId: prediction.userId,
+        type: "prediction_missed",
+        title: `${teamA.code} vs ${teamB.code} 예측 결과`,
+        body: `${pickedTeamCode} 선택이 빗나갔습니다. 참여 보상은 유지되고, 승리 팀은 ${winnerTeamCode}입니다.`,
+        relatedMatchId: match.id,
+        isRead: false,
+        rewardCoins: 0,
+        appliedOddsPercent: appliedSide.oddsPercent,
+        metadata: {
+          pickedTeam: pickedTeamCode,
+          winnerTeam: winnerTeamCode,
+          sharePct: pickedShare,
+        },
+        createdAt: timestamp,
+      });
+    }
+  }
+
+  match.predictionSettledAt = new Date().toISOString();
+}
+
+function ensurePredictionLifecycle(store: StoreShape) {
+  for (const match of store.matches) {
+    const deadlineMs = getPredictionDeadlineAt(match.scheduledAt).getTime();
+    const shouldLock = !match.predictionLockedAt && DEMO_NOW_MS >= deadlineMs;
+    if (shouldLock) {
+      match.predictionLocked = true;
+      match.predictionLockedAt = new Date(deadlineMs).toISOString();
+      match.lockedDistribution = buildLockedDistribution(store, match);
+      match.lockedOdds = buildLockedOddsFromDistribution(match.lockedDistribution);
+      match.updatedAt = new Date().toISOString();
+    }
+
+    if (match.status === "finished" && !match.predictionSettledAt) {
+      settlePredictionForMatch(store, match);
+    }
+  }
+}
+
 function getPredictionDeadlineAt(scheduledAt: string) {
   return new Date(new Date(scheduledAt).getTime() - 10 * 60 * 1000);
 }
 
 function isPredictionLocked(match: StoredMatch) {
-  return match.predictionLocked || match.status === "finished" || Date.now() >= getPredictionDeadlineAt(match.scheduledAt).getTime();
+  return match.predictionLocked || match.status === "finished" || DEMO_NOW_MS >= getPredictionDeadlineAt(match.scheduledAt).getTime();
 }
 
 function formatRelativeLabel(value: string) {
   const target = new Date(value).getTime();
-  const minutes = Math.round((target - Date.now()) / 60000);
+  const minutes = Math.round((target - DEMO_NOW_MS) / 60000);
   if (Math.abs(minutes) < 60) {
     return relativeTime.format(minutes, "minute");
   }
@@ -170,6 +428,41 @@ function formatWeekLabel(date: Date) {
 
 function formatMonthLabel(date: Date) {
   return `${date.getMonth() + 1}월`;
+}
+
+function normalizeStageLabel(stage: string, matchId: string) {
+  if (!stage || stage.includes("�") || stage.includes("占")) {
+    const number = Number(matchId.replace("match_", ""));
+    if (number >= 1 && number <= 45) {
+      return "정규시즌 1R";
+    }
+    if (number >= 46 && number <= 90) {
+      return "정규시즌 2R";
+    }
+
+    const roadToMsiStage: Record<number, string> = {
+      91: "Road to MSI 1R",
+      92: "Road to MSI 2R",
+      93: "Road to MSI 3R",
+      94: "Road to MSI 4R",
+      95: "Road to MSI 최종전",
+    };
+    return roadToMsiStage[number] ?? "LCK 2026";
+  }
+
+  return stage;
+}
+
+function getWeekdaySortOrder(date: Date) {
+  return scheduleWeekdayOrder[date.getDay()] ?? 99;
+}
+
+function getScheduleWeekStart(date: Date) {
+  const copy = new Date(date);
+  const daysFromWednesday = (copy.getDay() - 3 + 7) % 7;
+  copy.setDate(copy.getDate() - daysFromWednesday);
+  copy.setHours(0, 0, 0, 0);
+  return copy;
 }
 
 function getTeamById(store: StoreShape, teamId: string) {
@@ -281,7 +574,9 @@ function buildComments(store: StoreShape, matchId: string): MatchComment[] {
       const author = getUserById(store, comment.userId);
       return {
         id: comment.id,
+        userId: author?.id ?? null,
         user: getPublicName(author),
+        userSummary: buildPublicUserSummary(store, author?.id ?? null),
         createdLabel: formatRelativeLabel(comment.createdAt),
         likes: Math.max(1, Math.round(comment.text.length / 12)),
         text: comment.text,
@@ -328,6 +623,7 @@ function buildSetTopPerformer(store: StoreShape, set: StoredMatchSet) {
 }
 
 function buildSetSummary(store: StoreShape, set: StoredMatchSet): MatchSetSummary {
+  const isPlayed = set.winnerTeamId !== null;
   const winnerTeam = set.winnerTeamId ? getTeamById(store, set.winnerTeamId)?.code ?? null : null;
   const ratingParticipants = store.setPlayerRatings.filter((rating) => rating.matchSetId === set.id).length;
 
@@ -335,12 +631,13 @@ function buildSetSummary(store: StoreShape, set: StoredMatchSet): MatchSetSummar
     id: set.id,
     setNumber: set.setNumber,
     title: `세트 ${set.setNumber}`,
+    isPlayed,
     winnerTeam,
-    durationLabel: formatDurationLabel(set.durationMinutes),
-    scoreLabel: `${set.teamAScore} : ${set.teamBScore}`,
+    durationLabel: isPlayed ? formatDurationLabel(set.durationMinutes) : "-",
+    scoreLabel: isPlayed ? `${set.teamAScore} : ${set.teamBScore}` : "미진행",
     note: set.note,
     ratingParticipants,
-    topPerformer: buildSetTopPerformer(store, set),
+    topPerformer: isPlayed ? buildSetTopPerformer(store, set) : null,
   };
 }
 
@@ -353,7 +650,7 @@ function buildMatchView(store: StoreShape, match: StoredMatch, viewerId: string 
 
   const players = getMatchPlayers(store, match.id);
   const comments = buildComments(store, match.id);
-  const predictionSummary = buildPredictionSummary(store, match);
+  const predictionSummary = match.lockedDistribution ?? buildPredictionSummary(store, match);
   const totalRatings =
     store.playerRatings.filter((rating) => rating.matchId === match.id).length +
     store.setPlayerRatings.filter((rating) => getSetById(store, rating.matchSetId)?.matchId === match.id).length;
@@ -368,7 +665,7 @@ function buildMatchView(store: StoreShape, match: StoredMatch, viewerId: string 
     patch: match.patch,
     status: match.status,
     date: formatDateLabel(match.scheduledAt),
-    serverNow: new Date().toISOString(),
+    serverNow: new Date(DEMO_NOW_MS).toISOString(),
     scheduledAt: match.scheduledAt,
     predictionDeadlineAt: getPredictionDeadlineAt(match.scheduledAt).toISOString(),
     teamA: teamA.code,
@@ -378,7 +675,24 @@ function buildMatchView(store: StoreShape, match: StoredMatch, viewerId: string 
     totalRatings,
     mvp: buildMvp(players),
     predictionLocked: isPredictionLocked(match),
+    predictionLifecycleState: getPredictionLifecycleState(match),
     predictionSummary,
+    lockedDistribution: match.lockedDistribution,
+    lockedOdds: match.lockedOdds,
+    myPredictionOddsPercent:
+      myPrediction && match.lockedOdds
+        ? myPrediction.teamId === match.teamAId
+          ? match.lockedOdds.teamA.oddsPercent
+          : match.lockedOdds.teamB.oddsPercent
+        : null,
+    myPredictionBonusCoins:
+      myPrediction && match.lockedOdds
+        ? myPrediction.teamId === match.teamAId
+          ? match.lockedOdds.teamA.hitBonusCoins
+          : match.lockedOdds.teamB.hitBonusCoins
+        : null,
+    myPredictionSettlementResult: myPrediction?.settlementResult ?? null,
+    myPredictionSettlementCoins: myPrediction?.settlementCoins ?? 0,
     players,
     commentsList: comments,
     myPredictionTeam: myPrediction?.teamId === match.teamAId ? teamA.code : myPrediction?.teamId === match.teamBId ? teamB.code : null,
@@ -425,7 +739,8 @@ function buildProfile(store: StoreShape, viewer: StoredUser | null): UserProfile
       teamBadge: "게스트",
       ownedPersonas: ["관전자", "기본 프로필"],
       selectedProfileTheme: null,
-      predictionStats: { hit: 0, miss: 0, streak: 0 },
+      predictionAccuracy: 0,
+      predictionStats: { total: 0, hit: 0, miss: 0, streak: 0 },
     };
   }
 
@@ -445,10 +760,9 @@ function buildProfile(store: StoreShape, viewer: StoredUser | null): UserProfile
   }).length;
 
   const miss = resolved.length - hit;
+  const predictionAccuracy = resolved.length > 0 ? Math.round((hit / resolved.length) * 100) : 0;
   const points = getUserPointBalance(store, viewer.id);
-  const selectedBadge = viewer.selectedBadge
-    ? store.profileStoreItems.find((item) => item.id === viewer.selectedBadge)?.label ?? viewer.selectedBadge
-    : null;
+  const selectedBadge = getSelectedBadgeLabel(store, viewer);
 
   return {
     nickname: viewer.nickname ?? "닉네임 설정 필요",
@@ -458,15 +772,342 @@ function buildProfile(store: StoreShape, viewer: StoredUser | null): UserProfile
     hasNickname: Boolean(viewer.nickname),
     points,
     level: Math.max(1, Math.floor(points / 120) + 1),
-    teamBadge: selectedBadge ?? (viewer.role === "admin" ? "운영자" : "기본 배지"),
+    teamBadge: selectedBadge,
     ownedPersonas: ["경기 분석가", viewer.role === "admin" ? "운영자" : "세트 평점러"],
     selectedProfileTheme: viewer.selectedProfileTheme,
+    predictionAccuracy,
     predictionStats: {
+      total: resolved.length,
       hit,
       miss: Math.max(0, miss),
       streak: hit > 0 ? Math.min(hit, 5) : 0,
     },
   };
+}
+
+function buildTeamStandings(store: StoreShape): TeamStandingItem[] {
+  const baseRows = store.teams
+    .filter((team) => team.code !== "TBD")
+    .map((team) => ({
+      teamId: team.id,
+      teamCode: team.code,
+      wins: 0,
+      losses: 0,
+      setsWon: 0,
+      setsLost: 0,
+    }));
+  const rowsById = new Map(baseRows.map((row) => [row.teamId, row]));
+
+  for (const match of store.matches) {
+    if (match.status !== "finished" || match.scoreA === null || match.scoreB === null) {
+      continue;
+    }
+
+    const rowA = rowsById.get(match.teamAId);
+    const rowB = rowsById.get(match.teamBId);
+    if (!rowA || !rowB) {
+      continue;
+    }
+
+    rowA.setsWon += match.scoreA;
+    rowA.setsLost += match.scoreB;
+    rowB.setsWon += match.scoreB;
+    rowB.setsLost += match.scoreA;
+
+    if (match.scoreA > match.scoreB) {
+      rowA.wins += 1;
+      rowB.losses += 1;
+    } else if (match.scoreB > match.scoreA) {
+      rowB.wins += 1;
+      rowA.losses += 1;
+    }
+  }
+
+  return baseRows
+    .slice()
+    .sort((a, b) =>
+      b.wins - a.wins ||
+      a.losses - b.losses ||
+      (b.setsWon - b.setsLost) - (a.setsWon - a.setsLost) ||
+      a.teamCode.localeCompare(b.teamCode, "en"),
+    )
+    .map((row, index) => {
+      const total = row.wins + row.losses;
+      return {
+        rank: index + 1,
+        teamCode: row.teamCode,
+        wins: row.wins,
+        losses: row.losses,
+        setDiff: row.setsWon - row.setsLost,
+        winRate: total > 0 ? Math.round((row.wins / total) * 100) : 0,
+      };
+    });
+}
+
+function buildPredictionLeaderboard(store: StoreShape): PredictionLeaderboardItem[] {
+  return store.users
+    .filter((user) => Boolean(user.nickname))
+    .map((user) => {
+      const predictions = store.predictions.filter((prediction) => prediction.userId === user.id);
+      const resolved = predictions.filter((prediction) => {
+        const match = store.matches.find((item) => item.id === prediction.matchId);
+        return match?.status === "finished" && match.scoreA !== null && match.scoreB !== null;
+      });
+      const hit = resolved.filter((prediction) => {
+        const match = store.matches.find((item) => item.id === prediction.matchId);
+        if (!match || match.scoreA === null || match.scoreB === null) {
+          return false;
+        }
+        const winner = match.scoreA > match.scoreB ? match.teamAId : match.teamBId;
+        return winner === prediction.teamId;
+      }).length;
+      const miss = resolved.length - hit;
+
+      return {
+        userId: user.id,
+        nickname: user.nickname ?? "",
+        userSummary: buildPublicUserSummary(store, user.id),
+        points: getUserPointBalance(store, user.id),
+        accuracy: resolved.length > 0 ? Math.round((hit / resolved.length) * 100) : 0,
+        hit,
+        miss: Math.max(0, miss),
+      };
+    })
+    .sort((a, b) =>
+      b.points - a.points ||
+      b.accuracy - a.accuracy ||
+      b.hit - a.hit ||
+      a.nickname.localeCompare(b.nickname, "ko"),
+    )
+    .slice(0, 10)
+    .map((item, index) => ({
+      rank: index + 1,
+      ...item,
+    }));
+}
+
+function buildNotificationItems(store: StoreShape, viewerId: string | null, limit?: number): NotificationItem[] {
+  if (!viewerId) {
+    return [];
+  }
+
+  return store.notifications
+    .filter((notification) => notification.userId === viewerId)
+    .slice()
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, limit ?? Number.MAX_SAFE_INTEGER)
+    .map((notification) => ({
+      id: notification.id,
+      type: notification.type,
+      title: notification.title,
+      body: notification.body,
+      relatedMatchId: notification.relatedMatchId,
+      createdAt: notification.createdAt,
+      createdLabel: formatRelativeLabel(notification.createdAt),
+      isRead: notification.isRead,
+      rewardCoins: notification.rewardCoins,
+      appliedOddsPercent: notification.appliedOddsPercent,
+    }));
+}
+
+function getPredictionStyleLabel(underdogPickRate: number) {
+  if (underdogPickRate < 35) {
+    return "안정형";
+  }
+  if (underdogPickRate <= 55) {
+    return "균형형";
+  }
+  return "공격형";
+}
+
+function buildPredictionInsights(store: StoreShape, viewerId: string): {
+  insights: PredictionInsightItem[];
+  comparison: PredictionComparisonItem[];
+  styleLabel: string;
+} {
+  const userPredictions = store.predictions.filter((prediction) => prediction.userId === viewerId && prediction.settledAt);
+  const resolvedPredictions = userPredictions.filter((prediction) => prediction.settlementResult !== null);
+  const totalPredictions = resolvedPredictions.length;
+  const hits = resolvedPredictions.filter((prediction) => prediction.settlementResult === "hit");
+  const underdogSelections = resolvedPredictions.filter((prediction) => prediction.wasUnderdogPick);
+  const underdogHits = hits.filter((prediction) => prediction.wasUnderdogPick);
+  const totalCoins = resolvedPredictions.reduce((sum, prediction) => sum + COINS.predictionSubmit + prediction.settlementCoins, 0);
+  const avgBonus = hits.length > 0 ? Math.round(hits.reduce((sum, prediction) => sum + prediction.settlementCoins, 0) / hits.length) : 0;
+  const underdogRate = totalPredictions > 0 ? Math.round((underdogSelections.length / totalPredictions) * 100) : 0;
+  const accuracy = totalPredictions > 0 ? Math.round((hits.length / totalPredictions) * 100) : 0;
+  const styleLabel = getPredictionStyleLabel(underdogRate);
+
+  const rows = resolvedPredictions.flatMap((prediction) => {
+    const matchPredictions = store.predictions.filter((item) => item.matchId === prediction.matchId && item.settledAt);
+    return matchPredictions.map((item) => ({
+      isViewer: item.userId === viewerId,
+      hit: item.settlementResult === "hit",
+      underdogPick: Boolean(item.wasUnderdogPick),
+      underdogHit: Boolean(item.wasUnderdogPick) && item.settlementResult === "hit",
+      bonusCoins: item.settlementCoins,
+    }));
+  });
+
+  const participantRows = rows.length > 0 ? rows : [];
+  const participantHits = participantRows.filter((row) => row.hit).length;
+  const participantUnderdogPicks = participantRows.filter((row) => row.underdogPick).length;
+  const participantUnderdogHits = participantRows.filter((row) => row.underdogHit).length;
+  const participantAccuracy = participantRows.length > 0 ? Math.round((participantHits / participantRows.length) * 100) : 0;
+  const participantUnderdogPickRate = participantRows.length > 0 ? Math.round((participantUnderdogPicks / participantRows.length) * 100) : 0;
+  const participantUnderdogHitRate = participantUnderdogPicks > 0 ? Math.round((participantUnderdogHits / participantUnderdogPicks) * 100) : 0;
+  const myUnderdogHitRate = underdogSelections.length > 0 ? Math.round((underdogHits.length / underdogSelections.length) * 100) : 0;
+  const participantAvgBonus = participantRows.length > 0 ? Math.round(participantRows.reduce((sum, row) => sum + row.bonusCoins, 0) / participantRows.length) : 0;
+
+  const insights: PredictionInsightItem[] = [
+    { label: "총 예측 참여", value: `${totalPredictions}회`, description: "정산이 끝난 경기 기준 참여 횟수" },
+    { label: "적중률", value: `${accuracy}%`, description: `${hits.length}적중 / ${Math.max(0, totalPredictions - hits.length)}실패` },
+    { label: "예측 코인 총합", value: `${totalCoins} Coin`, description: "참여 코인과 적중 추가 코인 합계" },
+    { label: "평균 적중 보상", value: `${avgBonus} Coin`, description: "적중 경기 기준 평균 추가 보상" },
+    { label: "역배 적중", value: `${underdogHits.length}회`, description: `역배 선택 비중 ${underdogRate}% · ${styleLabel}` },
+    { label: "연속 적중", value: `${Math.min(hits.length, 5)}회`, description: "최근 정산 기준 추정 스트릭" },
+  ];
+
+  const comparison: PredictionComparisonItem[] = [
+    {
+      label: "적중률",
+      myValue: `${accuracy}%`,
+      averageValue: `${participantAccuracy}%`,
+      delta: `${accuracy - participantAccuracy >= 0 ? "+" : ""}${accuracy - participantAccuracy}%p`,
+      summary: accuracy >= participantAccuracy ? "평균보다 적중률이 높음" : "평균보다 적중률이 낮음",
+    },
+    {
+      label: "역배 선택 비중",
+      myValue: `${underdogRate}%`,
+      averageValue: `${participantUnderdogPickRate}%`,
+      delta: `${underdogRate - participantUnderdogPickRate >= 0 ? "+" : ""}${underdogRate - participantUnderdogPickRate}%p`,
+      summary: underdogRate >= participantUnderdogPickRate ? "평균보다 역배 선택 비중이 높음" : "평균보다 정배 선택 비중이 높음",
+    },
+    {
+      label: "역배 적중률",
+      myValue: `${myUnderdogHitRate}%`,
+      averageValue: `${participantUnderdogHitRate}%`,
+      delta: `${myUnderdogHitRate - participantUnderdogHitRate >= 0 ? "+" : ""}${myUnderdogHitRate - participantUnderdogHitRate}%p`,
+      summary: myUnderdogHitRate >= participantUnderdogHitRate ? "언더독 적중 보상이 평균보다 좋음" : "언더독 적중률을 더 끌어올릴 여지가 있음",
+    },
+    {
+      label: "평균 추가 코인",
+      myValue: `${avgBonus} Coin`,
+      averageValue: `${participantAvgBonus} Coin`,
+      delta: `${avgBonus - participantAvgBonus >= 0 ? "+" : ""}${avgBonus - participantAvgBonus} Coin`,
+      summary: avgBonus >= participantAvgBonus ? "평균보다 높은 추가 보상을 얻는 편" : "평균보다 보수적인 적중 보상을 얻는 편",
+    },
+  ];
+
+  return { insights, comparison, styleLabel };
+}
+
+function isSameDemoDay(value: string) {
+  const target = new Date(value);
+  const demoDate = new Date(DEMO_NOW_MS);
+  return (
+    target.getFullYear() === demoDate.getFullYear() &&
+    target.getMonth() === demoDate.getMonth() &&
+    target.getDate() === demoDate.getDate()
+  );
+}
+
+function buildHeroStats(store: StoreShape): HomeHeroStats {
+  const todayMatches = store.matches.filter((match) => isSameDemoDay(match.scheduledAt)).length;
+  const totalRatings = store.playerRatings.length + store.setPlayerRatings.length;
+  const totalComments = store.comments.filter((comment) => !comment.hidden).length;
+
+  return {
+    todayMatches,
+    totalPredictions: store.predictions.length,
+    totalRatings,
+    totalComments,
+    updatedLabel: "방금 업데이트",
+  };
+}
+
+function buildFeaturedMatch(store: StoreShape, viewerId: string | null) {
+  const candidates = store.matches
+    .filter((match) => isSameDemoDay(match.scheduledAt))
+    .slice()
+    .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
+  const preferred =
+    candidates.find((match) => match.status === "scheduled" && !isPredictionLocked(match)) ??
+    candidates.find((match) => match.status === "finished") ??
+    store.matches
+      .slice()
+      .sort((a, b) => Math.abs(new Date(a.scheduledAt).getTime() - DEMO_NOW_MS) - Math.abs(new Date(b.scheduledAt).getTime() - DEMO_NOW_MS))[0] ??
+    null;
+
+  return preferred ? buildMatchView(store, preferred, viewerId) : null;
+}
+
+function buildTodayMatches(store: StoreShape, viewerId: string | null): MatchData[] {
+  return store.matches
+    .filter((match) => isSameDemoDay(match.scheduledAt))
+    .slice()
+    .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
+    .map((match) => buildMatchView(store, match, viewerId));
+}
+
+function buildRecentFinishedMatches(store: StoreShape, viewerId: string | null): MatchData[] {
+  return store.matches
+    .filter((match) => match.status === "finished" && new Date(match.scheduledAt).getTime() <= DEMO_NOW_MS)
+    .slice()
+    .sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime())
+    .slice(0, 3)
+    .map((match) => buildMatchView(store, match, viewerId));
+}
+
+function buildRecentCommentsFeed(store: StoreShape): HomeCommentFeedItem[] {
+  return store.comments
+    .filter((comment) => !comment.hidden)
+    .slice()
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 4)
+    .map((comment) => {
+      const author = getUserById(store, comment.userId);
+      return {
+        id: comment.id,
+        userId: author?.id ?? null,
+        user: getPublicName(author),
+        userSummary: buildPublicUserSummary(store, author?.id ?? null),
+        matchLabel: buildMatchLabel(store, comment.matchId),
+        text: comment.text,
+        createdLabel: formatRelativeLabel(comment.createdAt),
+      };
+    });
+}
+
+function buildPlayerLeaderboard(store: StoreShape): HomePlayerLeaderboardItem[] {
+  return store.players
+    .map((player) => {
+      const team = getTeamById(store, player.teamId);
+      const matchScores = store.playerRatings.filter((rating) => rating.playerId === player.id).map((rating) => rating.score);
+      const setScores = store.setPlayerRatings.filter((rating) => rating.playerId === player.id).map((rating) => rating.score);
+      const scores = [...matchScores, ...setScores];
+      if (!team || scores.length === 0) {
+        return null;
+      }
+
+      return {
+        playerId: player.id,
+        playerName: player.name,
+        teamCode: team.code,
+        averageRating: Number(average(scores).toFixed(1)),
+        ratingCount: scores.length,
+      };
+    })
+    .filter((player): player is Omit<HomePlayerLeaderboardItem, "rank"> => player !== null)
+    .sort((a, b) =>
+      b.averageRating - a.averageRating ||
+      b.ratingCount - a.ratingCount ||
+      a.playerName.localeCompare(b.playerName, "en"),
+    )
+    .slice(0, 5)
+    .map((player, index) => ({
+      rank: index + 1,
+      ...player,
+    }));
 }
 
 function buildMatchListItem(store: StoreShape, match: StoredMatch): MatchListItem {
@@ -475,6 +1116,7 @@ function buildMatchListItem(store: StoreShape, match: StoredMatch): MatchListIte
   if (!teamA || !teamB) {
     throw new Error(`Invalid match teams for ${match.id}`);
   }
+  const predictionSummary = match.lockedDistribution ?? buildPredictionSummary(store, match);
 
   const winnerTeamCode =
     match.status === "finished" && match.scoreA !== null && match.scoreB !== null
@@ -488,7 +1130,7 @@ function buildMatchListItem(store: StoreShape, match: StoredMatch): MatchListIte
   return {
     id: match.id,
     league: match.league,
-    stage: match.stage,
+    stage: normalizeStageLabel(match.stage, match.id),
     status: match.status,
     isFinished: match.status === "finished",
     winnerTeamCode,
@@ -498,8 +1140,13 @@ function buildMatchListItem(store: StoreShape, match: StoredMatch): MatchListIte
     teamB: teamB.code,
     score: match.scoreA === null || match.scoreB === null ? "VS" : `${match.scoreA} : ${match.scoreB}`,
     ratingParticipants: store.setPlayerRatings.filter((rating) => getSetById(store, rating.matchSetId)?.matchId === match.id).length,
-    predictionVotes: buildPredictionSummary(store, match).totalVotes,
+    predictionVotes: predictionSummary.totalVotes,
+    predictionRateA: predictionSummary.teamA,
+    predictionRateB: predictionSummary.teamB,
     predictionLocked: isPredictionLocked(match),
+    predictionLifecycleState: getPredictionLifecycleState(match),
+    lockedDistribution: match.lockedDistribution,
+    lockedOdds: match.lockedOdds,
   };
 }
 
@@ -556,15 +1203,16 @@ function buildScheduleGroups(store: StoreShape): MatchMonthGroup[] {
     const date = new Date(
       store.matches.find((match) => match.id === item.id)?.scheduledAt ?? Date.now(),
     );
-    const monthId = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-    const weekNumber = Math.floor((date.getDate() - 1) / 7) + 1;
+    const weekStart = getScheduleWeekStart(date);
+    const monthId = `${weekStart.getFullYear()}-${String(weekStart.getMonth() + 1).padStart(2, "0")}`;
+    const weekNumber = Math.floor((weekStart.getDate() - 1) / 7) + 1;
     const weekId = `${monthId}-w${weekNumber}`;
 
     let monthGroup = monthMap.get(monthId);
     if (!monthGroup) {
       monthGroup = {
         id: monthId,
-        label: formatMonthLabel(date),
+        label: formatMonthLabel(weekStart),
         weeks: [],
       };
       monthMap.set(monthId, monthGroup);
@@ -574,7 +1222,7 @@ function buildScheduleGroups(store: StoreShape): MatchMonthGroup[] {
     if (!weekGroup) {
       weekGroup = {
         id: weekId,
-        label: `${formatMonthLabel(date)} ${weekNumber}주차`,
+        label: `${formatMonthLabel(weekStart)} ${weekNumber}주차`,
         dates: [],
       } satisfies MatchWeekGroup;
       monthGroup.weeks.push(weekGroup);
@@ -600,7 +1248,21 @@ function buildScheduleGroups(store: StoreShape): MatchMonthGroup[] {
       .sort((a, b) => a.id.localeCompare(b.id, "en"))
       .map((week) => ({
         ...week,
-        dates: week.dates.slice(),
+        dates: week.dates.slice().sort((a, b) => {
+          const aScheduledAt = store.matches.find((match) => match.id === a.matches[0]?.id)?.scheduledAt;
+          const bScheduledAt = store.matches.find((match) => match.id === b.matches[0]?.id)?.scheduledAt;
+
+          if (!aScheduledAt || !bScheduledAt) {
+            return a.id.localeCompare(b.id, "ko");
+          }
+
+          const weekdayOrderDiff = getWeekdaySortOrder(new Date(aScheduledAt)) - getWeekdaySortOrder(new Date(bScheduledAt));
+          if (weekdayOrderDiff !== 0) {
+            return weekdayOrderDiff;
+          }
+
+          return new Date(aScheduledAt).getTime() - new Date(bScheduledAt).getTime();
+        }),
       })),
   }));
 }
@@ -650,6 +1312,7 @@ function buildSetDetail(store: StoreShape, set: StoredMatchSet, viewerId: string
 
   const teamAPlayers = buildSetSidePlayers(store, set, match.teamAId, viewerId);
   const teamBPlayers = buildSetSidePlayers(store, set, match.teamBId, viewerId);
+  const isPlayed = set.winnerTeamId !== null;
   const viewerRatings = Object.fromEntries(
     [...teamAPlayers, ...teamBPlayers]
       .filter((player) => player.viewerRating !== null)
@@ -661,9 +1324,10 @@ function buildSetDetail(store: StoreShape, set: StoredMatchSet, viewerId: string
     matchId: match.id,
     setNumber: set.setNumber,
     title: `세트 ${set.setNumber}`,
+    isPlayed,
     winnerTeam: set.winnerTeamId ? getTeamById(store, set.winnerTeamId)?.code ?? null : null,
-    durationLabel: formatDurationLabel(set.durationMinutes),
-    scoreLabel: `${set.teamAScore} : ${set.teamBScore}`,
+    durationLabel: isPlayed ? formatDurationLabel(set.durationMinutes) : "-",
+    scoreLabel: isPlayed ? `${set.teamAScore} : ${set.teamBScore}` : "미진행",
     note: set.note,
     teamA: teamA.code,
     teamB: teamB.code,
@@ -686,12 +1350,19 @@ function buildSetDetail(store: StoreShape, set: StoredMatchSet, viewerId: string
       commentHighlights: player.commentHighlights,
     })),
     viewerRatings,
-    canRate: match.status === "finished",
+    canRate: match.status === "finished" && isPlayed,
   };
 }
 
+async function readStoreWithPredictionLifecycle() {
+  return mutateStore(async (store) => {
+    ensurePredictionLifecycle(store);
+    return store;
+  });
+}
+
 export const getDashboardData = cache(async (viewerId: string | null): Promise<DashboardData> => {
-  const store = await readStore();
+  const store = await readStoreWithPredictionLifecycle();
   const viewer = viewerId ? store.users.find((user) => user.id === viewerId) ?? null : null;
   const matchViews = store.matches
     .slice()
@@ -713,9 +1384,13 @@ export const getDashboardData = cache(async (viewerId: string | null): Promise<D
 });
 
 export const getScheduleHubData = cache(async (viewerId: string | null): Promise<ScheduleHubData> => {
-  const store = await readStore();
+  const store = await readStoreWithPredictionLifecycle();
   const viewer = viewerId ? store.users.find((user) => user.id === viewerId) ?? null : null;
   const months = buildScheduleGroups(store);
+  const notifications = buildNotificationItems(store, viewerId, 5);
+  const unreadNotificationCount = viewerId
+    ? store.notifications.filter((notification) => notification.userId === viewerId && !notification.isRead).length
+    : 0;
 
   return {
     months,
@@ -726,6 +1401,16 @@ export const getScheduleHubData = cache(async (viewerId: string | null): Promise
       store.matches[0]?.id ??
       null,
     userProfile: buildProfile(store, viewer),
+    standings: buildTeamStandings(store),
+    predictionLeaderboard: buildPredictionLeaderboard(store),
+    heroStats: buildHeroStats(store),
+    featuredMatch: buildFeaturedMatch(store, viewerId),
+    todayMatches: buildTodayMatches(store, viewerId),
+    recentFinishedMatches: buildRecentFinishedMatches(store, viewerId),
+    recentComments: buildRecentCommentsFeed(store),
+    playerLeaderboard: buildPlayerLeaderboard(store),
+    notifications,
+    unreadNotificationCount,
   };
 });
 
@@ -740,7 +1425,7 @@ export const getTeamRosterHubData = cache(async (): Promise<TeamRosterSummary[]>
 
 export async function getTeamRosterDetailData(teamCode: string): Promise<TeamRosterDetail> {
   const store = await readStore();
-  const normalizedTeamCode = teamCode.toUpperCase() === "KRX" ? "DRX" : teamCode.toUpperCase();
+  const normalizedTeamCode = teamCode.toUpperCase() === "DRX" ? "KRX" : teamCode.toUpperCase();
   const team = store.teams.find((item) => item.code === normalizedTeamCode);
   if (!team) {
     throw new Error("팀을 찾을 수 없습니다.");
@@ -755,7 +1440,7 @@ export async function getTeamRosterDetailData(teamCode: string): Promise<TeamRos
 }
 
 export async function getMatchDetailData(matchId: string, viewerId: string | null): Promise<MatchDetailData> {
-  const store = await readStore();
+  const store = await readStoreWithPredictionLifecycle();
   const match = store.matches.find((item) => item.id === matchId);
   if (!match) {
     throw new Error("경기를 찾을 수 없습니다.");
@@ -768,10 +1453,13 @@ export async function getMatchDetailData(matchId: string, viewerId: string | nul
 }
 
 export async function getSetDetailData(matchId: string, setNumber: number, viewerId: string | null = null): Promise<SetDetailData> {
-  const store = await readStore();
+  const store = await readStoreWithPredictionLifecycle();
   const set = store.matchSets.find((item) => item.matchId === matchId && item.setNumber === setNumber);
   if (!set) {
     throw new Error("세트를 찾을 수 없습니다.");
+  }
+  if (set.winnerTeamId === null) {
+    throw new Error("진행되지 않은 세트입니다.");
   }
 
   return buildSetDetail(store, set, viewerId);
@@ -799,7 +1487,7 @@ function buildPredictionResultLabel(store: StoreShape, matchId: string, selected
 }
 
 export async function getMyPageData(viewerId: string): Promise<MyPageData> {
-  const store = await readStore();
+  const store = await readStoreWithPredictionLifecycle();
   const viewer = store.users.find((user) => user.id === viewerId);
   if (!viewer) {
     throw new Error("사용자를 찾을 수 없습니다.");
@@ -823,6 +1511,10 @@ export async function getMyPageData(viewerId: string): Promise<MyPageData> {
       resultLabel: buildPredictionResultLabel(store, prediction.matchId, prediction.teamId),
       submittedAt: prediction.createdAt,
       updatedAt: prediction.updatedAt ?? prediction.createdAt,
+      lockedOddsPercent: prediction.appliedOddsPercent,
+      lockedBonusCoins: prediction.settlementCoins > 0 ? prediction.settlementCoins : null,
+      settlementCoins: prediction.settlementCoins,
+      wasUnderdogPick: Boolean(prediction.wasUnderdogPick),
     }));
 
   const legacyRatings: MyRatingItem[] = store.playerRatings
@@ -901,6 +1593,8 @@ export async function getMyPageData(viewerId: string): Promise<MyPageData> {
   });
 
   const profile = buildProfile(store, viewer);
+  const notifications = buildNotificationItems(store, viewerId);
+  const { insights, comparison, styleLabel } = buildPredictionInsights(store, viewerId);
   return {
     profile: {
       ...profile,
@@ -915,6 +1609,11 @@ export async function getMyPageData(viewerId: string): Promise<MyPageData> {
     comments,
     pointLedger,
     storeItems,
+    notifications,
+    unreadNotificationCount: notifications.filter((notification) => !notification.isRead).length,
+    predictionInsights: insights,
+    predictionComparison: comparison,
+    predictionStyleLabel: styleLabel,
   };
 }
 
@@ -949,6 +1648,21 @@ export async function purchaseProfileStoreItem(input: { userId: string; storeIte
       equipped: false,
       acquiredAt: new Date().toISOString(),
     });
+  });
+}
+
+export async function markNotificationsRead(input: { userId: string; notificationIds?: string[] }) {
+  return mutateStore(async (store) => {
+    const targetIds = input.notificationIds ? new Set(input.notificationIds) : null;
+    for (const notification of store.notifications) {
+      if (notification.userId !== input.userId) {
+        continue;
+      }
+      if (targetIds && !targetIds.has(notification.id)) {
+        continue;
+      }
+      notification.isRead = true;
+    }
   });
 }
 
@@ -1049,9 +1763,16 @@ export async function submitPrediction(input: {
   selectedTeamCode: string;
 }) {
   return mutateStore(async (store) => {
+    ensurePredictionLifecycle(store);
     const match = store.matches.find((item) => item.id === input.matchId);
     if (!match) {
       throw new Error("경기를 찾을 수 없습니다.");
+    }
+
+    const teamA = store.teams.find((team) => team.id === match.teamAId);
+    const teamB = store.teams.find((team) => team.id === match.teamBId);
+    if (teamA?.code === "TBD" || teamB?.code === "TBD") {
+      throw new Error("아직 대진이 확정되지 않아 예측할 수 없습니다.");
     }
 
     if (match.status !== "scheduled" || isPredictionLocked(match)) {
@@ -1074,23 +1795,45 @@ export async function submitPrediction(input: {
       return;
     }
 
+    const now = new Date().toISOString();
     const predictionId = createId(store, "predictions", "prediction");
     store.predictions.push({
       id: predictionId,
       userId: input.viewerId,
       matchId: input.matchId,
       teamId: selectedTeam.id,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: now,
+      updatedAt: now,
+      joinedRewardGrantedAt: now,
+      settledAt: null,
+      settlementResult: null,
+      settlementCoins: 0,
+      appliedOddsPercent: null,
+      wasUnderdogPick: null,
     });
 
     appendPointLedgerEntry(store, {
       userId: input.viewerId,
       type: "earn",
-      amount: POINTS.predictionSubmit,
-      reason: "경기 예측 참여",
+      amount: COINS.predictionSubmit,
+      reason: "경기 예측 참여 코인",
       referenceType: "prediction_submit",
       referenceId: predictionId,
+    });
+
+    createNotification(store, {
+      userId: input.viewerId,
+      type: "prediction_joined",
+      title: `${teamA?.code ?? "TBD"} vs ${teamB?.code ?? "TBD"} 예측 참여 완료`,
+      body: `${selectedTeam.code} 선택이 저장되어 +${COINS.predictionSubmit} Coin을 획득했습니다.`,
+      relatedMatchId: match.id,
+      isRead: false,
+      rewardCoins: COINS.predictionSubmit,
+      appliedOddsPercent: null,
+      metadata: {
+        selectedTeam: selectedTeam.code,
+      },
+      createdAt: now,
     });
   });
 }
@@ -1141,8 +1884,8 @@ export async function submitPlayerRating(input: {
     appendPointLedgerEntry(store, {
       userId: input.viewerId,
       type: "earn",
-      amount: POINTS.legacyRatingSubmit,
-      reason: "경기 평점 작성",
+      amount: COINS.legacyRatingSubmit,
+      reason: "경기 평점 참여 코인",
       referenceType: "player_rating_submit",
       referenceId: ratingId,
     });
@@ -1210,8 +1953,8 @@ export async function submitSetPlayerRatings(input: {
       appendPointLedgerEntry(store, {
         userId: input.viewerId,
         type: "earn",
-        amount: changedCount * POINTS.setRatingPerPlayer,
-        reason: `세트 평점 ${changedCount}명 저장`,
+        amount: changedCount * COINS.setRatingPerPlayer,
+        reason: `세트 평점 참여 코인 (${changedCount}명)`,
         referenceType: "set_rating_submit",
         referenceId: `${set.id}:${input.viewerId}:${Date.now()}`,
       });
@@ -1249,8 +1992,8 @@ export async function submitComment(input: {
     appendPointLedgerEntry(store, {
       userId: input.viewerId,
       type: "earn",
-      amount: POINTS.commentSubmit,
-      reason: "경기 댓글 작성",
+      amount: COINS.commentSubmit,
+      reason: "경기 댓글 참여 코인",
       referenceType: "comment_submit",
       referenceId: commentId,
     });

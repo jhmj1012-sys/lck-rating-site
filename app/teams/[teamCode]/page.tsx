@@ -27,18 +27,18 @@ export default async function TeamRosterDetailPage({
   }
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,#f5f7fb_0%,#edf2f7_100%)] px-4 py-8 sm:px-6">
+    <main className="app-shell px-4 py-8 sm:px-6">
       <div className="mx-auto max-w-7xl space-y-6">
         <div className="flex flex-wrap gap-3">
-          <Link href="/teams" className="inline-flex min-h-11 items-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700">
+          <Link href="/teams" className="ui-action-secondary">
             팀 목록으로
           </Link>
-          <Link href="/" className="inline-flex min-h-11 items-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700">
+          <Link href="/" className="ui-action-secondary">
             일정 허브로
           </Link>
         </div>
 
-        <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+        <section className="ui-card p-6">
           <div className="flex flex-wrap items-start justify-between gap-6">
             <div className="flex items-center gap-4">
               <TeamLogo team={data.teamCode} size={62} />
@@ -48,7 +48,7 @@ export default async function TeamRosterDetailPage({
                 <p className="mt-2 text-sm text-slate-600">{data.rosterLabel}</p>
               </div>
             </div>
-            <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+            <div className="ui-card-soft px-4 py-3 text-sm text-slate-600">
               <div>최근 반영: {formatUpdatedAt(data.updatedAt)}</div>
               <a href={data.sourceUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex text-sm font-medium text-sky-700 underline underline-offset-4">
                 공식 기준 보기
@@ -58,7 +58,7 @@ export default async function TeamRosterDetailPage({
 
           <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
             {data.players.map((player) => (
-              <div key={player.playerId} className="rounded-[24px] border border-slate-200 bg-slate-50 p-4 text-center">
+              <div key={player.playerId} className="ui-card-soft p-4 text-center">
                 <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{player.role}</div>
                 <div className="mt-3 text-xl font-black tracking-tight text-slate-950">{player.name}</div>
                 <div className="mt-2 text-xs text-slate-500">표시 순서 {player.displayOrder}</div>
@@ -67,7 +67,7 @@ export default async function TeamRosterDetailPage({
           </div>
         </section>
 
-        <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+        <section className="ui-card p-6">
           <div className="flex items-center justify-between gap-3">
             <div>
               <div className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-700">Recent Matches</div>

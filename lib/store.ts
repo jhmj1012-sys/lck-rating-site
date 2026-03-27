@@ -49,7 +49,7 @@ function ensureUserCarryover(store: StoreShape, userId: string, fallbackAmount: 
     userId,
     type: "earn",
     amount,
-    reason: "기존 활동 포인트 이관",
+    reason: "기존 활동 코인 이관",
     referenceType: "migration",
     referenceId: userId,
     createdAt: new Date().toISOString(),
@@ -59,42 +59,7 @@ function ensureUserCarryover(store: StoreShape, userId: string, fallbackAmount: 
 }
 
 function syncPredictionHitBonuses(store: StoreShape) {
-  for (const prediction of store.predictions) {
-    const match = store.matches.find((item) => item.id === prediction.matchId);
-    if (!match || match.status !== "finished" || match.scoreA === null || match.scoreB === null) {
-      continue;
-    }
-
-    const winner = match.scoreA > match.scoreB ? match.teamAId : match.teamBId;
-    if (winner !== prediction.teamId) {
-      continue;
-    }
-
-    const existing = store.pointLedger.some(
-      (entry) => entry.referenceType === "prediction_hit" && entry.referenceId === prediction.id,
-    );
-    if (existing) {
-      continue;
-    }
-
-    const currentBalance = store.pointLedger
-      .filter((entry) => entry.userId === prediction.userId)
-      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-      .at(-1)?.balanceAfter ?? 0;
-
-    store.pointLedger.push({
-      id: `ledger_${store.nextIds.pointLedger ?? 1}`,
-      userId: prediction.userId,
-      type: "earn",
-      amount: 5,
-      reason: "예측 적중 보너스",
-      referenceType: "prediction_hit",
-      referenceId: prediction.id,
-      createdAt: new Date().toISOString(),
-      balanceAfter: currentBalance + 5,
-    });
-    store.nextIds.pointLedger = (store.nextIds.pointLedger ?? 1) + 1;
-  }
+  void store;
 }
 
 function withDefaults(store: Partial<StoreShape>): StoreShape {
@@ -107,6 +72,9 @@ function withDefaults(store: Partial<StoreShape>): StoreShape {
   const needsScheduleRefresh =
     !(store.matches ?? []).some((match) => match.id === "match_95") ||
     !(store.teams ?? []).some((team) => team.id === "team_tbd");
+  const needsSeededSets =
+    (store.matchSets ?? []).length === 0 ||
+    (store.setParticipants ?? []).length === 0;
   const seedTeamIds = new Set(seed.teams.map((team) => team.id));
   const seedPlayerIds = new Set(seed.players.map((player) => player.id));
   const legacyPointsByUser = new Map(
@@ -117,6 +85,7 @@ function withDefaults(store: Partial<StoreShape>): StoreShape {
     users: (store.users ?? seed.users).map((user) => ({
       ...user,
       nickname: "nickname" in user ? user.nickname ?? null : null,
+      nicknameOnboardingSeen: "nicknameOnboardingSeen" in user ? Boolean(user.nicknameOnboardingSeen) : false,
       nicknameUpdatedAt: "nicknameUpdatedAt" in user ? user.nicknameUpdatedAt ?? null : null,
       bio: "bio" in user ? user.bio ?? null : null,
       selectedBadge: "selectedBadge" in user ? user.selectedBadge ?? null : null,
@@ -125,7 +94,22 @@ function withDefaults(store: Partial<StoreShape>): StoreShape {
     teams: [
       ...seed.teams,
       ...((store.teams ?? []).filter((team) => !seedTeamIds.has(team.id))),
-    ],
+    ].map((team) => {
+      const normalizedCode = team.code === "DRX" ? "KRX" : team.code;
+      if (team.id === "team_drx" || normalizedCode === "KRX") {
+        return {
+          ...team,
+          code: "KRX",
+          name: "KRX",
+          shortName: "KRX",
+        };
+      }
+
+      return {
+        ...team,
+        code: normalizedCode,
+      };
+    }),
     players: legacyRosterSchema
       ? seed.players
       : [
@@ -135,17 +119,40 @@ function withDefaults(store: Partial<StoreShape>): StoreShape {
     teamRosterEntries: store.teamRosterEntries ?? seed.teamRosterEntries,
     matches: needsScheduleRefresh ? seed.matches : (store.matches ?? seed.matches),
     matchParticipants: needsScheduleRefresh ? seed.matchParticipants : (store.matchParticipants ?? seed.matchParticipants),
-    matchSets: needsScheduleRefresh ? [] : (store.matchSets ?? seed.matchSets),
-    setParticipants: needsScheduleRefresh ? [] : (store.setParticipants ?? seed.setParticipants),
-    predictions: (needsScheduleRefresh ? [] : (store.predictions ?? seed.predictions)).map((prediction) => ({
-      ...prediction,
-      updatedAt: prediction.updatedAt ?? prediction.createdAt,
-    })),
+    matchSets: needsScheduleRefresh || needsSeededSets ? seed.matchSets : (store.matchSets ?? seed.matchSets),
+    setParticipants: needsScheduleRefresh || needsSeededSets ? seed.setParticipants : (store.setParticipants ?? seed.setParticipants),
+    predictions: (needsScheduleRefresh ? [] : (store.predictions ?? seed.predictions)).map((prediction) => {
+      const ledgerEntries = (store.pointLedger ?? []) as StoreShape["pointLedger"];
+      const legacyHitEntry = ledgerEntries.find(
+        (entry) => entry.referenceType === "prediction_hit" && entry.referenceId === prediction.id,
+      ) as StoreShape["pointLedger"][number] | undefined;
+      const relatedMatch = (store.matches ?? seed.matches).find((match) => match.id === prediction.matchId);
+      const isFinishedMatch = relatedMatch?.status === "finished" && relatedMatch.scoreA !== null && relatedMatch.scoreB !== null;
+      const normalizedPrediction = prediction as typeof prediction & {
+        joinedRewardGrantedAt?: string | null;
+        settledAt?: string | null;
+        settlementResult?: "hit" | "miss" | null;
+        settlementCoins?: number;
+        appliedOddsPercent?: number | null;
+        wasUnderdogPick?: boolean | null;
+      };
+
+      return {
+        ...prediction,
+        updatedAt: prediction.updatedAt ?? prediction.createdAt,
+        joinedRewardGrantedAt: normalizedPrediction.joinedRewardGrantedAt ?? prediction.createdAt,
+        settledAt: normalizedPrediction.settledAt ?? legacyHitEntry?.createdAt ?? null,
+        settlementResult: normalizedPrediction.settlementResult ?? (legacyHitEntry ? "hit" : null),
+        settlementCoins: normalizedPrediction.settlementCoins ?? legacyHitEntry?.amount ?? 0,
+        appliedOddsPercent: normalizedPrediction.appliedOddsPercent ?? null,
+        wasUnderdogPick: normalizedPrediction.wasUnderdogPick ?? (isFinishedMatch ? false : null),
+      };
+    }),
     playerRatings: (needsScheduleRefresh ? [] : (store.playerRatings ?? seed.playerRatings)).map((rating) => ({
       ...rating,
       updatedAt: rating.updatedAt ?? rating.createdAt,
     })),
-    setPlayerRatings: (needsScheduleRefresh ? [] : (store.setPlayerRatings ?? seed.setPlayerRatings)).map((rating) => ({
+    setPlayerRatings: ((needsScheduleRefresh || (store.setPlayerRatings ?? []).length === 0) ? seed.setPlayerRatings : (store.setPlayerRatings ?? seed.setPlayerRatings)).map((rating) => ({
       ...rating,
       updatedAt: rating.updatedAt ?? rating.createdAt,
     })),
@@ -154,6 +161,13 @@ function withDefaults(store: Partial<StoreShape>): StoreShape {
       updatedAt: comment.updatedAt ?? comment.createdAt,
     })),
     pointLedger: store.pointLedger ?? seed.pointLedger,
+    notifications: (store.notifications ?? seed.notifications).map((notification) => ({
+      ...notification,
+      isRead: Boolean(notification.isRead),
+      rewardCoins: notification.rewardCoins ?? null,
+      appliedOddsPercent: notification.appliedOddsPercent ?? null,
+      metadata: notification.metadata ?? {},
+    })),
     profileStoreItems: store.profileStoreItems ?? seed.profileStoreItems,
     userInventory: store.userInventory ?? seed.userInventory,
     nextIds,

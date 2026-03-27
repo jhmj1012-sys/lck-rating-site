@@ -20,9 +20,9 @@ export default async function MatchDetailPage({
   }
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,#f5f7fb_0%,#edf2f7_100%)] px-4 py-8 sm:px-6">
+    <main className="app-shell px-4 py-8 sm:px-6">
       <div className="mx-auto max-w-7xl space-y-6">
-        <Link href="/" className="inline-flex rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700">
+        <Link href="/" className="ui-action-secondary min-h-10">
           일정으로 돌아가기
         </Link>
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">

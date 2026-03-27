@@ -1,10 +1,10 @@
 ﻿'use server';
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { redirect, unstable_rethrow } from "next/navigation";
 
 import { requireUser, updateUserNickname } from "@/lib/authz";
-import { equipProfileStoreItem, purchaseProfileStoreItem } from "@/lib/service";
+import { equipProfileStoreItem, markNotificationsRead, purchaseProfileStoreItem } from "@/lib/service";
 
 function encodeMessage(value: string) {
   return encodeURIComponent(value);
@@ -20,6 +20,7 @@ export async function saveNicknameAction(formData: FormData) {
     revalidatePath("/me");
     redirect("/me?success=" + encodeMessage("닉네임을 저장했습니다."));
   } catch (error) {
+    unstable_rethrow(error);
     const message = error instanceof Error ? error.message : "닉네임 저장에 실패했습니다.";
     redirect("/me?setup=1&error=" + encodeMessage(message));
   }
@@ -34,6 +35,7 @@ export async function purchaseStoreItemAction(formData: FormData) {
     revalidatePath("/me");
     redirect("/me?success=" + encodeMessage("아이템을 구매했습니다."));
   } catch (error) {
+    unstable_rethrow(error);
     const message = error instanceof Error ? error.message : "아이템 구매에 실패했습니다.";
     redirect("/me?error=" + encodeMessage(message));
   }
@@ -49,7 +51,23 @@ export async function equipStoreItemAction(formData: FormData) {
     revalidatePath("/me");
     redirect("/me?success=" + encodeMessage("프로필에 적용했습니다."));
   } catch (error) {
+    unstable_rethrow(error);
     const message = error instanceof Error ? error.message : "아이템 적용에 실패했습니다.";
+    redirect("/me?error=" + encodeMessage(message));
+  }
+}
+
+export async function markAllNotificationsReadAction() {
+  const user = await requireUser();
+
+  try {
+    await markNotificationsRead({ userId: user.id });
+    revalidatePath("/");
+    revalidatePath("/me");
+    redirect("/me?success=" + encodeMessage("알림을 모두 읽음 처리했습니다."));
+  } catch (error) {
+    unstable_rethrow(error);
+    const message = error instanceof Error ? error.message : "알림 읽음 처리에 실패했습니다.";
     redirect("/me?error=" + encodeMessage(message));
   }
 }

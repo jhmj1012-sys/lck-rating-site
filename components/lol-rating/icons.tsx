@@ -39,3 +39,19 @@ export function DownloadIcon({ className }: { className?: string }) {
 export function UserIcon({ className }: { className?: string }) {
   return <IconBase className={className}><path d="M20 21a8 8 0 0 0-16 0" /><circle cx="12" cy="8" r="4" /></IconBase>;
 }
+
+export function TeamIcon({ className }: { className?: string }) {
+  return <IconBase className={className}><path d="M12 3l7 3v5c0 5-3.1 8.7-7 10-3.9-1.3-7-5-7-10V6l7-3z" /><path d="M9 11h6" /></IconBase>;
+}
+
+export function ShieldIcon({ className }: { className?: string }) {
+  return <IconBase className={className}><path d="M12 2l8 4v6c0 5-3.5 8.9-8 10-4.5-1.1-8-5-8-10V6l8-4z" /><path d="M12 7v10" /></IconBase>;
+}
+
+export function BellIcon({ className }: { className?: string }) {
+  return <IconBase className={className}><path d="M15 17H5.5a1.5 1.5 0 0 1-1.2-2.4L6 12.5V9a6 6 0 1 1 12 0v3.5l1.7 2.1A1.5 1.5 0 0 1 18.5 17H15" /><path d="M9 20a3 3 0 0 0 6 0" /></IconBase>;
+}
+
+export function ShopIcon({ className }: { className?: string }) {
+  return <IconBase className={className}><path d="M6 7 7.5 3h9L18 7" /><path d="M4 7h16" /><path d="M5 7v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7" /><path d="M10 11h4" /></IconBase>;
+}

@@ -20,18 +20,18 @@ export default async function MatchSetDetailPage({
   }
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,#f5f7fb_0%,#edf2f7_100%)] px-4 py-8 sm:px-6">
+    <main className="app-shell px-4 py-8 sm:px-6">
       <div className="mx-auto max-w-7xl space-y-6">
         <div className="flex flex-wrap gap-3">
-          <Link href="/" className="inline-flex rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700">
+          <Link href="/" className="ui-action-secondary min-h-10">
             일정으로
           </Link>
-          <Link href={`/matches/${matchId}`} className="inline-flex rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700">
+          <Link href={`/matches/${matchId}`} className="ui-action-secondary min-h-10">
             경기 상세로
           </Link>
         </div>
 
-        <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+        <section className="ui-card p-6">
           <div className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-700">Set Detail</div>
           <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">{data.title}</h1>
           <div className="mt-3 flex flex-wrap gap-3 text-sm text-slate-600">

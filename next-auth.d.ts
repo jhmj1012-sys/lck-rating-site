@@ -9,6 +9,7 @@ declare module "next-auth" {
       name?: string | null;
       nickname?: string | null;
       hasNickname?: boolean;
+      nicknameOnboardingSeen?: boolean;
       email?: string | null;
       image?: string | null;
     };
@@ -21,5 +22,6 @@ declare module "next-auth/jwt" {
     role?: "user" | "admin";
     nickname?: string | null;
     hasNickname?: boolean;
+    nicknameOnboardingSeen?: boolean;
   }
 }

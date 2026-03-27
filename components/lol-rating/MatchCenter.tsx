@@ -100,7 +100,7 @@ export function PredictionSection({
         <div className="grid gap-3 sm:grid-cols-2">
           {[match.teamA, match.teamB].map((team, index) => (
             <button
-              key={team}
+              key={`${match.id}-${team}-${index}`}
               onClick={() => setSelectedSide(team)}
               className={`rounded-[24px] border p-5 text-left transition ${selectedSide === team ? "border-sky-300 bg-sky-50" : "border-slate-200 bg-white"}`}
               disabled={!canWrite}
@@ -320,7 +320,7 @@ export function SidePanel({ profile }: { profile: UserProfile }) {
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <StatCard label="포인트" value={`${profile.points.toLocaleString()} P`} tone="accent" />
+            <StatCard label="보유 코인" value={`${profile.points.toLocaleString()}`} tone="accent" />
             <StatCard label="연속 적중" value={`${profile.predictionStats.streak}`} />
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -337,3 +337,4 @@ export function SidePanel({ profile }: { profile: UserProfile }) {
     </div>
   );
 }
+

@@ -5,7 +5,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "GG 레이팅",
-  description: "리그 일정부터 경기 예측, 세트 평점, 댓글 반응까지 한곳에서 보는 e스포츠 레이팅 서비스",
+  description: "LCK 일정, 승부예측, 세트 평점과 팬 반응을 한 곳에서 보는 참여형 팬 서비스",
 };
 
 export default function RootLayout({

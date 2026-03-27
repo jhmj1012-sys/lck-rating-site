@@ -44,6 +44,7 @@ export const authOptions: NextAuthOptions = {
       token.name = syncedUser.name;
       token.nickname = syncedUser.nickname;
       token.hasNickname = Boolean(syncedUser.nickname);
+      token.nicknameOnboardingSeen = Boolean(syncedUser.nicknameOnboardingSeen);
       token.picture = syncedUser.image;
 
       return token;
@@ -55,6 +56,7 @@ export const authOptions: NextAuthOptions = {
         session.user.name = token.name;
         session.user.nickname = token.nickname ?? null;
         session.user.hasNickname = Boolean(token.hasNickname);
+        session.user.nicknameOnboardingSeen = Boolean(token.nicknameOnboardingSeen);
         session.user.image = typeof token.picture === "string" ? token.picture : null;
       }
 

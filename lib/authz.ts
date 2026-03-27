@@ -58,6 +58,9 @@ export async function upsertUserFromIdentity(identity: {
       existing.name = identity.name?.trim() || existing.name || email.split("@")[0];
       existing.image = identity.image ?? existing.image ?? null;
       existing.role = existing.role === "admin" ? "admin" : resolveRole(email);
+      if (typeof existing.nicknameOnboardingSeen !== "boolean") {
+        existing.nicknameOnboardingSeen = false;
+      }
       existing.updatedAt = now;
       return existing;
     }
@@ -67,6 +70,7 @@ export async function upsertUserFromIdentity(identity: {
       email,
       name: identity.name?.trim() || email.split("@")[0],
       nickname: null,
+      nicknameOnboardingSeen: false,
       nicknameUpdatedAt: null,
       bio: null,
       image: identity.image ?? null,
@@ -94,8 +98,25 @@ export async function updateUserNickname(userId: string, rawNickname: string) {
 
     const now = new Date().toISOString();
     user.nickname = nickname;
+    user.nicknameOnboardingSeen = true;
     user.nicknameUpdatedAt = now;
     user.updatedAt = now;
+    return user;
+  });
+}
+
+export async function markNicknameOnboardingSeen(userId: string) {
+  return mutateStore(async (store) => {
+    const user = store.users.find((item) => item.id === userId);
+    if (!user) {
+      throw new Error("사용자를 찾을 수 없습니다.");
+    }
+
+    if (!user.nicknameOnboardingSeen) {
+      user.nicknameOnboardingSeen = true;
+      user.updatedAt = new Date().toISOString();
+    }
+
     return user;
   });
 }

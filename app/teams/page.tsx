@@ -18,7 +18,7 @@ export default async function TeamsPage() {
   const teams = await getTeamRosterHubData();
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,#f5f7fb_0%,#edf2f7_100%)] px-4 py-8 sm:px-6">
+    <main className="app-shell px-4 py-8 sm:px-6">
       <div className="mx-auto max-w-7xl space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -26,7 +26,7 @@ export default async function TeamsPage() {
             <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">2026 LCK R1 1군 로스터</h1>
             <p className="mt-2 text-sm text-slate-600">팀별 공식 기준 1군 로스터와 최근 경기 동선을 한 번에 확인할 수 있습니다.</p>
           </div>
-          <Link href="/" className="inline-flex min-h-11 items-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700">
+          <Link href="/" className="ui-action-secondary">
             일정 허브로 돌아가기
           </Link>
         </div>
@@ -36,7 +36,7 @@ export default async function TeamsPage() {
             <Link
               key={team.teamCode}
               href={`/teams/${team.teamCode}`}
-              className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_70px_rgba(15,23,42,0.12)]"
+              className="ui-card p-6 transition hover:-translate-y-0.5 hover:shadow-[0_24px_70px_rgba(15,23,42,0.12)]"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-4">

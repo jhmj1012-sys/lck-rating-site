@@ -3,7 +3,7 @@ import type { ComponentPropsWithoutRef, PropsWithChildren, ReactNode } from "rea
 import { cn } from "./utils";
 
 export function Card({ className, children }: PropsWithChildren<{ className?: string }>) {
-  return <section className={cn("rounded-[28px] border border-slate-200/80 bg-white/90 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur", className)}>{children}</section>;
+  return <section className={cn("ui-card", className)}>{children}</section>;
 }
 
 export function CardHeader({ className, children }: PropsWithChildren<{ className?: string }>) {
@@ -44,7 +44,7 @@ export function Badge({
 }: PropsWithChildren<{ className?: string; variant?: "neutral" | "outline" | "accent" | "success" | "danger" }>) {
   const variants = {
     neutral: "border border-slate-200 bg-slate-100 text-slate-700",
-    outline: "border border-slate-200 bg-white text-slate-600",
+    outline: "border border-slate-200 bg-white/90 text-slate-600",
     accent: "border border-sky-200 bg-sky-50 text-sky-700",
     success: "border border-emerald-200 bg-emerald-50 text-emerald-700",
     danger: "border border-rose-200 bg-rose-50 text-rose-700",
@@ -60,16 +60,16 @@ export function Button({
   ...props
 }: PropsWithChildren<ComponentPropsWithoutRef<"button"> & { variant?: "primary" | "secondary" | "ghost" }>) {
   const variants = {
-    primary: "bg-sky-500 text-white hover:bg-sky-600",
-    secondary: "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
+    primary: "ui-action-primary",
+    secondary: "ui-action-secondary",
     ghost: "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
   };
 
-  return <button className={cn("inline-flex min-h-10 items-center justify-center rounded-2xl px-4 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50", variants[variant], className)} {...props}>{children}</button>;
+  return <button className={cn("inline-flex items-center justify-center text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50", variants[variant], className)} {...props}>{children}</button>;
 }
 
 export function Input({ className, ...props }: ComponentPropsWithoutRef<"input">) {
-  return <input className={cn("h-10 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-sky-400/60", className)} {...props} />;
+  return <input className={cn("ui-input text-sm", className)} {...props} />;
 }
 
 export function Progress({ value, className }: { value: number; className?: string }) {
@@ -83,7 +83,7 @@ export function Avatar({ className, children }: PropsWithChildren<{ className?: 
 
 export function StatCard({ label, value, tone = "default" }: { label: string; value: string; tone?: "default" | "accent" }) {
   return (
-    <div className={cn("rounded-2xl border border-slate-200 bg-slate-50 p-4", tone === "accent" && "border-sky-200 bg-sky-50")}>
+    <div className={cn("ui-card-soft p-4", tone === "accent" && "border-sky-200 bg-sky-50")}>
       <div className="text-xs uppercase tracking-[0.22em] text-slate-500">{label}</div>
       <div className="mt-2 text-2xl font-bold tracking-[-0.03em] text-slate-950">{value}</div>
     </div>

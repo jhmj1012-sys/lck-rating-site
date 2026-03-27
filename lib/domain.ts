@@ -3,12 +3,31 @@ export type UserRole = "user" | "admin";
 export type PlayerRole = "TOP" | "JGL" | "MID" | "ADC" | "SUP";
 export type PointLedgerType = "earn" | "spend";
 export type ProfileStoreItemType = "badge" | "title" | "theme";
+export type PredictionSettlementResult = "hit" | "miss";
+export type NotificationType = "prediction_joined" | "prediction_hit" | "prediction_missed" | "coin_earned" | "system";
+
+export interface StoredPredictionDistribution {
+  teamA: number;
+  teamB: number;
+  totalVotes: number;
+}
+
+export interface StoredPredictionOddsSide {
+  oddsPercent: number;
+  hitBonusCoins: number;
+}
+
+export interface StoredPredictionOdds {
+  teamA: StoredPredictionOddsSide;
+  teamB: StoredPredictionOddsSide;
+}
 
 export interface StoredUser {
   id: string;
   email: string;
   name: string;
   nickname: string | null;
+  nicknameOnboardingSeen: boolean;
   nicknameUpdatedAt: string | null;
   bio: string | null;
   image: string | null;
@@ -58,6 +77,10 @@ export interface StoredMatch {
   scoreA: number | null;
   scoreB: number | null;
   predictionLocked: boolean;
+  predictionLockedAt: string | null;
+  lockedDistribution: StoredPredictionDistribution | null;
+  lockedOdds: StoredPredictionOdds | null;
+  predictionSettledAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -96,6 +119,12 @@ export interface StoredPrediction {
   teamId: string;
   createdAt: string;
   updatedAt?: string | null;
+  joinedRewardGrantedAt: string | null;
+  settledAt: string | null;
+  settlementResult: PredictionSettlementResult | null;
+  settlementCoins: number;
+  appliedOddsPercent: number | null;
+  wasUnderdogPick: boolean | null;
 }
 
 export interface StoredPlayerRating {
@@ -142,6 +171,20 @@ export interface StoredPointLedgerEntry {
   balanceAfter: number;
 }
 
+export interface StoredNotification {
+  id: string;
+  userId: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  relatedMatchId: string | null;
+  createdAt: string;
+  isRead: boolean;
+  rewardCoins: number | null;
+  appliedOddsPercent: number | null;
+  metadata: Record<string, string | number | boolean | null>;
+}
+
 export interface StoredProfileStoreItem {
   id: string;
   type: ProfileStoreItemType;
@@ -173,6 +216,7 @@ export interface StoreShape {
   setPlayerRatings: StoredSetPlayerRating[];
   comments: StoredComment[];
   pointLedger: StoredPointLedgerEntry[];
+  notifications: StoredNotification[];
   profileStoreItems: StoredProfileStoreItem[];
   userInventory: StoredUserInventoryItem[];
   nextIds: Record<string, number>;
