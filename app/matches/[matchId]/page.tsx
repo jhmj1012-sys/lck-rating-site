@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/auth";
-import { MatchEngagementPanel, MatchOverviewPanel, MatchSetLinks } from "@/components/lol-rating/DetailPanels";
+import { MatchDetailStateView } from "@/components/lol-rating/MatchDetailViews";
 import { getMatchDetailData } from "@/lib/service";
 
 export default async function MatchDetailPage({
@@ -25,13 +25,7 @@ export default async function MatchDetailPage({
         <Link href="/" className="ui-action-secondary min-h-10">
           일정으로 돌아가기
         </Link>
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="space-y-6">
-            <MatchOverviewPanel match={data.match} sets={data.sets} />
-            <MatchSetLinks matchId={data.match.id} sets={data.sets} />
-          </div>
-          <MatchEngagementPanel match={data.match} />
-        </div>
+        <MatchDetailStateView data={data} />
       </div>
     </main>
   );

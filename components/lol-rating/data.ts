@@ -10,7 +10,6 @@ export const userProfileSeed: UserProfile = {
   isAuthenticated: false,
   points: 0,
   level: 1,
-  teamBadge: "기본 배지",
   ownedPersonas: ["관전자", "기본 프로필"],
   predictionAccuracy: 0,
   predictionStats: { total: 0, hit: 0, miss: 0, streak: 0 },

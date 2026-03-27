@@ -11,6 +11,86 @@ const storePath = path.join(dataDirectory, "service-store.json");
 
 let mutationQueue = Promise.resolve();
 
+const SEEDED_USER_COPY: Record<string, { name: string; nickname: string; bio: string }> = {
+  user_seed_analyst: { name: "이민준", nickname: "밴픽보는중", bio: "밴픽이랑 오브젝트 타이밍 위주로 봅니다." },
+  user_seed_editor: { name: "박서연", nickname: "세트요약러", bio: "세트 흐름이랑 선수 영향력 정리하는 편입니다." },
+  user_seed_alpha: { name: "김도윤", nickname: "정글각재는중", bio: "초반 정글 동선이 제일 중요하다고 봐요." },
+  user_seed_beta: { name: "최지훈", nickname: "라인전집착러", bio: "라인전 디테일 보는 맛으로 경기 챙깁니다." },
+  user_seed_gamma: { name: "정하늘", nickname: "한타메모장", bio: "한타 구도랑 콜 타이밍 보는 걸 좋아합니다." },
+  user_seed_delta: { name: "윤서진", nickname: "패치민감함", bio: "패치 바뀌면 팀별 적응 속도부터 체크합니다." },
+  user_seed_epsilon: { name: "한예준", nickname: "정배충아님", bio: "그래도 정배 쪽이 더 안정적일 때가 많다고 봅니다." },
+  user_seed_zeta: { name: "강민석", nickname: "역배맛집찾기", bio: "역배 터질 만한 경기 찾는 재미로 봅니다." },
+  user_seed_eta: { name: "신유진", nickname: "교전기록계", bio: "초중반 교전 타이밍 메모 자주 남깁니다." },
+  user_seed_theta: { name: "송재원", nickname: "밴픽수첩", bio: "상성 구도랑 조합 완성도 위주로 보는 편이에요." },
+  user_seed_iota: { name: "오세훈", nickname: "탑차이봄", bio: "탑 구도 하나로 게임 분위기 바뀐다고 생각합니다." },
+  user_seed_kappa: { name: "서지우", nickname: "미드주도권", bio: "미드 주도권 넘어가는 순간을 유심히 봅니다." },
+  user_seed_lambda: { name: "장현우", nickname: "바텀웨이브", bio: "바텀 라인 관리와 템포 차이 보는 걸 좋아해요." },
+  user_seed_mu: { name: "조은호", nickname: "교전복기중", bio: "끝난 한타 다시 복기하면서 보는 스타일입니다." },
+  user_seed_nu: { name: "임수빈", nickname: "시야중요함", bio: "시야랑 포지션이 결국 경기 갈린다고 봅니다." },
+  user_seed_xi: { name: "황지호", nickname: "용타이머외움", bio: "오브젝트 시간 계산해두고 경기 보는 편입니다." },
+  user_seed_omicron: { name: "구태윤", nickname: "후반한타파", bio: "후반 조합 가치 높게 보는 편입니다." },
+  user_seed_pi: { name: "안서후", nickname: "굴리는맛", bio: "스노우볼 굴리는 팀들 보는 맛이 있습니다." },
+};
+
+const SEEDED_COMMENT_TEMPLATES = [
+  "오늘은 밴픽부터 생각보다 팽팽하네.",
+  "라인전보단 첫 용 타이밍에서 갈릴 듯.",
+  "이 경기는 미드 주도권 잡는 쪽이 편해 보인다.",
+  "바텀 변수 꽤 커서 끝까지 봐야 할 느낌.",
+  "정배 같긴 한데 생각보다 쉽게 안 끝날 듯.",
+  "탑 구도 은근 중요해서 초반부터 재밌겠다.",
+  "한타 붙기 시작하면 분위기 확 바뀔 수도 있겠네.",
+  "시야 싸움에서 먼저 밀리는 팀이 힘들어 보임.",
+  "이번 판은 오브젝트 운영이 핵심 같다.",
+  "세트 가면 갈수록 체급보다 집중력이 중요해 보이네.",
+] as const;
+
+function looksGarbled(value: string | null | undefined) {
+  if (!value) {
+    return false;
+  }
+
+  return /\?{2,}|占|�/.test(value);
+}
+
+function fallbackCommentText(id: string) {
+  const number = Number.parseInt(id.replace(/\D/g, ""), 10);
+  return SEEDED_COMMENT_TEMPLATES[number % SEEDED_COMMENT_TEMPLATES.length] ?? SEEDED_COMMENT_TEMPLATES[0];
+}
+
+function fallbackSetRatingComment(score: number) {
+  return score >= 6.8 ? "한타에서 존재감이 확실했어요." : "실수만 조금 줄였으면 더 좋았을 듯.";
+}
+
+function fallbackLedgerReason(referenceType: string, referenceId: string) {
+  if (referenceType === "migration") {
+    return "기존 활동 코인 이관";
+  }
+  if (referenceType === "store_purchase" && referenceId === "store_theme_sky") {
+    return "Sky Draft 테마 구매";
+  }
+  if (referenceType === "store_purchase" && referenceId === "store_theme_crimson") {
+    return "Crimson Stage 테마 구매";
+  }
+  return "코인 내역";
+}
+
+function fallbackNotificationCopy(type: StoreShape["notifications"][number]["type"]) {
+  if (type === "prediction_joined") {
+    return { title: "예측 참여 완료", body: "경기 예측 참여가 정상적으로 저장되었습니다." };
+  }
+  if (type === "prediction_hit") {
+    return { title: "예측 적중", body: "예측이 적중해 추가 코인이 반영되었습니다." };
+  }
+  if (type === "prediction_missed") {
+    return { title: "예측 마감", body: "예측 결과가 확정되었습니다. 이번에는 적중하지 못했습니다." };
+  }
+  if (type === "coin_earned") {
+    return { title: "코인 지급", body: "활동 보상 코인이 반영되었습니다." };
+  }
+  return { title: "안내", body: "새로운 알림이 도착했습니다." };
+}
+
 function getLegacyPoints(store: Partial<StoreShape>, userId: string) {
   const predictions = store.predictions ?? [];
   const playerRatings = store.playerRatings ?? [];
@@ -77,6 +157,7 @@ function withDefaults(store: Partial<StoreShape>): StoreShape {
     (store.setParticipants ?? []).length === 0;
   const seedTeamIds = new Set(seed.teams.map((team) => team.id));
   const seedPlayerIds = new Set(seed.players.map((player) => player.id));
+  const activeStoreItemIds = new Set(seed.profileStoreItems.map((item) => item.id));
   const legacyPointsByUser = new Map(
     (store.users ?? seed.users).map((user) => [user.id, getLegacyPoints(store, user.id)]),
   );
@@ -84,11 +165,17 @@ function withDefaults(store: Partial<StoreShape>): StoreShape {
   const normalized: StoreShape = {
     users: (store.users ?? seed.users).map((user) => ({
       ...user,
-      nickname: "nickname" in user ? user.nickname ?? null : null,
+      name: SEEDED_USER_COPY[user.id] && looksGarbled(user.name) ? SEEDED_USER_COPY[user.id].name : user.name,
+      nickname:
+        SEEDED_USER_COPY[user.id] && looksGarbled("nickname" in user ? user.nickname ?? null : null)
+          ? SEEDED_USER_COPY[user.id].nickname
+          : ("nickname" in user ? user.nickname ?? null : null),
       nicknameOnboardingSeen: "nicknameOnboardingSeen" in user ? Boolean(user.nicknameOnboardingSeen) : false,
       nicknameUpdatedAt: "nicknameUpdatedAt" in user ? user.nicknameUpdatedAt ?? null : null,
-      bio: "bio" in user ? user.bio ?? null : null,
-      selectedBadge: "selectedBadge" in user ? user.selectedBadge ?? null : null,
+      bio:
+        SEEDED_USER_COPY[user.id] && looksGarbled("bio" in user ? user.bio ?? null : null)
+          ? SEEDED_USER_COPY[user.id].bio
+          : ("bio" in user ? user.bio ?? null : null),
       selectedProfileTheme: "selectedProfileTheme" in user ? user.selectedProfileTheme ?? null : null,
     })),
     teams: [
@@ -100,8 +187,80 @@ function withDefaults(store: Partial<StoreShape>): StoreShape {
         return {
           ...team,
           code: "KRX",
-          name: "KRX",
+          name: "KIWOOM DRX",
           shortName: "KRX",
+        };
+      }
+
+      if (normalizedCode === "GEN") {
+        return {
+          ...team,
+          code: "GEN",
+          name: "Gen.G Esports",
+          shortName: "GEN",
+        };
+      }
+
+      if (normalizedCode === "HLE") {
+        return {
+          ...team,
+          code: "HLE",
+          name: "Hanwha Life Esports",
+          shortName: "HLE",
+        };
+      }
+
+      if (normalizedCode === "DK") {
+        return {
+          ...team,
+          code: "DK",
+          name: "Dplus KIA",
+          shortName: "DK",
+        };
+      }
+
+      if (normalizedCode === "KT") {
+        return {
+          ...team,
+          code: "KT",
+          name: "kt Rolster",
+          shortName: "KT",
+        };
+      }
+
+      if (normalizedCode === "NS") {
+        return {
+          ...team,
+          code: "NS",
+          name: "NONGSHIM RED FORCE",
+          shortName: "NS",
+        };
+      }
+
+      if (normalizedCode === "BRO") {
+        return {
+          ...team,
+          code: "BRO",
+          name: "HANJIN BRION",
+          shortName: "BRO",
+        };
+      }
+
+      if (normalizedCode === "BFX") {
+        return {
+          ...team,
+          code: "BFX",
+          name: "BNK FEARX",
+          shortName: "BFX",
+        };
+      }
+
+      if (normalizedCode === "DNS") {
+        return {
+          ...team,
+          code: "DNS",
+          name: "DN SOOPers",
+          shortName: "DNS",
         };
       }
 
@@ -117,7 +276,22 @@ function withDefaults(store: Partial<StoreShape>): StoreShape {
           ...((store.players ?? []).filter((player) => !seedPlayerIds.has(player.id))),
         ],
     teamRosterEntries: store.teamRosterEntries ?? seed.teamRosterEntries,
-    matches: needsScheduleRefresh ? seed.matches : (store.matches ?? seed.matches),
+    matches: (needsScheduleRefresh ? seed.matches : (store.matches ?? seed.matches)).map((match) => {
+      if (match.id !== "match_23") {
+        return match;
+      }
+
+      return {
+        ...match,
+        status: "scheduled",
+        scheduledAt: "2026-04-16T11:30:00+09:00",
+        scoreA: null,
+        scoreB: null,
+        predictionLocked: true,
+        predictionLockedAt: "2026-04-16T11:20:00+09:00",
+        predictionSettledAt: null,
+      };
+    }),
     matchParticipants: needsScheduleRefresh ? seed.matchParticipants : (store.matchParticipants ?? seed.matchParticipants),
     matchSets: needsScheduleRefresh || needsSeededSets ? seed.matchSets : (store.matchSets ?? seed.matchSets),
     setParticipants: needsScheduleRefresh || needsSeededSets ? seed.setParticipants : (store.setParticipants ?? seed.setParticipants),
@@ -148,28 +322,73 @@ function withDefaults(store: Partial<StoreShape>): StoreShape {
         wasUnderdogPick: normalizedPrediction.wasUnderdogPick ?? (isFinishedMatch ? false : null),
       };
     }),
+    seasonPredictionQuestions: (store.seasonPredictionQuestions ?? seed.seasonPredictionQuestions).map((question) => ({
+      ...question,
+      lockedAt: "lockedAt" in question ? question.lockedAt ?? null : null,
+      resolvedAt: "resolvedAt" in question ? question.resolvedAt ?? null : null,
+      resultOptionId: "resultOptionId" in question ? question.resultOptionId ?? null : null,
+      resultValue: "resultValue" in question ? question.resultValue ?? null : null,
+      baseRewardAmount: "baseRewardAmount" in question ? question.baseRewardAmount ?? null : null,
+      lockedDistribution: "lockedDistribution" in question ? question.lockedDistribution ?? null : null,
+    })),
+    seasonPredictionOptions:
+      (store.seasonPredictionOptions ?? seed.seasonPredictionOptions) as StoreShape["seasonPredictionOptions"],
+    seasonPredictionEntries: (
+      (store.seasonPredictionEntries ?? seed.seasonPredictionEntries) as StoreShape["seasonPredictionEntries"]
+    ).map((entry) => {
+      const legacyEntry = entry as StoreShape["seasonPredictionEntries"][number] & {
+        updatedAt?: string | null;
+        lockedAt?: string | null;
+        snapshot?: StoreShape["seasonPredictionQuestions"][number]["lockedDistribution"] | null;
+        status?: StoreShape["seasonPredictionEntries"][number]["status"];
+        hitStatus?: StoreShape["seasonPredictionEntries"][number]["hitStatus"];
+        rewardGranted?: boolean;
+        rewardAmount?: number | null;
+      };
+
+      return {
+        ...entry,
+        updatedAt: legacyEntry.updatedAt ?? entry.submittedAt,
+        lockedAt: legacyEntry.lockedAt ?? null,
+        snapshot: legacyEntry.snapshot ?? null,
+        status: legacyEntry.status ?? "open",
+        hitStatus: legacyEntry.hitStatus ?? "pending",
+        rewardGranted: Boolean(legacyEntry.rewardGranted),
+        rewardAmount: legacyEntry.rewardAmount ?? null,
+      };
+    }),
     playerRatings: (needsScheduleRefresh ? [] : (store.playerRatings ?? seed.playerRatings)).map((rating) => ({
       ...rating,
+      comment: looksGarbled(rating.comment) ? fallbackSetRatingComment(rating.score) : rating.comment,
       updatedAt: rating.updatedAt ?? rating.createdAt,
     })),
     setPlayerRatings: ((needsScheduleRefresh || (store.setPlayerRatings ?? []).length === 0) ? seed.setPlayerRatings : (store.setPlayerRatings ?? seed.setPlayerRatings)).map((rating) => ({
       ...rating,
+      comment: looksGarbled(rating.comment) ? fallbackSetRatingComment(rating.score) : rating.comment,
       updatedAt: rating.updatedAt ?? rating.createdAt,
     })),
     comments: (needsScheduleRefresh ? [] : (store.comments ?? seed.comments)).map((comment) => ({
       ...comment,
+      text: looksGarbled(comment.text) ? fallbackCommentText(comment.id) : comment.text,
       updatedAt: comment.updatedAt ?? comment.createdAt,
     })),
-    pointLedger: store.pointLedger ?? seed.pointLedger,
+    pointLedger: (store.pointLedger ?? seed.pointLedger).map((entry) => ({
+      ...entry,
+      reason: looksGarbled(entry.reason) ? fallbackLedgerReason(entry.referenceType, entry.referenceId) : entry.reason,
+    })),
     notifications: (store.notifications ?? seed.notifications).map((notification) => ({
       ...notification,
+      title: looksGarbled(notification.title) ? fallbackNotificationCopy(notification.type).title : notification.title,
+      body: looksGarbled(notification.body) ? fallbackNotificationCopy(notification.type).body : notification.body,
       isRead: Boolean(notification.isRead),
       rewardCoins: notification.rewardCoins ?? null,
       appliedOddsPercent: notification.appliedOddsPercent ?? null,
       metadata: notification.metadata ?? {},
     })),
-    profileStoreItems: store.profileStoreItems ?? seed.profileStoreItems,
-    userInventory: store.userInventory ?? seed.userInventory,
+    profileStoreItems: (store.profileStoreItems ?? seed.profileStoreItems).filter((item) => activeStoreItemIds.has(item.id)),
+    userInventory: (store.userInventory ?? seed.userInventory).filter((inventory) =>
+      activeStoreItemIds.has(inventory.storeItemId),
+    ),
     nextIds,
   };
 

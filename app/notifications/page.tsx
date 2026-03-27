@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { markAllNotificationsReadAction } from "@/app/me/actions";
 import { getCurrentUser } from "@/lib/authz";
 import { getMyPageData } from "@/lib/service";
-import { markAllNotificationsReadAction } from "@/app/me/actions";
 
 function readParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
@@ -52,8 +52,8 @@ export default async function NotificationsPage({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <div className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-700">Notifications</div>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">내 알림</h1>
-            <p className="mt-2 text-sm leading-6 text-slate-600">예측 참여, 정산 결과, 코인 반영 내역을 한 곳에서 확인합니다.</p>
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">알림</h1>
+            <p className="mt-2 text-sm leading-6 text-slate-600">예측 참여, 정산 결과, 코인 반영 내역을 한곳에서 확인합니다.</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Link
@@ -82,7 +82,7 @@ export default async function NotificationsPage({
                     href={tab.id === "all" ? "/notifications" : `/notifications?tab=${tab.id}`}
                     className={
                       isActive
-                        ? "inline-flex min-h-10 items-center rounded-full bg-slate-900 px-4 text-sm font-semibold text-white"
+                        ? "inline-flex min-h-10 items-center rounded-full border border-slate-950 bg-slate-950 px-4 text-sm font-semibold !text-white shadow-[0_10px_24px_rgba(15,23,42,0.16)]"
                         : "inline-flex min-h-10 items-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                     }
                   >

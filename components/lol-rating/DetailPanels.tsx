@@ -7,7 +7,7 @@ import { useSession } from "next-auth/react";
 
 import { PublicUserTrigger } from "./PublicUserTrigger";
 import type { MatchComment, MatchData, MatchSetSummary, PlayerRole, SetDetailData, SetPlayerRating } from "./types";
-import { TeamLogo, getTeamDisplayName } from "./team-branding";
+import { getTeamDisplayName } from "./team-branding";
 import { Avatar, Badge, Button, Card, CardContent, CardHeader, Progress, SectionTitle } from "./ui";
 import { cn, getInitials, getPredictionBlockReason, getPredictionLeader, ratingTone } from "./utils";
 
@@ -87,20 +87,14 @@ export function MatchOverviewPanel({ match, sets }: { match: MatchData; sets: Ma
       </CardHeader>
       <CardContent className="space-y-5 pt-5">
         <div className="grid gap-4 lg:grid-cols-[1fr_auto_1fr] lg:items-center">
-          <div className="flex items-center gap-4">
-            <TeamLogo team={match.teamA} size={72} />
-            <div>
-              <div className="text-sm uppercase tracking-[0.18em] text-slate-500">Blue</div>
-              <div className="text-2xl font-black text-slate-950">{getTeamDisplayName(match.teamA)}</div>
-            </div>
+          <div className="rounded-[24px] border border-slate-200 bg-white px-5 py-4">
+            <div className="text-sm uppercase tracking-[0.18em] text-slate-500">Blue</div>
+            <div className="mt-2 text-2xl font-black text-slate-950">{getTeamDisplayName(match.teamA)}</div>
           </div>
           <div className="text-center text-5xl font-black tracking-tight text-slate-950">{match.score}</div>
-          <div className="flex items-center justify-start gap-4 lg:justify-end">
-            <div className="text-left lg:text-right">
-              <div className="text-sm uppercase tracking-[0.18em] text-slate-500">Red</div>
-              <div className="text-2xl font-black text-slate-950">{getTeamDisplayName(match.teamB)}</div>
-            </div>
-            <TeamLogo team={match.teamB} size={72} />
+          <div className="rounded-[24px] border border-slate-200 bg-white px-5 py-4 text-left lg:text-right">
+            <div className="text-sm uppercase tracking-[0.18em] text-slate-500">Red</div>
+            <div className="mt-2 text-2xl font-black text-slate-950">{getTeamDisplayName(match.teamB)}</div>
           </div>
         </div>
 
@@ -299,8 +293,7 @@ export function MatchEngagementPanel({ match }: { match: MatchData }) {
                   disabled={!selectable}
                 >
                   <div className="text-xs uppercase tracking-[0.22em] text-slate-500">예측 비율</div>
-                  <div className="mt-2 flex items-center gap-4">
-                    <TeamLogo team={team} size={52} />
+                  <div className="mt-2">
                     <div className="text-xl font-extrabold text-slate-950">{getTeamDisplayName(team)}</div>
                   </div>
                   <div className="mt-3 text-4xl font-black text-slate-950">
@@ -462,7 +455,6 @@ function PlayerRatingCard({
   return (
     <div className={cn("rounded-[24px] border border-slate-200 bg-white p-4", mirror && "text-right")}>
       <div className={cn("flex items-center gap-3", mirror && "flex-row-reverse")}>
-        <TeamLogo team={player.team} size={44} />
         <div className="min-w-0 flex-1">
           <div className={cn("flex items-center gap-2", mirror && "justify-end")}>
             <span className="truncate font-semibold text-slate-950">{player.name}</span>
@@ -561,7 +553,7 @@ export function SetRatingPanel({ data }: { data: SetDetailData }) {
           <div className="rounded-[24px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
             <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Use</div>
             <div className="mt-2 font-semibold text-slate-950">모은 코인은 프로필 꾸미기에 사용</div>
-            <div className="mt-1 text-slate-600">팀 배지, 인장, 테마 효과 같은 보상으로 이어집니다.</div>
+            <div className="mt-1 text-slate-600">인장과 테마 효과 같은 보상으로 이어집니다.</div>
           </div>
         </div>
 
@@ -656,12 +648,9 @@ export function SetRatingsBoard({ data }: { data: SetDetailData }) {
       <CardContent className="grid gap-4 pt-5 md:grid-cols-2">
         {[{ team: data.teamA, players: data.teamAPlayers }, { team: data.teamB, players: data.teamBPlayers }].map((group, index) => (
           <div key={`${data.id}-${group.team}-${index}`} className="rounded-[24px] border border-slate-200 bg-white p-4">
-            <div className="mb-4 flex items-center gap-3">
-              <TeamLogo team={group.team} size={48} />
-              <div>
-                <div className="text-lg font-bold text-slate-950">{getTeamDisplayName(group.team)}</div>
-                <div className="text-sm text-slate-500">선수별 평균 평점</div>
-              </div>
+            <div className="mb-4">
+              <div className="text-lg font-bold text-slate-950">{getTeamDisplayName(group.team)}</div>
+              <div className="text-sm text-slate-500">선수별 평균 평점</div>
             </div>
             <div className="space-y-3">
               {group.players.map((player) => (

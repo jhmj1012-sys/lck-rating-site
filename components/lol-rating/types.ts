@@ -1,7 +1,12 @@
 export type MatchStatus = "scheduled" | "finished";
+export type MatchDetailViewStatus = "PRE" | "LIVE" | "POST";
+export type RatingAvailability = "locked" | "open";
+export type PredictionSectionMode = "entry" | "locked" | "result";
 export type PlayerRole = "TOP" | "JGL" | "MID" | "ADC" | "SUP";
 export type PredictionLifecycleState = "open" | "locked" | "settled";
 export type NotificationType = "prediction_joined" | "prediction_hit" | "prediction_missed" | "coin_earned" | "system";
+export type SeasonPredictionType = "single" | "yesno" | "range";
+export type SeasonPredictionQuestionStatus = "draft" | "open" | "locked" | "resolved" | "canceled";
 export type PredictionBlockReason =
   | "unauthenticated"
   | "profile-required"
@@ -17,6 +22,8 @@ export interface PlayerRating {
   role: PlayerRole;
   rating: number;
   ratingCount: number;
+  viewerScore: number | null;
+  viewerComment: string;
 }
 
 export interface MatchComment {
@@ -59,6 +66,63 @@ export interface NotificationItem {
   appliedOddsPercent: number | null;
 }
 
+export interface SeasonPredictionOptionView {
+  id: string;
+  label: string;
+  value: string;
+  sortOrder: number;
+  voteCount: number;
+  sharePercent: number;
+  lockedVoteCount: number | null;
+  lockedSharePercent: number | null;
+  isSelected: boolean;
+  isResult: boolean;
+}
+
+export interface SeasonPredictionEntryView {
+  selectedOptionId: string;
+  selectedOptionLabel: string;
+  submittedAt: string;
+  updatedAt: string;
+  lockedAt: string | null;
+  hitStatus: "hit" | "miss" | "pending" | "canceled";
+  rewardAmount: number | null;
+  rewardGranted: boolean;
+}
+
+export interface SeasonPredictionQuestionCard {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  season: string;
+  predictionType: SeasonPredictionType;
+  closeAt: string;
+  status: SeasonPredictionQuestionStatus;
+  totalEntries: number;
+  mySelectionLabel: string | null;
+  isParticipating: boolean;
+  resultLabel: string | null;
+}
+
+export interface SeasonPredictionDetail {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  season: string;
+  predictionType: SeasonPredictionType;
+  openAt: string;
+  closeAt: string;
+  status: SeasonPredictionQuestionStatus;
+  totalEntries: number;
+  canSubmit: boolean;
+  countdownLabel: string;
+  resultLabel: string | null;
+  options: SeasonPredictionOptionView[];
+  myEntry: SeasonPredictionEntryView | null;
+}
+
 export interface MatchData {
   id: string;
   league: string;
@@ -74,6 +138,8 @@ export interface MatchData {
   score: string;
   comments: number;
   totalRatings: number;
+  averagePlayerRating: number | null;
+  viewerPlayerRatingCount: number;
   mvp: string;
   predictionLocked: boolean;
   predictionLifecycleState: PredictionLifecycleState;
@@ -140,6 +206,14 @@ export interface MatchSetSummary {
   note: string;
   ratingParticipants: number;
   topPerformer: string | null;
+  viewerHasRated: boolean;
+}
+
+export interface MatchSummaryItem {
+  id: string;
+  label: string;
+  value: string;
+  tone?: "default" | "accent" | "success";
 }
 
 export interface SetPlayerRating {
@@ -194,7 +268,6 @@ export interface UserProfile {
   hasNickname?: boolean;
   points: number;
   level: number;
-  teamBadge: string;
   ownedPersonas: string[];
   selectedProfileTheme?: string | null;
   predictionAccuracy: number;
@@ -230,7 +303,6 @@ export interface PublicUserSummary {
   userId: string;
   nickname: string;
   bio: string;
-  teamBadge: string;
   points: number;
   predictionAccuracy: number;
   predictionStyleLabel: string;
@@ -284,6 +356,7 @@ export interface ScheduleHubData {
   recentFinishedMatches: MatchData[];
   recentComments: HomeCommentFeedItem[];
   playerLeaderboard: HomePlayerLeaderboardItem[];
+  seasonPredictionPreview: SeasonPredictionQuestionCard[];
   notifications: NotificationItem[];
   unreadNotificationCount: number;
 }
@@ -330,6 +403,21 @@ export interface MyPredictionItem {
   wasUnderdogPick: boolean;
 }
 
+export interface MySeasonPredictionItem {
+  id: string;
+  questionId: string;
+  title: string;
+  category: string;
+  season: string;
+  selectedOptionLabel: string;
+  status: SeasonPredictionQuestionStatus;
+  resultLabel: string | null;
+  hitStatus: "hit" | "miss" | "pending" | "canceled";
+  rewardAmount: number | null;
+  submittedAt: string;
+  updatedAt: string;
+}
+
 export interface MyRatingItem {
   id: string;
   matchId: string;
@@ -362,7 +450,7 @@ export interface MyPointLedgerItem {
 
 export interface MyStoreItem {
   id: string;
-  type: "badge" | "title" | "theme";
+  type: "title" | "theme";
   label: string;
   description: string;
   price: number;
@@ -388,10 +476,10 @@ export interface PredictionComparisonItem {
 export interface MyPageData {
   profile: UserProfile & {
     bio: string | null;
-    selectedBadge: string | null;
     selectedProfileTheme: string | null;
   };
   predictions: MyPredictionItem[];
+  seasonPredictions: MySeasonPredictionItem[];
   ratings: MyRatingItem[];
   comments: MyCommentItem[];
   pointLedger: MyPointLedgerItem[];
@@ -401,4 +489,27 @@ export interface MyPageData {
   predictionInsights: PredictionInsightItem[];
   predictionComparison: PredictionComparisonItem[];
   predictionStyleLabel: string;
+}
+
+export interface SeasonPredictionListData {
+  items: SeasonPredictionQuestionCard[];
+  categories: string[];
+  selectedCategory: string;
+  selectedStatus: string;
+}
+
+export interface AdminSeasonPredictionRow {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  season: string;
+  predictionType: SeasonPredictionType;
+  status: SeasonPredictionQuestionStatus;
+  visibility: "public" | "private";
+  openAt: string;
+  closeAt: string;
+  totalEntries: number;
+  options: SeasonPredictionOptionView[];
+  resultLabel: string | null;
 }

@@ -5,12 +5,17 @@ import { cache } from "react";
 import type {
   NotificationType,
   PredictionSettlementResult,
+  SeasonPredictionType,
   StoreShape,
   StoredComment,
   StoredMatch,
   StoredMatchSet,
   StoredNotification,
   StoredPointLedgerEntry,
+  StoredSeasonPredictionEntry,
+  StoredSeasonPredictionLockedDistribution,
+  StoredSeasonPredictionOption,
+  StoredSeasonPredictionQuestion,
   StoredTeamRosterEntry,
   StoredUser,
 } from "@/lib/domain";
@@ -39,11 +44,17 @@ import type {
   TeamRosterDetail,
   TeamRosterSummary,
   MyPredictionItem,
+  MySeasonPredictionItem,
   MyRatingItem,
   MyStoreItem,
   PlayerRating,
   PlayerRole,
   PredictionLeaderboardItem,
+  SeasonPredictionDetail,
+  SeasonPredictionListData,
+  SeasonPredictionOptionView,
+  SeasonPredictionQuestionCard,
+  SeasonPredictionQuestionStatus,
   ScheduleHubData,
   SetDetailData,
   SetPlayerRating,
@@ -150,6 +161,91 @@ function getPredictionLifecycleState(match: StoredMatch) {
   return "open" as const;
 }
 
+function getSeasonQuestionOptions(store: StoreShape, questionId: string) {
+  return store.seasonPredictionOptions
+    .filter((option) => option.questionId === questionId)
+    .slice()
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+}
+
+function getSeasonQuestionEntries(store: StoreShape, questionId: string) {
+  return store.seasonPredictionEntries.filter((entry) => entry.questionId === questionId);
+}
+
+function buildSeasonLockedDistribution(store: StoreShape, questionId: string): StoredSeasonPredictionLockedDistribution {
+  const entries = getSeasonQuestionEntries(store, questionId);
+  const options = getSeasonQuestionOptions(store, questionId);
+  const totalEntries = entries.length;
+
+  return {
+    totalEntries,
+    optionShares: options.map((option) => {
+      const voteCount = entries.filter((entry) => entry.selectedOptionId === option.id).length;
+      return {
+        optionId: option.id,
+        voteCount,
+        sharePercent: totalEntries > 0 ? Math.round((voteCount / totalEntries) * 100) : 0,
+      };
+    }),
+    capturedAt: new Date().toISOString(),
+  };
+}
+
+function getSeasonQuestionStatus(question: StoredSeasonPredictionQuestion): SeasonPredictionQuestionStatus {
+  if (question.manualStatus === "canceled") {
+    return "canceled";
+  }
+  if (question.manualStatus === "draft" || question.visibility === "private") {
+    return "draft";
+  }
+  if (question.resultOptionId || question.resultValue || question.resolvedAt) {
+    return "resolved";
+  }
+  if (DEMO_NOW_MS >= new Date(question.closeAt).getTime()) {
+    return "locked";
+  }
+  return "open";
+}
+
+function ensureSeasonPredictionLifecycle(store: StoreShape) {
+  for (const question of store.seasonPredictionQuestions) {
+    const status = getSeasonQuestionStatus(question);
+    if (status === "locked" && !question.lockedDistribution) {
+      const distribution = buildSeasonLockedDistribution(store, question.id);
+      question.lockedDistribution = distribution;
+      question.lockedAt = distribution.capturedAt;
+      question.updatedAt = distribution.capturedAt;
+      for (const entry of getSeasonQuestionEntries(store, question.id)) {
+        entry.lockedAt = distribution.capturedAt;
+        entry.snapshot = distribution;
+        entry.status = "locked";
+      }
+    }
+
+    if (status === "resolved") {
+      const distribution = question.lockedDistribution ?? buildSeasonLockedDistribution(store, question.id);
+      question.lockedDistribution = distribution;
+      if (!question.lockedAt) {
+        question.lockedAt = distribution.capturedAt;
+      }
+      for (const entry of getSeasonQuestionEntries(store, question.id)) {
+        const isHit = question.resultOptionId ? entry.selectedOptionId === question.resultOptionId : false;
+        entry.lockedAt = entry.lockedAt ?? question.lockedAt;
+        entry.snapshot = entry.snapshot ?? distribution;
+        entry.status = "resolved";
+        entry.hitStatus = isHit ? "hit" : "miss";
+      }
+    }
+
+    if (status === "canceled") {
+      for (const entry of getSeasonQuestionEntries(store, question.id)) {
+        entry.status = "canceled";
+        entry.hitStatus = "canceled";
+      }
+    }
+  }
+}
+
 function average(values: number[]) {
   if (values.length === 0) {
     return 0;
@@ -164,14 +260,6 @@ function clampScore(value: number) {
 
 function getPublicName(user: StoredUser | null | undefined) {
   return user?.nickname ?? "닉네임 미설정";
-}
-
-function getSelectedBadgeLabel(store: StoreShape, user: StoredUser) {
-  if (!user.selectedBadge) {
-    return user.role === "admin" ? "운영자" : "기본 배지";
-  }
-
-  return store.profileStoreItems.find((item) => item.id === user.selectedBadge)?.label ?? user.selectedBadge;
 }
 
 function getUserPredictionStyleLabel(store: StoreShape, userId: string) {
@@ -202,7 +290,6 @@ function buildPublicUserSummary(store: StoreShape, userId: string | null): Publi
     userId: user.id,
     nickname: getPublicName(user),
     bio: user.bio ?? "아직 소개 문구가 없습니다.",
-    teamBadge: getSelectedBadgeLabel(store, user),
     points: profile.points,
     predictionAccuracy: profile.predictionAccuracy,
     predictionStyleLabel: getUserPredictionStyleLabel(store, user.id),
@@ -512,7 +599,7 @@ function getSetRatings(store: StoreShape, matchSetId: string, playerId: string) 
   return store.setPlayerRatings.filter((rating) => rating.matchSetId === matchSetId && rating.playerId === playerId);
 }
 
-function getMatchPlayers(store: StoreShape, matchId: string) {
+function getMatchPlayers(store: StoreShape, matchId: string, viewerId: string | null) {
   const participants = store.matchParticipants.filter((participant) => participant.matchId === matchId);
 
   return participants
@@ -529,6 +616,9 @@ function getMatchPlayers(store: StoreShape, matchId: string) {
         return set?.matchId === matchId && rating.playerId === participant.playerId;
       });
       const allScores = [...ratings.map((rating) => rating.score), ...setRatings.map((rating) => rating.score)];
+      const viewerRating = viewerId
+        ? ratings.find((rating) => rating.userId === viewerId) ?? null
+        : null;
 
       return {
         id: player.id,
@@ -537,6 +627,8 @@ function getMatchPlayers(store: StoreShape, matchId: string) {
         role: player.role,
         rating: Number(average(allScores).toFixed(1)),
         ratingCount: allScores.length,
+        viewerScore: viewerRating?.score ?? null,
+        viewerComment: viewerRating?.comment ?? "",
       } satisfies PlayerRating;
     })
     .filter((player): player is PlayerRating => player !== null)
@@ -622,7 +714,7 @@ function buildSetTopPerformer(store: StoreShape, set: StoredMatchSet) {
   return candidates[0]?.name ?? null;
 }
 
-function buildSetSummary(store: StoreShape, set: StoredMatchSet): MatchSetSummary {
+function buildSetSummary(store: StoreShape, set: StoredMatchSet, viewerId: string | null): MatchSetSummary {
   const isPlayed = set.winnerTeamId !== null;
   const winnerTeam = set.winnerTeamId ? getTeamById(store, set.winnerTeamId)?.code ?? null : null;
   const ratingParticipants = store.setPlayerRatings.filter((rating) => rating.matchSetId === set.id).length;
@@ -638,6 +730,7 @@ function buildSetSummary(store: StoreShape, set: StoredMatchSet): MatchSetSummar
     note: set.note,
     ratingParticipants,
     topPerformer: isPlayed ? buildSetTopPerformer(store, set) : null,
+    viewerHasRated: viewerId ? store.setPlayerRatings.some((rating) => rating.matchSetId === set.id && rating.userId === viewerId) : false,
   };
 }
 
@@ -648,12 +741,13 @@ function buildMatchView(store: StoreShape, match: StoredMatch, viewerId: string 
     throw new Error(`Invalid match teams for ${match.id}`);
   }
 
-  const players = getMatchPlayers(store, match.id);
+  const players = getMatchPlayers(store, match.id, viewerId);
   const comments = buildComments(store, match.id);
   const predictionSummary = match.lockedDistribution ?? buildPredictionSummary(store, match);
   const totalRatings =
     store.playerRatings.filter((rating) => rating.matchId === match.id).length +
     store.setPlayerRatings.filter((rating) => getSetById(store, rating.matchSetId)?.matchId === match.id).length;
+  const averagePlayerRating = players.filter((player) => player.ratingCount > 0);
   const myPrediction = viewerId
     ? store.predictions.find((prediction) => prediction.matchId === match.id && prediction.userId === viewerId)
     : null;
@@ -661,7 +755,7 @@ function buildMatchView(store: StoreShape, match: StoredMatch, viewerId: string 
   return {
     id: match.id,
     league: match.league,
-    stage: match.stage,
+    stage: normalizeStageLabel(match.stage, match.id),
     patch: match.patch,
     status: match.status,
     date: formatDateLabel(match.scheduledAt),
@@ -673,6 +767,8 @@ function buildMatchView(store: StoreShape, match: StoredMatch, viewerId: string 
     score: match.scoreA === null || match.scoreB === null ? "-" : `${match.scoreA} : ${match.scoreB}`,
     comments: countVisibleComments(store.comments, match.id),
     totalRatings,
+    averagePlayerRating: averagePlayerRating.length > 0 ? Number(average(averagePlayerRating.map((player) => player.rating)).toFixed(1)) : null,
+    viewerPlayerRatingCount: viewerId ? store.playerRatings.filter((rating) => rating.matchId === match.id && rating.userId === viewerId).length : 0,
     mvp: buildMvp(players),
     predictionLocked: isPredictionLocked(match),
     predictionLifecycleState: getPredictionLifecycleState(match),
@@ -736,7 +832,6 @@ function buildProfile(store: StoreShape, viewer: StoredUser | null): UserProfile
       hasNickname: false,
       points: 0,
       level: 1,
-      teamBadge: "게스트",
       ownedPersonas: ["관전자", "기본 프로필"],
       selectedProfileTheme: null,
       predictionAccuracy: 0,
@@ -762,7 +857,6 @@ function buildProfile(store: StoreShape, viewer: StoredUser | null): UserProfile
   const miss = resolved.length - hit;
   const predictionAccuracy = resolved.length > 0 ? Math.round((hit / resolved.length) * 100) : 0;
   const points = getUserPointBalance(store, viewer.id);
-  const selectedBadge = getSelectedBadgeLabel(store, viewer);
 
   return {
     nickname: viewer.nickname ?? "닉네임 설정 필요",
@@ -772,7 +866,6 @@ function buildProfile(store: StoreShape, viewer: StoredUser | null): UserProfile
     hasNickname: Boolean(viewer.nickname),
     points,
     level: Math.max(1, Math.floor(points / 120) + 1),
-    teamBadge: selectedBadge,
     ownedPersonas: ["경기 분석가", viewer.role === "admin" ? "운영자" : "세트 평점러"],
     selectedProfileTheme: viewer.selectedProfileTheme,
     predictionAccuracy,
@@ -1110,6 +1203,110 @@ function buildPlayerLeaderboard(store: StoreShape): HomePlayerLeaderboardItem[] 
     }));
 }
 
+function buildSeasonPredictionCard(
+  store: StoreShape,
+  question: StoredSeasonPredictionQuestion,
+  viewerId: string | null,
+): SeasonPredictionQuestionCard {
+  const entries = getSeasonQuestionEntries(store, question.id);
+  const options = getSeasonQuestionOptions(store, question.id);
+  const myEntry = viewerId ? entries.find((entry) => entry.userId === viewerId) ?? null : null;
+  const myOption = myEntry ? options.find((option) => option.id === myEntry.selectedOptionId) ?? null : null;
+  const resultOption = question.resultOptionId ? options.find((option) => option.id === question.resultOptionId) ?? null : null;
+
+  return {
+    id: question.id,
+    title: question.title,
+    description: question.description,
+    category: question.category,
+    season: question.season,
+    predictionType: question.predictionType,
+    closeAt: question.closeAt,
+    status: getSeasonQuestionStatus(question),
+    totalEntries: entries.length,
+    mySelectionLabel: myOption?.label ?? null,
+    isParticipating: Boolean(myEntry),
+    resultLabel: resultOption?.label ?? question.resultValue ?? null,
+  };
+}
+
+function buildSeasonPredictionOptionViews(
+  store: StoreShape,
+  question: StoredSeasonPredictionQuestion,
+  viewerId: string | null,
+): SeasonPredictionOptionView[] {
+  const entries = getSeasonQuestionEntries(store, question.id);
+  const options = getSeasonQuestionOptions(store, question.id);
+  const totalEntries = entries.length;
+  const lockedDistribution = question.lockedDistribution;
+  const myEntry = viewerId ? entries.find((entry) => entry.userId === viewerId) ?? null : null;
+
+  return options.map((option) => {
+    const voteCount = entries.filter((entry) => entry.selectedOptionId === option.id).length;
+    const lockedShare = lockedDistribution?.optionShares.find((share) => share.optionId === option.id) ?? null;
+    return {
+      id: option.id,
+      label: option.label,
+      value: option.value,
+      sortOrder: option.sortOrder,
+      voteCount,
+      sharePercent: totalEntries > 0 ? Math.round((voteCount / totalEntries) * 100) : 0,
+      lockedVoteCount: lockedShare?.voteCount ?? null,
+      lockedSharePercent: lockedShare?.sharePercent ?? null,
+      isSelected: myEntry?.selectedOptionId === option.id,
+      isResult: question.resultOptionId === option.id,
+    };
+  });
+}
+
+function buildSeasonPredictionDetail(
+  store: StoreShape,
+  question: StoredSeasonPredictionQuestion,
+  viewerId: string | null,
+): SeasonPredictionDetail {
+  const entries = getSeasonQuestionEntries(store, question.id);
+  const options = getSeasonQuestionOptions(store, question.id);
+  const myEntry = viewerId ? entries.find((entry) => entry.userId === viewerId) ?? null : null;
+  const myOption = myEntry ? options.find((option) => option.id === myEntry.selectedOptionId) ?? null : null;
+  const resultOption = question.resultOptionId ? options.find((option) => option.id === question.resultOptionId) ?? null : null;
+  const diffMs = new Date(question.closeAt).getTime() - DEMO_NOW_MS;
+  const totalMinutes = Math.max(0, Math.floor(diffMs / 60000));
+  const countdownLabel =
+    getSeasonQuestionStatus(question) === "open"
+      ? `${Math.floor(totalMinutes / 60)}시간 ${totalMinutes % 60}분 남음`
+      : "마감됨";
+
+  return {
+    id: question.id,
+    title: question.title,
+    description: question.description,
+    category: question.category,
+    season: question.season,
+    predictionType: question.predictionType,
+    openAt: question.openAt,
+    closeAt: question.closeAt,
+    status: getSeasonQuestionStatus(question),
+    totalEntries: entries.length,
+    canSubmit: getSeasonQuestionStatus(question) === "open",
+    countdownLabel,
+    resultLabel: resultOption?.label ?? question.resultValue ?? null,
+    options: buildSeasonPredictionOptionViews(store, question, viewerId),
+    myEntry:
+      myEntry && myOption
+        ? {
+            selectedOptionId: myEntry.selectedOptionId,
+            selectedOptionLabel: myOption.label,
+            submittedAt: myEntry.submittedAt,
+            updatedAt: myEntry.updatedAt,
+            lockedAt: myEntry.lockedAt,
+            hitStatus: myEntry.hitStatus,
+            rewardAmount: myEntry.rewardAmount,
+            rewardGranted: myEntry.rewardGranted,
+          }
+        : null,
+  };
+}
+
 function buildMatchListItem(store: StoreShape, match: StoredMatch): MatchListItem {
   const teamA = getTeamById(store, match.teamAId);
   const teamB = getTeamById(store, match.teamBId);
@@ -1357,6 +1554,7 @@ function buildSetDetail(store: StoreShape, set: StoredMatchSet, viewerId: string
 async function readStoreWithPredictionLifecycle() {
   return mutateStore(async (store) => {
     ensurePredictionLifecycle(store);
+    ensureSeasonPredictionLifecycle(store);
     return store;
   });
 }
@@ -1387,6 +1585,12 @@ export const getScheduleHubData = cache(async (viewerId: string | null): Promise
   const store = await readStoreWithPredictionLifecycle();
   const viewer = viewerId ? store.users.find((user) => user.id === viewerId) ?? null : null;
   const months = buildScheduleGroups(store);
+  const seasonPredictionPreview = store.seasonPredictionQuestions
+    .filter((question) => question.visibility === "public" && getSeasonQuestionStatus(question) !== "draft")
+    .slice()
+    .sort((a, b) => new Date(a.closeAt).getTime() - new Date(b.closeAt).getTime())
+    .slice(0, 5)
+    .map((question) => buildSeasonPredictionCard(store, question, viewerId));
   const notifications = buildNotificationItems(store, viewerId, 5);
   const unreadNotificationCount = viewerId
     ? store.notifications.filter((notification) => notification.userId === viewerId && !notification.isRead).length
@@ -1409,6 +1613,7 @@ export const getScheduleHubData = cache(async (viewerId: string | null): Promise
     recentFinishedMatches: buildRecentFinishedMatches(store, viewerId),
     recentComments: buildRecentCommentsFeed(store),
     playerLeaderboard: buildPlayerLeaderboard(store),
+    seasonPredictionPreview,
     notifications,
     unreadNotificationCount,
   };
@@ -1439,6 +1644,44 @@ export async function getTeamRosterDetailData(teamCode: string): Promise<TeamRos
   return detail;
 }
 
+export async function getSeasonPredictionListData(viewerId: string | null, filters?: {
+  category?: string;
+  status?: string;
+}): Promise<SeasonPredictionListData> {
+  const store = await readStoreWithPredictionLifecycle();
+  const categories = Array.from(new Set(store.seasonPredictionQuestions.map((question) => question.category))).sort((a, b) => a.localeCompare(b, "ko"));
+  const selectedCategory = filters?.category ?? "all";
+  const selectedStatus = filters?.status ?? "all";
+
+  const items = store.seasonPredictionQuestions
+    .filter((question) => question.visibility === "public" || viewerId)
+    .filter((question) => selectedCategory === "all" || question.category === selectedCategory)
+    .filter((question) => selectedStatus === "all" || getSeasonQuestionStatus(question) === selectedStatus)
+    .slice()
+    .sort((a, b) => new Date(a.closeAt).getTime() - new Date(b.closeAt).getTime())
+    .map((question) => buildSeasonPredictionCard(store, question, viewerId));
+
+  return {
+    items,
+    categories,
+    selectedCategory,
+    selectedStatus,
+  };
+}
+
+export async function getSeasonPredictionDetailData(questionId: string, viewerId: string | null): Promise<SeasonPredictionDetail> {
+  const store = await readStoreWithPredictionLifecycle();
+  const question = store.seasonPredictionQuestions.find((item) => item.id === questionId);
+  if (!question) {
+    throw new Error("시즌예측 질문을 찾을 수 없습니다.");
+  }
+  if (question.visibility !== "public" && !viewerId) {
+    throw new Error("공개되지 않은 질문입니다.");
+  }
+
+  return buildSeasonPredictionDetail(store, question, viewerId);
+}
+
 export async function getMatchDetailData(matchId: string, viewerId: string | null): Promise<MatchDetailData> {
   const store = await readStoreWithPredictionLifecycle();
   const match = store.matches.find((item) => item.id === matchId);
@@ -1448,7 +1691,7 @@ export async function getMatchDetailData(matchId: string, viewerId: string | nul
 
   return {
     match: buildMatchView(store, match, viewerId),
-    sets: getMatchSets(store, matchId).map((set) => buildSetSummary(store, set)),
+    sets: getMatchSets(store, matchId).map((set) => buildSetSummary(store, set, viewerId)),
   };
 }
 
@@ -1516,6 +1759,33 @@ export async function getMyPageData(viewerId: string): Promise<MyPageData> {
       settlementCoins: prediction.settlementCoins,
       wasUnderdogPick: Boolean(prediction.wasUnderdogPick),
     }));
+
+  const seasonPredictions: MySeasonPredictionItem[] = store.seasonPredictionEntries
+    .filter((entry) => entry.userId === viewerId)
+    .slice()
+    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+    .map((entry) => {
+      const question = store.seasonPredictionQuestions.find((item) => item.id === entry.questionId);
+      const option = store.seasonPredictionOptions.find((item) => item.id === entry.selectedOptionId);
+      const resultOption = question?.resultOptionId
+        ? store.seasonPredictionOptions.find((item) => item.id === question.resultOptionId)
+        : null;
+
+      return {
+        id: entry.id,
+        questionId: entry.questionId,
+        title: question?.title ?? entry.questionId,
+        category: question?.category ?? "-",
+        season: question?.season ?? "-",
+        selectedOptionLabel: option?.label ?? entry.selectedOptionId,
+        status: question ? getSeasonQuestionStatus(question) : "draft",
+        resultLabel: resultOption?.label ?? question?.resultValue ?? null,
+        hitStatus: entry.hitStatus,
+        rewardAmount: entry.rewardAmount,
+        submittedAt: entry.submittedAt,
+        updatedAt: entry.updatedAt,
+      };
+    });
 
   const legacyRatings: MyRatingItem[] = store.playerRatings
     .filter((rating) => rating.userId === viewerId)
@@ -1599,10 +1869,10 @@ export async function getMyPageData(viewerId: string): Promise<MyPageData> {
     profile: {
       ...profile,
       bio: viewer.bio,
-      selectedBadge: storeItemsById.get(viewer.selectedBadge ?? "")?.label ?? viewer.selectedBadge,
       selectedProfileTheme: storeItemsById.get(viewer.selectedProfileTheme ?? "")?.label ?? viewer.selectedProfileTheme,
     },
     predictions,
+    seasonPredictions,
     ratings: [...legacyRatings, ...setRatings].sort(
       (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
     ),
@@ -1685,9 +1955,6 @@ export async function equipProfileStoreItem(input: { userId: string; storeItemId
     }
 
     inventory.equipped = true;
-    if (item.type === "badge") {
-      user.selectedBadge = item.id;
-    }
     if (item.type === "theme") {
       user.selectedProfileTheme = item.id;
     }
@@ -1696,7 +1963,7 @@ export async function equipProfileStoreItem(input: { userId: string; storeItemId
 }
 
 export async function getAdminPanelData() {
-  const store = await readStore();
+  const store = await readStoreWithPredictionLifecycle();
   return {
     users: store.users.slice().sort((a, b) => getPublicName(a).localeCompare(getPublicName(b), "ko")),
     teams: store.teams.slice().sort((a, b) => a.code.localeCompare(b.code, "en")),
@@ -1720,6 +1987,27 @@ export async function getAdminPanelData() {
     setParticipants: store.setParticipants,
     setPlayerRatings: store.setPlayerRatings,
     comments: store.comments.slice().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+    seasonPredictionQuestions: store.seasonPredictionQuestions
+      .slice()
+      .sort((a, b) => new Date(a.closeAt).getTime() - new Date(b.closeAt).getTime())
+      .map((question) => ({
+        id: question.id,
+        title: question.title,
+        description: question.description,
+        category: question.category,
+        season: question.season,
+        predictionType: question.predictionType,
+        status: getSeasonQuestionStatus(question),
+        visibility: question.visibility,
+        openAt: question.openAt,
+        closeAt: question.closeAt,
+        totalEntries: getSeasonQuestionEntries(store, question.id).length,
+        options: buildSeasonPredictionOptionViews(store, question, null),
+        resultLabel:
+          (question.resultOptionId
+            ? store.seasonPredictionOptions.find((option) => option.id === question.resultOptionId)?.label
+            : null) ?? question.resultValue,
+      })),
   };
 }
 
@@ -1997,6 +2285,155 @@ export async function submitComment(input: {
       referenceType: "comment_submit",
       referenceId: commentId,
     });
+  });
+}
+
+export async function submitSeasonPredictionEntry(input: {
+  viewerId: string;
+  questionId: string;
+  selectedOptionId: string;
+}) {
+  return mutateStore(async (store) => {
+    ensureSeasonPredictionLifecycle(store);
+    const question = store.seasonPredictionQuestions.find((item) => item.id === input.questionId);
+    if (!question || question.visibility !== "public") {
+      throw new Error("참여 가능한 시즌예측이 아닙니다.");
+    }
+    if (getSeasonQuestionStatus(question) !== "open") {
+      throw new Error("이 질문은 더 이상 수정할 수 없습니다.");
+    }
+
+    const option = store.seasonPredictionOptions.find(
+      (candidate) => candidate.id === input.selectedOptionId && candidate.questionId === input.questionId,
+    );
+    if (!option) {
+      throw new Error("유효한 선택지가 아닙니다.");
+    }
+
+    const existing = store.seasonPredictionEntries.find(
+      (entry) => entry.userId === input.viewerId && entry.questionId === input.questionId,
+    );
+    const now = new Date().toISOString();
+    if (existing) {
+      existing.selectedOptionId = option.id;
+      existing.updatedAt = now;
+      existing.status = "open";
+      existing.hitStatus = "pending";
+      return;
+    }
+
+    store.seasonPredictionEntries.push({
+      id: createId(store, "seasonPredictionEntries", "season_entry"),
+      userId: input.viewerId,
+      questionId: input.questionId,
+      selectedOptionId: option.id,
+      submittedAt: now,
+      updatedAt: now,
+      lockedAt: null,
+      snapshot: null,
+      status: "open",
+      hitStatus: "pending",
+      rewardGranted: false,
+      rewardAmount: null,
+    });
+  });
+}
+
+export async function upsertSeasonPredictionQuestion(input: {
+  questionId?: string;
+  title: string;
+  description: string;
+  category: string;
+  predictionType: SeasonPredictionType;
+  season: string;
+  openAt: string;
+  closeAt: string;
+  visibility: "public" | "private";
+  manualStatus: "draft" | "active" | "canceled";
+  options: Array<{ label: string; value: string }>;
+}) {
+  return mutateStore(async (store) => {
+    const now = new Date().toISOString();
+    const question =
+      store.seasonPredictionQuestions.find((item) => item.id === input.questionId) ??
+      ({
+        id: createId(store, "seasonPredictionQuestions", "season_question"),
+        lockedAt: null,
+        resolvedAt: null,
+        resultOptionId: null,
+        resultValue: null,
+        rewardMode: "parimutuel",
+        baseRewardAmount: null,
+        lockedDistribution: null,
+        createdAt: now,
+      } as StoredSeasonPredictionQuestion);
+
+    question.title = input.title.trim();
+    question.description = input.description.trim();
+    question.category = input.category.trim();
+    question.predictionType = input.predictionType;
+    question.season = input.season.trim();
+    question.openAt = input.openAt;
+    question.closeAt = input.closeAt;
+    question.visibility = input.visibility;
+    question.manualStatus = input.manualStatus;
+    question.updatedAt = now;
+
+    if (!store.seasonPredictionQuestions.some((item) => item.id === question.id)) {
+      store.seasonPredictionQuestions.push(question);
+    }
+
+    store.seasonPredictionOptions = store.seasonPredictionOptions.filter((option) => option.questionId !== question.id);
+    input.options
+      .filter((option) => option.label.trim())
+      .forEach((option, index) => {
+        store.seasonPredictionOptions.push({
+          id: createId(store, "seasonPredictionOptions", "season_option"),
+          questionId: question.id,
+          label: option.label.trim(),
+          value: option.value.trim() || option.label.trim(),
+          sortOrder: index + 1,
+        });
+      });
+  });
+}
+
+export async function resolveSeasonPredictionQuestion(input: {
+  questionId: string;
+  resultOptionId: string;
+}) {
+  return mutateStore(async (store) => {
+    ensureSeasonPredictionLifecycle(store);
+    const question = store.seasonPredictionQuestions.find((item) => item.id === input.questionId);
+    if (!question) {
+      throw new Error("질문을 찾을 수 없습니다.");
+    }
+    const option = store.seasonPredictionOptions.find((candidate) => candidate.id === input.resultOptionId && candidate.questionId === input.questionId);
+    if (!option) {
+      throw new Error("정답 선택지가 올바르지 않습니다.");
+    }
+
+    if (!question.lockedDistribution) {
+      question.lockedDistribution = buildSeasonLockedDistribution(store, question.id);
+      question.lockedAt = question.lockedDistribution.capturedAt;
+    }
+    question.resultOptionId = option.id;
+    question.resultValue = option.value;
+    question.resolvedAt = new Date().toISOString();
+    question.updatedAt = question.resolvedAt;
+    ensureSeasonPredictionLifecycle(store);
+  });
+}
+
+export async function cancelSeasonPredictionQuestion(questionId: string) {
+  return mutateStore(async (store) => {
+    const question = store.seasonPredictionQuestions.find((item) => item.id === questionId);
+    if (!question) {
+      throw new Error("질문을 찾을 수 없습니다.");
+    }
+    question.manualStatus = "canceled";
+    question.updatedAt = new Date().toISOString();
+    ensureSeasonPredictionLifecycle(store);
   });
 }
 

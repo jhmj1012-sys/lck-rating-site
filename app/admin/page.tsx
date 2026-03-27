@@ -4,11 +4,14 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/authz";
 import { getAdminPanelData } from "@/lib/service";
 import {
+  cancelSeasonPredictionQuestionAction,
+  resolveSeasonPredictionQuestionAction,
   saveAdminSetRatingAction,
   toggleCommentVisibilityAction,
   updateMatchRosterAction,
   updateSetRosterAction,
   updateTeamRosterAction,
+  upsertSeasonPredictionQuestionAction,
   upsertMatchAction,
   upsertMatchSetAction,
 } from "./actions";
@@ -19,7 +22,19 @@ function toInputDate(value: string) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-export default async function AdminPage() {
+function readParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function serializeSeasonOptions(options: { label: string; value: string }[]) {
+  return options.map((option) => `${option.label}|${option.value}`).join("\n");
+}
+
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const user = await getCurrentUser();
   if (!user) {
     redirect("/signin");
@@ -28,7 +43,12 @@ export default async function AdminPage() {
     redirect("/");
   }
 
+  const params = await searchParams;
   const data = await getAdminPanelData();
+  const seasonStatus = readParam(params.seasonStatus) ?? "all";
+  const filteredSeasonQuestions = data.seasonPredictionQuestions.filter((question) =>
+    seasonStatus === "all" ? true : question.status === seasonStatus,
+  );
 
   return (
     <main className="min-h-screen bg-slate-100 px-4 py-8 sm:px-6">
@@ -111,6 +131,180 @@ export default async function AdminPage() {
               </button>
             </div>
           </form>
+        </section>
+
+        <section className="space-y-5 rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
+          <div>
+            <h2 className="text-xl font-bold text-slate-950">시즌예측 관리</h2>
+            <p className="mt-2 text-sm text-slate-600">질문 생성, 공개/비공개, 결과 확정, 취소 처리까지 한 번에 관리합니다.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {[
+              ["all", "전체"],
+              ["draft", "draft"],
+              ["open", "open"],
+              ["locked", "locked"],
+              ["resolved", "resolved"],
+              ["canceled", "canceled"],
+            ].map(([value, label]) => (
+              <Link
+                key={value}
+                href={value === "all" ? "/admin" : `/admin?seasonStatus=${value}`}
+                className={
+                  seasonStatus === value
+                    ? "rounded-full border border-slate-950 bg-slate-950 px-3 py-2 text-sm font-semibold !text-white shadow-[0_10px_24px_rgba(15,23,42,0.16)]"
+                    : "rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700"
+                }
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+          <form action={upsertSeasonPredictionQuestionAction} className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <input type="hidden" name="questionId" value="" />
+            <label className="grid gap-2 text-sm text-slate-700">
+              제목
+              <input name="title" className="rounded-2xl border border-slate-200 px-4 py-3" />
+            </label>
+            <label className="grid gap-2 text-sm text-slate-700">
+              카테고리
+              <input name="category" defaultValue="LCK" className="rounded-2xl border border-slate-200 px-4 py-3" />
+            </label>
+            <label className="grid gap-2 text-sm text-slate-700">
+              시즌
+              <input name="season" defaultValue="2026 LCK Spring" className="rounded-2xl border border-slate-200 px-4 py-3" />
+            </label>
+            <label className="grid gap-2 text-sm text-slate-700">
+              유형
+              <select name="predictionType" defaultValue="single" className="rounded-2xl border border-slate-200 px-4 py-3">
+                <option value="single">single</option>
+                <option value="yesno">yesno</option>
+                <option value="range">range</option>
+              </select>
+            </label>
+            <label className="grid gap-2 text-sm text-slate-700">
+              공개 상태
+              <select name="visibility" defaultValue="public" className="rounded-2xl border border-slate-200 px-4 py-3">
+                <option value="public">public</option>
+                <option value="private">private</option>
+              </select>
+            </label>
+            <label className="grid gap-2 text-sm text-slate-700">
+              운영 상태
+              <select name="manualStatus" defaultValue="active" className="rounded-2xl border border-slate-200 px-4 py-3">
+                <option value="draft">draft</option>
+                <option value="active">active</option>
+                <option value="canceled">canceled</option>
+              </select>
+            </label>
+            <label className="grid gap-2 text-sm text-slate-700">
+              openAt
+              <input type="datetime-local" name="openAt" className="rounded-2xl border border-slate-200 px-4 py-3" />
+            </label>
+            <label className="grid gap-2 text-sm text-slate-700">
+              closeAt
+              <input type="datetime-local" name="closeAt" className="rounded-2xl border border-slate-200 px-4 py-3" />
+            </label>
+            <label className="grid gap-2 text-sm text-slate-700 md:col-span-2 xl:col-span-4">
+              설명
+              <textarea name="description" rows={3} className="rounded-2xl border border-slate-200 px-4 py-3" />
+            </label>
+            <label className="grid gap-2 text-sm text-slate-700 md:col-span-2 xl:col-span-4">
+              선택지 목록
+              <textarea
+                name="options"
+                rows={5}
+                placeholder={"GEN|GEN\nT1|T1\nHLE|HLE"}
+                className="rounded-2xl border border-slate-200 px-4 py-3"
+              />
+            </label>
+            <div className="md:col-span-2 xl:col-span-4">
+              <button type="submit" className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-sky-500 px-5 text-sm font-semibold text-white">
+                시즌예측 질문 생성
+              </button>
+            </div>
+          </form>
+
+          <div className="space-y-4">
+            {filteredSeasonQuestions.map((question) => (
+              <div key={question.id} className="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.18em] text-slate-500">{question.category} · {question.season}</div>
+                    <div className="mt-1 text-xl font-black text-slate-950">{question.title}</div>
+                    <div className="mt-2 text-sm text-slate-600">상태 {question.status} · 공개 {question.visibility} · 참여 {question.totalEntries}명</div>
+                  </div>
+                  <div className="text-sm text-slate-500">마감 {toInputDate(question.closeAt).replace("T", " ")}</div>
+                </div>
+
+                <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+                  <form action={upsertSeasonPredictionQuestionAction} className="rounded-[20px] border border-slate-200 bg-white p-4">
+                    <input type="hidden" name="questionId" value={question.id} />
+                    <div className="text-sm font-semibold text-slate-950">질문 수정</div>
+                    <div className="mt-3 grid gap-3">
+                      <input name="title" defaultValue={question.title} className="rounded-2xl border border-slate-200 px-4 py-3 text-sm" />
+                      <input name="category" defaultValue={question.category} className="rounded-2xl border border-slate-200 px-4 py-3 text-sm" />
+                      <input name="season" defaultValue={question.season} className="rounded-2xl border border-slate-200 px-4 py-3 text-sm" />
+                      <select name="predictionType" defaultValue={question.predictionType} className="rounded-2xl border border-slate-200 px-4 py-3 text-sm">
+                        <option value="single">single</option>
+                        <option value="yesno">yesno</option>
+                        <option value="range">range</option>
+                      </select>
+                      <select name="visibility" defaultValue={question.visibility} className="rounded-2xl border border-slate-200 px-4 py-3 text-sm">
+                        <option value="public">public</option>
+                        <option value="private">private</option>
+                      </select>
+                      <select name="manualStatus" defaultValue={question.status === "canceled" ? "canceled" : question.status === "draft" ? "draft" : "active"} className="rounded-2xl border border-slate-200 px-4 py-3 text-sm">
+                        <option value="draft">draft</option>
+                        <option value="active">active</option>
+                        <option value="canceled">canceled</option>
+                      </select>
+                      <input type="datetime-local" name="openAt" defaultValue={toInputDate(question.openAt)} className="rounded-2xl border border-slate-200 px-4 py-3 text-sm" />
+                      <input type="datetime-local" name="closeAt" defaultValue={toInputDate(question.closeAt)} className="rounded-2xl border border-slate-200 px-4 py-3 text-sm" />
+                      <textarea name="description" defaultValue={question.description} rows={3} className="rounded-2xl border border-slate-200 px-4 py-3 text-sm" />
+                      <textarea name="options" defaultValue={serializeSeasonOptions(question.options)} rows={5} className="rounded-2xl border border-slate-200 px-4 py-3 text-sm" />
+                    </div>
+                    <button type="submit" className="mt-3 inline-flex min-h-10 items-center justify-center rounded-2xl border border-slate-200 px-4 text-sm font-semibold text-slate-700">
+                      질문 수정 저장
+                    </button>
+                  </form>
+
+                  <form action={resolveSeasonPredictionQuestionAction} className="rounded-[20px] border border-slate-200 bg-white p-4">
+                    <input type="hidden" name="questionId" value={question.id} />
+                    <div className="text-sm font-semibold text-slate-950">결과 확정</div>
+                    <select name="resultOptionId" defaultValue="" className="mt-3 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm">
+                      <option value="" disabled>정답 선택</option>
+                      {question.options.map((option) => (
+                        <option key={option.id} value={option.id}>{option.label}</option>
+                      ))}
+                    </select>
+                    <button type="submit" className="mt-3 inline-flex min-h-10 items-center justify-center rounded-2xl bg-sky-500 px-4 text-sm font-semibold text-white">
+                      결과 확정
+                    </button>
+                    {question.resultLabel ? <div className="mt-3 text-sm text-emerald-700">현재 결과 {question.resultLabel}</div> : null}
+                  </form>
+
+                  <form action={cancelSeasonPredictionQuestionAction} className="rounded-[20px] border border-slate-200 bg-white p-4">
+                    <input type="hidden" name="questionId" value={question.id} />
+                    <div className="text-sm font-semibold text-slate-950">취소 처리</div>
+                    <p className="mt-2 text-sm text-slate-600">운영상 취소가 필요할 때 질문 상태를 canceled로 전환합니다.</p>
+                    <button type="submit" className="mt-3 inline-flex min-h-10 items-center justify-center rounded-2xl border border-rose-200 bg-rose-50 px-4 text-sm font-semibold text-rose-700">
+                      질문 취소
+                    </button>
+                  </form>
+                </div>
+
+                <div className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+                  {question.options.map((option) => (
+                    <div key={option.id} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+                      <div className="font-semibold text-slate-950">{option.label}</div>
+                      <div className="mt-1">{option.voteCount}표 · {option.sharePercent}%</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </section>
 
         <section className="space-y-6">

@@ -1,10 +1,15 @@
-﻿export type MatchStatus = "scheduled" | "finished";
+export type MatchStatus = "scheduled" | "finished";
 export type UserRole = "user" | "admin";
 export type PlayerRole = "TOP" | "JGL" | "MID" | "ADC" | "SUP";
 export type PointLedgerType = "earn" | "spend";
-export type ProfileStoreItemType = "badge" | "title" | "theme";
+export type ProfileStoreItemType = "title" | "theme";
 export type PredictionSettlementResult = "hit" | "miss";
 export type NotificationType = "prediction_joined" | "prediction_hit" | "prediction_missed" | "coin_earned" | "system";
+export type SeasonPredictionType = "single" | "yesno" | "range";
+export type SeasonPredictionManualStatus = "draft" | "active" | "canceled";
+export type SeasonPredictionEntryStatus = "open" | "locked" | "resolved" | "canceled";
+export type SeasonPredictionHitStatus = "hit" | "miss" | "pending" | "canceled";
+export type SeasonPredictionRewardMode = "parimutuel";
 
 export interface StoredPredictionDistribution {
   teamA: number;
@@ -22,6 +27,18 @@ export interface StoredPredictionOdds {
   teamB: StoredPredictionOddsSide;
 }
 
+export interface StoredSeasonPredictionOptionShare {
+  optionId: string;
+  voteCount: number;
+  sharePercent: number;
+}
+
+export interface StoredSeasonPredictionLockedDistribution {
+  totalEntries: number;
+  optionShares: StoredSeasonPredictionOptionShare[];
+  capturedAt: string;
+}
+
 export interface StoredUser {
   id: string;
   email: string;
@@ -32,7 +49,6 @@ export interface StoredUser {
   bio: string | null;
   image: string | null;
   role: UserRole;
-  selectedBadge: string | null;
   selectedProfileTheme: string | null;
   createdAt: string;
   updatedAt: string;
@@ -127,6 +143,51 @@ export interface StoredPrediction {
   wasUnderdogPick: boolean | null;
 }
 
+export interface StoredSeasonPredictionQuestion {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  predictionType: SeasonPredictionType;
+  season: string;
+  openAt: string;
+  closeAt: string;
+  manualStatus: SeasonPredictionManualStatus;
+  visibility: "public" | "private";
+  lockedAt: string | null;
+  resolvedAt: string | null;
+  resultOptionId: string | null;
+  resultValue: string | null;
+  rewardMode: SeasonPredictionRewardMode;
+  baseRewardAmount: number | null;
+  lockedDistribution: StoredSeasonPredictionLockedDistribution | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StoredSeasonPredictionOption {
+  id: string;
+  questionId: string;
+  label: string;
+  value: string;
+  sortOrder: number;
+}
+
+export interface StoredSeasonPredictionEntry {
+  id: string;
+  userId: string;
+  questionId: string;
+  selectedOptionId: string;
+  submittedAt: string;
+  updatedAt: string;
+  lockedAt: string | null;
+  snapshot: StoredSeasonPredictionLockedDistribution | null;
+  status: SeasonPredictionEntryStatus;
+  hitStatus: SeasonPredictionHitStatus;
+  rewardGranted: boolean;
+  rewardAmount: number | null;
+}
+
 export interface StoredPlayerRating {
   id: string;
   userId: string;
@@ -212,6 +273,9 @@ export interface StoreShape {
   matchSets: StoredMatchSet[];
   setParticipants: StoredSetParticipant[];
   predictions: StoredPrediction[];
+  seasonPredictionQuestions: StoredSeasonPredictionQuestion[];
+  seasonPredictionOptions: StoredSeasonPredictionOption[];
+  seasonPredictionEntries: StoredSeasonPredictionEntry[];
   playerRatings: StoredPlayerRating[];
   setPlayerRatings: StoredSetPlayerRating[];
   comments: StoredComment[];

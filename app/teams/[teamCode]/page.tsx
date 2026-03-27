@@ -1,7 +1,6 @@
 ﻿import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { TeamLogo } from "@/components/lol-rating/team-branding";
 import { getTeamRosterDetailData } from "@/lib/service";
 
 function formatUpdatedAt(value: string) {
@@ -40,13 +39,10 @@ export default async function TeamRosterDetailPage({
 
         <section className="ui-card p-6">
           <div className="flex flex-wrap items-start justify-between gap-6">
-            <div className="flex items-center gap-4">
-              <TeamLogo team={data.teamCode} size={62} />
-              <div>
-                <div className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-700">{data.teamCode}</div>
-                <h1 className="mt-1 text-3xl font-black tracking-tight text-slate-950">{data.teamName}</h1>
-                <p className="mt-2 text-sm text-slate-600">{data.rosterLabel}</p>
-              </div>
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-700">{data.teamCode}</div>
+              <h1 className="mt-1 text-3xl font-black tracking-tight text-slate-950">{data.teamName}</h1>
+              <p className="mt-2 text-sm text-slate-600">{data.rosterLabel}</p>
             </div>
             <div className="ui-card-soft px-4 py-3 text-sm text-slate-600">
               <div>최근 반영: {formatUpdatedAt(data.updatedAt)}</div>

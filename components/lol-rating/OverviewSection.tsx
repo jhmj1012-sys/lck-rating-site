@@ -1,5 +1,5 @@
 import type { MatchWithWeek } from "./types";
-import { TeamLogo, getTeamDisplayName } from "./team-branding";
+import { getTeamDisplayName } from "./team-branding";
 import { getHomeHighlights, getStatusLabel, getTopRatedPlayers } from "./utils";
 import { Badge, Button, Card, CardContent, CardHeader, SectionTitle } from "./ui";
 
@@ -27,13 +27,11 @@ function HighlightCard({ match, onOpen }: { match: MatchWithWeek; onOpen: (match
             <span>{match.date}</span>
           </div>
           <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-center">
-            <div className="flex flex-col items-center gap-3">
-              <TeamLogo team={match.teamA} size={68} />
+            <div className="rounded-[22px] border border-slate-200 bg-white px-4 py-5">
               <div className="text-lg font-bold text-slate-950 sm:text-2xl">{getTeamDisplayName(match.teamA)}</div>
             </div>
             <div className="text-xl font-black text-sky-300 sm:text-3xl">{match.score}</div>
-            <div className="flex flex-col items-center gap-3">
-              <TeamLogo team={match.teamB} size={68} />
+            <div className="rounded-[22px] border border-slate-200 bg-white px-4 py-5">
               <div className="text-lg font-bold text-slate-950 sm:text-2xl">{getTeamDisplayName(match.teamB)}</div>
             </div>
           </div>

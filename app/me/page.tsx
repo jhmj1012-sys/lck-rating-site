@@ -29,7 +29,7 @@ function formatDateTime(value: string) {
 
 function buildPageHref(
   baseParams: URLSearchParams,
-  key: "predPage" | "ledgerPage" | "commentPage",
+  key: "predPage" | "seasonPredPage" | "ledgerPage" | "commentPage",
   page: number,
 ) {
   const params = new URLSearchParams(baseParams.toString());
@@ -75,7 +75,7 @@ function Pagination({
           href={hrefForPage(value)}
           className={
             value === page
-              ? "inline-flex h-9 min-w-9 items-center justify-center rounded-full bg-slate-900 px-3 text-sm font-semibold text-white"
+              ? "inline-flex h-9 min-w-9 items-center justify-center rounded-full border border-slate-950 bg-slate-950 px-3 text-sm font-semibold !text-white shadow-[0_8px_20px_rgba(15,23,42,0.16)]"
               : "inline-flex h-9 min-w-9 items-center justify-center rounded-full border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
           }
         >
@@ -107,12 +107,27 @@ export default async function MyPage({
   if (setupValue) {
     baseParams.set("setup", setupValue);
   }
+  const seasonFilterValue = readParam(params.seasonFilter);
+  if (seasonFilterValue) {
+    baseParams.set("seasonFilter", seasonFilterValue);
+  }
 
   const predictionPage = parsePositivePage(readParam(params.predPage));
+  const seasonPredictionPage = parsePositivePage(readParam(params.seasonPredPage));
   const ledgerPage = parsePositivePage(readParam(params.ledgerPage));
   const commentPage = parsePositivePage(readParam(params.commentPage));
+  const seasonFilter = readParam(params.seasonFilter) ?? "all";
 
   const predictionSlice = paginate(data.predictions, predictionPage);
+  const filteredSeasonPredictions = data.seasonPredictions.filter((item) => {
+    if (seasonFilter === "all") return true;
+    if (seasonFilter === "open") return item.status === "open";
+    if (seasonFilter === "locked") return item.status === "locked";
+    if (seasonFilter === "hit") return item.hitStatus === "hit";
+    if (seasonFilter === "miss") return item.hitStatus === "miss";
+    return true;
+  });
+  const seasonPredictionSlice = paginate(filteredSeasonPredictions, seasonPredictionPage);
   const ledgerSlice = paginate(data.pointLedger, ledgerPage);
   const commentSlice = paginate(data.comments, commentPage);
 
@@ -190,9 +205,7 @@ export default async function MyPage({
           <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
               <div className="min-w-0">
-                <div className="text-sm font-semibold text-sky-700">
-                  {data.profile.selectedBadge ?? (data.profile.hasNickname ? "장착한 팀 배지 없음" : "닉네임 설정 필요")}
-                </div>
+                <div className="text-sm font-semibold text-sky-700">{data.profile.hasNickname ? "공개 프로필" : "닉네임 설정 필요"}</div>
                 <h2 className="mt-2 truncate text-3xl font-black text-slate-950">{data.profile.nickname}</h2>
                 <p className="mt-2 text-sm leading-6 text-slate-600">{data.profile.bio ?? "아직 소개 문구가 없습니다."}</p>
                 <div className="mt-4 flex flex-wrap gap-3 text-sm text-slate-500">
@@ -307,7 +320,7 @@ export default async function MyPage({
           </div>
         </section>
 
-        <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
+        <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
             <div className="flex items-end justify-between gap-3">
               <div>
@@ -342,6 +355,73 @@ export default async function MyPage({
             />
           </div>
 
+          <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">Season Prediction History</div>
+                <h2 className="mt-2 text-xl font-black text-slate-950">시즌예측 내역</h2>
+              </div>
+              <div className="text-sm text-slate-500">{filteredSeasonPredictions.length}개</div>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {[
+                ["all", "전체"],
+                ["open", "진행중"],
+                ["locked", "마감"],
+                ["hit", "적중"],
+                ["miss", "미적중"],
+              ].map(([value, label]) => {
+                const params = new URLSearchParams(baseParams.toString());
+                if (value === "all") {
+                  params.delete("seasonFilter");
+                } else {
+                  params.set("seasonFilter", value);
+                }
+                const href = params.toString() ? `/me?${params.toString()}` : "/me";
+                return (
+                  <Link
+                    key={value}
+                    href={href}
+                    className={
+                      seasonFilter === value
+                        ? "rounded-full border border-slate-950 bg-slate-950 px-3 py-2 text-sm font-semibold !text-white shadow-[0_10px_24px_rgba(15,23,42,0.16)]"
+                        : "rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700"
+                    }
+                  >
+                    {label}
+                  </Link>
+                );
+              })}
+            </div>
+            <div className="mt-4 space-y-2.5">
+              {seasonPredictionSlice.items.map((item) => (
+                <div key={item.id} className="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-3">
+                  <div className="font-semibold text-slate-950">{item.title}</div>
+                  <div className="mt-1 text-sm text-slate-600">{item.category} · {item.season}</div>
+                  <div className="mt-2 text-sm text-slate-700">내 선택 {item.selectedOptionLabel}</div>
+                  <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-500">
+                    <span>{item.status}</span>
+                    <span>{item.resultLabel ? `정답 ${item.resultLabel}` : "결과 대기"}</span>
+                    <span>{item.hitStatus === "hit" ? "적중" : item.hitStatus === "miss" ? "미적중" : item.hitStatus === "canceled" ? "취소" : "진행중"}</span>
+                    <span>코인 {item.rewardAmount ?? "-"}</span>
+                  </div>
+                </div>
+              ))}
+              {filteredSeasonPredictions.length === 0 ? (
+                <div className="rounded-[20px] border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-500">
+                  아직 참여한 시즌예측이 없습니다.
+                </div>
+              ) : null}
+            </div>
+            <Pagination
+              page={seasonPredictionSlice.page}
+              totalPages={seasonPredictionSlice.totalPages}
+              hrefForPage={(page) => buildPageHref(baseParams, "seasonPredPage", page)}
+            />
+          </div>
+        </section>
+
+        <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
             <div className="flex items-end justify-between gap-3">
               <div>

@@ -4,11 +4,14 @@ import { revalidatePath } from "next/cache";
 
 import { requireAdmin } from "@/lib/authz";
 import {
+  cancelSeasonPredictionQuestion,
   saveAdminSetRating,
+  resolveSeasonPredictionQuestion,
   setCommentHidden,
   updateMatchRoster,
   updateSetRoster,
   updateTeamRoster,
+  upsertSeasonPredictionQuestion,
   upsertMatch,
   upsertMatchSet,
 } from "@/lib/service";
@@ -155,5 +158,72 @@ export async function updateTeamRosterAction(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/teams");
   revalidatePath(`/teams/${teamCode}`);
+  revalidatePath("/admin");
+}
+
+function parseSeasonOptions(raw: string) {
+  return raw
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [label, value] = line.split("|").map((part) => part.trim());
+      return { label, value: value || label };
+    });
+}
+
+export async function upsertSeasonPredictionQuestionAction(formData: FormData) {
+  await requireAdmin();
+
+  await upsertSeasonPredictionQuestion({
+    questionId: (formData.get("questionId") as string) || undefined,
+    title: (formData.get("title") as string) || "",
+    description: (formData.get("description") as string) || "",
+    category: (formData.get("category") as string) || "LCK",
+    predictionType: ((formData.get("predictionType") as string) || "single") as "single" | "yesno" | "range",
+    season: (formData.get("season") as string) || "",
+    openAt: (formData.get("openAt") as string) || new Date().toISOString(),
+    closeAt: (formData.get("closeAt") as string) || new Date().toISOString(),
+    visibility: ((formData.get("visibility") as string) || "public") as "public" | "private",
+    manualStatus: ((formData.get("manualStatus") as string) || "active") as "draft" | "active" | "canceled",
+    options: parseSeasonOptions((formData.get("options") as string) || ""),
+  });
+
+  revalidatePath("/");
+  revalidatePath("/season-predictions");
+  revalidatePath("/admin");
+}
+
+export async function resolveSeasonPredictionQuestionAction(formData: FormData) {
+  await requireAdmin();
+
+  const questionId = formData.get("questionId");
+  const resultOptionId = formData.get("resultOptionId");
+  if (typeof questionId !== "string" || !questionId || typeof resultOptionId !== "string" || !resultOptionId) {
+    throw new Error("질문 또는 정답 정보가 없습니다.");
+  }
+
+  await resolveSeasonPredictionQuestion({ questionId, resultOptionId });
+
+  revalidatePath("/");
+  revalidatePath("/season-predictions");
+  revalidatePath(`/season-predictions/${questionId}`);
+  revalidatePath("/me");
+  revalidatePath("/admin");
+}
+
+export async function cancelSeasonPredictionQuestionAction(formData: FormData) {
+  await requireAdmin();
+  const questionId = formData.get("questionId");
+  if (typeof questionId !== "string" || !questionId) {
+    throw new Error("질문 정보가 없습니다.");
+  }
+
+  await cancelSeasonPredictionQuestion(questionId);
+
+  revalidatePath("/");
+  revalidatePath("/season-predictions");
+  revalidatePath(`/season-predictions/${questionId}`);
+  revalidatePath("/me");
   revalidatePath("/admin");
 }

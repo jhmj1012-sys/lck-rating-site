@@ -55,7 +55,6 @@ export function PublicUserTrigger({
             <Avatar className="h-12 w-12 text-sm font-bold text-slate-800">{getInitials(summary.nickname)}</Avatar>
             <div className="min-w-0">
               <div className="truncate text-base font-black text-slate-950">{summary.nickname}</div>
-              <div className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-sky-700">{summary.teamBadge}</div>
               <div className="mt-2 text-sm leading-6 text-slate-600">{summary.bio}</div>
             </div>
           </div>
@@ -73,7 +72,7 @@ export function PublicUserTrigger({
               <div className="mt-1 text-sm font-black text-slate-950">{summary.predictionStyleLabel}</div>
             </div>
           </div>
-          <div className="mt-3 text-xs text-slate-500">Lv.{summary.level} · 공개 닉네임 기준 기본 정보</div>
+          <div className="mt-3 text-xs text-slate-500">Lv.{summary.level} · 공개 프로필 기본 정보</div>
         </div>
       ) : null}
     </div>

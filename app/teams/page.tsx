@@ -1,6 +1,5 @@
 ﻿import Link from "next/link";
 
-import { TeamLogo } from "@/components/lol-rating/team-branding";
 import { getTeamRosterHubData } from "@/lib/service";
 
 function formatUpdatedAt(value: string) {
@@ -39,12 +38,9 @@ export default async function TeamsPage() {
               className="ui-card p-6 transition hover:-translate-y-0.5 hover:shadow-[0_24px_70px_rgba(15,23,42,0.12)]"
             >
               <div className="flex items-start justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <TeamLogo team={team.teamCode} size={52} />
-                  <div>
-                    <div className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-700">{team.teamCode}</div>
-                    <h2 className="mt-1 text-2xl font-black tracking-tight text-slate-950">{team.teamName}</h2>
-                  </div>
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-700">{team.teamCode}</div>
+                  <h2 className="mt-1 text-2xl font-black tracking-tight text-slate-950">{team.teamName}</h2>
                 </div>
                 <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{team.playerCount}명</span>
               </div>

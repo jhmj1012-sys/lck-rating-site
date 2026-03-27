@@ -11,6 +11,7 @@ import type {
   MatchListItem,
   MatchMonthGroup,
   ScheduleHubData,
+  SeasonPredictionQuestionCard,
 } from "@/components/lol-rating/types";
 import { cn, getStatusLabel } from "@/components/lol-rating/utils";
 
@@ -137,14 +138,6 @@ function isLiveMatch(match: MatchData | MatchListItem, serverNow?: string) {
 
 function getDisplayScore(match: MatchData | MatchListItem) {
   return match.status === "finished" ? match.score.replace(" : ", " - ") : "VS";
-}
-
-function getShortTimeLabel(value: string) {
-  return new Intl.DateTimeFormat("ko-KR", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(new Date(value));
 }
 
 function getKickoffLabel(match: MatchData) {
@@ -302,7 +295,7 @@ function ActionPanel({ data }: { data: ScheduleHubData }) {
               </div>
             </div>
             <div className="mt-4 rounded-2xl border border-sky-200 bg-white px-4 py-3 text-sm leading-6 text-slate-600">
-              예측 적중으로 코인을 더 모으고, 보유 코인으로 팀 배지와 테마 효과를 확장할 수 있습니다.
+              예측 적중으로 코인을 더 모으고, 보유 코인으로 프로필 테마와 꾸미기 요소를 확장할 수 있습니다.
             </div>
             <Link href="/me" className="mt-4 inline-flex min-h-10 w-full items-center justify-center rounded-2xl bg-sky-500 px-4 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(14,165,233,0.18)] transition hover:bg-sky-600">
               {LABELS.myRecord}
@@ -427,13 +420,11 @@ function MainMatchCarousel({
   currentIndex,
   onPrev,
   onNext,
-  onSelect,
 }: {
   matches: MatchData[];
   currentIndex: number;
   onPrev: () => void;
   onNext: () => void;
-  onSelect: (index: number) => void;
 }) {
   const match = matches[currentIndex];
 
@@ -457,28 +448,38 @@ function MainMatchCarousel({
           <div className={cn("rounded-full px-3 py-1.5 text-xs font-semibold", getStatusTone(match.status, isLiveMatch(match)))}>
             {getKickoffLabel(match)}
           </div>
-          {matches.length > 1 ? (
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={onPrev}
-                aria-label="previous match"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50"
-              >
-                &lt;
-              </button>
-              <button
-                type="button"
-                onClick={onNext}
-                aria-label="next match"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50"
-              >
-                &gt;
-              </button>
-            </div>
-          ) : null}
         </div>
       </div>
+
+      {matches.length > 1 ? (
+        <div className="mt-5 flex flex-col gap-3 rounded-[24px] border border-sky-100 bg-white/80 px-4 py-4 shadow-[0_8px_24px_rgba(14,165,233,0.08)] sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-700">Match Navigation</div>
+            <div className="mt-1 text-sm font-semibold text-slate-700">다른 메인 경기로 넘겨보기</div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="rounded-full bg-sky-50 px-3 py-2 text-xs font-semibold text-sky-800">
+              현재 {currentIndex + 1} / {matches.length}
+            </div>
+            <button
+              type="button"
+              onClick={onPrev}
+              aria-label="이전 메인 경기 보기"
+              className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            >
+              이전 경기
+            </button>
+            <button
+              type="button"
+              onClick={onNext}
+              aria-label="다음 메인 경기 보기"
+              className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-sky-500 px-4 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(14,165,233,0.18)] transition hover:bg-sky-600"
+            >
+              다음 경기 보기
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       <div className="mt-6 grid gap-5 xl:grid-cols-[280px_minmax(0,1fr)]">
         <div className="space-y-3">
@@ -502,13 +503,14 @@ function MainMatchCarousel({
             </div>
             {match.lockedOdds && match.lockedDistribution ? (
               <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-                <div className="font-semibold text-slate-950">留덇컧 湲곗? ?뺤젙 諛곕떦</div>
-                <div className="mt-1">{match.teamA} {match.lockedOdds.teamA.oddsPercent}% 쨌 {match.teamB} {match.lockedOdds.teamB.oddsPercent}%</div>
-                <div className="mt-1 text-slate-500">異붽? 蹂댁긽 {match.lockedOdds.teamA.hitBonusCoins} / {match.lockedOdds.teamB.hitBonusCoins} Coin</div>
+                <div className="font-semibold text-slate-950">마감 기준 확정 배당</div>
+                <div className="mt-1">{match.teamA} {match.lockedOdds.teamA.oddsPercent}% · {match.teamB} {match.lockedOdds.teamB.oddsPercent}%</div>
+                <div className="mt-1 text-slate-500">추가 보상 {match.lockedOdds.teamA.hitBonusCoins} / {match.lockedOdds.teamB.hitBonusCoins} Coin</div>
               </div>
             ) : (
               <div className="mt-4 rounded-2xl border border-sky-200 bg-white px-4 py-3 text-sm text-slate-600">
-                李몄뿬 蹂댁긽 +10 Coin 쨌 ?곸쨷 ??留덇컧 ???뺤젙??異붽? Coin 吏湲?              </div>
+                참여 보상 +10 Coin · 적중 시 마감 기준 확정 배당에 따라 추가 Coin 지급
+              </div>
             )}
           </div>
 
@@ -535,7 +537,7 @@ function MainMatchCarousel({
             <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600">{match.patch}</div>
           </div>
 
-          <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_96px]">
+          <div className="mt-6">
             <div className="rounded-[26px] bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] p-4 ring-1 ring-slate-200">
               <div className="flex items-center justify-between text-[12px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                 <span>{LABELS.fanPrediction}</span>
@@ -554,28 +556,9 @@ function MainMatchCarousel({
               </div>
               {match.lockedDistribution ? (
                 <div className="mt-4 text-sm text-slate-600">
-                  留덇컧 遺꾪룷 {match.teamA} {match.lockedDistribution.teamA}% 쨌 {match.teamB} {match.lockedDistribution.teamB}%
+                  마감 분포 {match.teamA} {match.lockedDistribution.teamA}% · {match.teamB} {match.lockedDistribution.teamB}%
                 </div>
               ) : null}
-            </div>
-
-            <div className="grid gap-3">
-              {matches.map((item, index) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => onSelect(index)}
-                  className={cn(
-                    "rounded-[22px] border px-3 py-3 text-left transition",
-                    index === currentIndex ? "border-sky-200 bg-sky-50" : "border-slate-200 bg-white hover:bg-slate-50",
-                  )}
-                >
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">{getShortTimeLabel(item.scheduledAt)}</div>
-                  <div className="mt-2 text-sm font-black tracking-[-0.02em] text-slate-950">
-                    {item.teamA} vs {item.teamB}
-                  </div>
-                </button>
-              ))}
             </div>
           </div>
         </div>
@@ -679,6 +662,27 @@ function PastMatchCard({ match }: { match: MatchData }) {
   );
 }
 
+function SeasonPredictionPreviewCard({ item }: { item: SeasonPredictionQuestionCard }) {
+  return (
+    <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_12px_32px_rgba(15,23,42,0.06)]">
+      <div className="flex items-center justify-between gap-3">
+        <div className="rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">{item.category}</div>
+        <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{item.status}</div>
+      </div>
+      <h3 className="mt-4 text-xl font-black text-slate-950">{item.title}</h3>
+      <p className="mt-2 text-sm leading-6 text-slate-600">{item.description}</p>
+      <div className="mt-4 space-y-2 text-sm text-slate-500">
+        <div>{item.season}</div>
+        <div>참여 {item.totalEntries}명</div>
+        <div>{item.mySelectionLabel ? `내 선택: ${item.mySelectionLabel}` : "아직 선택하지 않음"}</div>
+      </div>
+      <Link href={`/season-predictions/${item.id}`} className="mt-5 inline-flex min-h-10 items-center justify-center rounded-2xl bg-sky-500 px-4 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(14,165,233,0.18)] transition hover:bg-sky-600">
+        {item.isParticipating ? "내 예측 보기" : "선택하기"}
+      </Link>
+    </article>
+  );
+}
+
 export default function HupuScheduleHome({ initialData }: { initialData: ScheduleHubData }) {
   const [query, setQuery] = useState("");
   const [league, setLeague] = useState("all");
@@ -686,6 +690,7 @@ export default function HupuScheduleHome({ initialData }: { initialData: Schedul
   const [selectedMonthId, setSelectedMonthId] = useState(initialData.selectedMonthId ?? initialData.months[0]?.id ?? "");
   const [selectedWeekId, setSelectedWeekId] = useState(initialData.selectedWeekId ?? initialData.months[0]?.weeks[0]?.id ?? "");
   const [selectedMainMatchIndex, setSelectedMainMatchIndex] = useState(0);
+  const [predictionTab, setPredictionTab] = useState<"match" | "season" | "betting">("match");
 
   const leagues = useMemo(
     () => ["all", ...new Set(initialData.months.flatMap((month) => month.weeks.flatMap((week) => week.dates.flatMap((date) => date.matches.map((match) => match.league)))))],
@@ -748,21 +753,74 @@ export default function HupuScheduleHome({ initialData }: { initialData: Schedul
                       <div className="mt-1 text-[1.8rem] font-black text-slate-950">{initialData.heroStats.totalComments.toLocaleString()}</div>
                     </div>
                   </div>
+                  <div className="mt-6 flex flex-wrap gap-2">
+                    {[
+                      { id: "match", label: "경기예측" },
+                      { id: "season", label: "시즌예측" },
+                      { id: "betting", label: "배팅" },
+                    ].map((tab) => (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => setPredictionTab(tab.id as "match" | "season" | "betting")}
+                        className={cn(
+                          "rounded-full border px-4 py-2 text-sm font-semibold transition",
+                          predictionTab === tab.id
+                            ? "border-slate-950 bg-slate-950 !text-white shadow-[0_10px_24px_rgba(15,23,42,0.2)]"
+                            : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
+                        )}
+                      >
+                        {tab.label}
+                        {tab.id === "betting" ? " · 준비 중" : ""}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </section>
 
-            {activeMainMatch ? (
+            {predictionTab === "match" && activeMainMatch ? (
               <MainMatchCarousel
                 matches={mainMatches}
                 currentIndex={safeMainMatchIndex}
                 onPrev={() => setSelectedMainMatchIndex((current) => (current - 1 + mainMatchCount) % mainMatchCount)}
                 onNext={() => setSelectedMainMatchIndex((current) => (current + 1) % mainMatchCount)}
-                onSelect={(index) => setSelectedMainMatchIndex(index)}
               />
             ) : null}
 
-            <section id="recent-finished" className="space-y-4">
+            {predictionTab === "season" ? (
+              <section className="space-y-4">
+                <div className="flex items-end justify-between gap-3">
+                  <div>
+                    <div className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-600">Season Predictions</div>
+                    <h2 className="mt-1 text-[22px] font-black tracking-[-0.035em] text-slate-950 sm:text-[26px]">지금 참여 가능한 시즌예측</h2>
+                  </div>
+                  <Link href="/season-predictions" className="text-sm font-semibold text-sky-700">
+                    전체 보기
+                  </Link>
+                </div>
+                <div className="grid gap-4 lg:grid-cols-2">
+                  {initialData.seasonPredictionPreview.map((item) => (
+                    <SeasonPredictionPreviewCard key={item.id} item={item} />
+                  ))}
+                </div>
+                {initialData.seasonPredictionPreview.length === 0 ? (
+                  <div className="rounded-[28px] border border-dashed border-slate-200 bg-slate-50 px-5 py-10 text-sm text-slate-500">
+                    지금 노출 중인 시즌예측이 없습니다.
+                  </div>
+                ) : null}
+              </section>
+            ) : null}
+
+            {predictionTab === "betting" ? (
+              <section className="rounded-[30px] border border-slate-200 bg-white p-6 shadow-[0_12px_32px_rgba(15,23,42,0.06)]">
+                <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Betting</div>
+                <h2 className="mt-2 text-[22px] font-black text-slate-950">배팅 기능 준비 중</h2>
+                <p className="mt-3 text-sm leading-6 text-slate-600">시즌예측과 경기예측 흐름을 먼저 안정화한 뒤 다음 단계에서 확장합니다.</p>
+              </section>
+            ) : null}
+
+            {predictionTab === "match" ? <section id="recent-finished" className="space-y-4">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <div className="text-xs font-semibold uppercase tracking-[0.22em] text-rose-600">Recent Finish</div>
@@ -775,9 +833,9 @@ export default function HupuScheduleHome({ initialData }: { initialData: Schedul
                   <PastMatchCard key={match.id} match={match} />
                 ))}
               </div>
-            </section>
+            </section> : null}
 
-            <section className="grid gap-4 xl:grid-cols-2">
+            {predictionTab === "match" ? <section className="grid gap-4 xl:grid-cols-2">
               <div className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-[0_12px_32px_rgba(15,23,42,0.06)]">
                 <div className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-600">Player Ratings</div>
                 <h2 className="mt-1 text-[22px] font-black tracking-[-0.035em] text-slate-950 sm:text-[24px]">{LABELS.playerRankings}</h2>
@@ -818,9 +876,9 @@ export default function HupuScheduleHome({ initialData }: { initialData: Schedul
                   ))}
                 </div>
               </div>
-            </section>
+            </section> : null}
 
-            <section className="overflow-hidden rounded-[30px] border border-slate-200/80 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.08)]">
+            {predictionTab === "match" ? <section className="overflow-hidden rounded-[30px] border border-slate-200/80 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.08)]">
               <div className="border-b border-slate-200 bg-[linear-gradient(180deg,#f8fafc_0%,#f1f5f9_100%)] px-5 py-4 sm:px-6">
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -854,8 +912,10 @@ export default function HupuScheduleHome({ initialData }: { initialData: Schedul
                           setSelectedWeekId(month.weeks[0]?.id ?? "");
                         }}
                         className={cn(
-                          "rounded-full px-4 py-2 text-sm font-semibold transition",
-                          selectedMonth?.id === month.id ? "bg-slate-900 text-white" : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-100",
+                          "rounded-full border px-4 py-2 text-sm font-semibold transition",
+                          selectedMonth?.id === month.id
+                            ? "border-slate-950 bg-slate-950 !text-white shadow-[0_10px_24px_rgba(15,23,42,0.2)]"
+                            : "border-slate-200 bg-white text-slate-700 hover:bg-slate-100",
                         )}
                       >
                         {month.label}
@@ -870,8 +930,10 @@ export default function HupuScheduleHome({ initialData }: { initialData: Schedul
                           key={week.id}
                           onClick={() => setSelectedWeekId(week.id)}
                           className={cn(
-                            "rounded-full px-4 py-2 text-sm font-medium transition",
-                            selectedWeek?.id === week.id ? "bg-sky-100 text-sky-800" : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50",
+                            "rounded-full border px-4 py-2 text-sm font-medium transition",
+                            selectedWeek?.id === week.id
+                              ? "border-sky-200 bg-sky-100 text-sky-800"
+                              : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50",
                           )}
                         >
                           {week.label}
@@ -898,7 +960,7 @@ export default function HupuScheduleHome({ initialData }: { initialData: Schedul
                   <div className="px-6 py-14 text-center text-slate-500">{LABELS.noFilteredMatches}</div>
                 )}
               </div>
-            </section>
+            </section> : null}
           </div>
 
           <ActionPanel data={initialData} />

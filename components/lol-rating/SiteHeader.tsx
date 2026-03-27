@@ -22,6 +22,7 @@ const HEADER_LABELS = {
   admin: "\uAD00\uB9AC\uC790",
   account: "\uB0B4 \uACC4\uC815",
   shop: "\uCF54\uC778 \uC0C1\uC810",
+  seasonPredictions: "\uC2DC\uC98C \uC608\uCE21",
   notifications: "\uC54C\uB9BC",
   viewAllNotifications: "\uC54C\uB9BC \uC790\uC138\uD788 \uBCF4\uAE30",
   signin: "\uB85C\uADF8\uC778",
@@ -148,6 +149,9 @@ export function SiteHeader({ query, setQuery, notifications = [], unreadNotifica
               <IconNavLink href="/shop" label={HEADER_LABELS.shop}>
                 <ShopIcon className="h-4 w-4" />
               </IconNavLink>
+              <Link href="/season-predictions" className="hidden rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 lg:inline-flex">
+                {HEADER_LABELS.seasonPredictions}
+              </Link>
               <IconNavLink href="/teams" label={HEADER_LABELS.teams}>
                 <TeamIcon className="h-4 w-4" />
               </IconNavLink>

@@ -1,4 +1,14 @@
-﻿import type { MatchData, MatchStatus, MatchWithWeek, PredictionBlockReason, PredictionSummary, WeekSchedule } from "./types";
+import type {
+  MatchData,
+  MatchDetailViewStatus,
+  MatchStatus,
+  MatchWithWeek,
+  PredictionBlockReason,
+  PredictionSectionMode,
+  PredictionSummary,
+  RatingAvailability,
+  WeekSchedule,
+} from "./types";
 
 export function cn(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(" ");
@@ -38,9 +48,33 @@ export function getStatusLabel(status: MatchStatus) {
   return status === "finished" ? "종료" : "예정";
 }
 
+export function getMatchDetailViewStatus(match: Pick<MatchData, "status" | "predictionLocked">): MatchDetailViewStatus {
+  if (match.status === "finished") {
+    return "POST";
+  }
+
+  return match.predictionLocked ? "LIVE" : "PRE";
+}
+
+export function getRatingAvailability(status: MatchDetailViewStatus): RatingAvailability {
+  return status === "POST" ? "open" : "locked";
+}
+
+export function getPredictionSectionMode(status: MatchDetailViewStatus): PredictionSectionMode {
+  if (status === "PRE") {
+    return "entry";
+  }
+
+  if (status === "LIVE") {
+    return "locked";
+  }
+
+  return "result";
+}
+
 export function getPredictionStateLabel(match: MatchData) {
   if (match.teamA === "TBD" || match.teamB === "TBD") {
-    return "대진 확정 전";
+    return "대진 확정 대기";
   }
 
   return match.predictionLocked ? "예측 마감" : "예측 가능";

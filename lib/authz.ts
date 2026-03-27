@@ -75,7 +75,6 @@ export async function upsertUserFromIdentity(identity: {
       bio: null,
       image: identity.image ?? null,
       role: resolveRole(email),
-      selectedBadge: null,
       selectedProfileTheme: null,
       createdAt: now,
       updatedAt: now,
@@ -135,7 +134,16 @@ export const getCurrentUser = cache(async () => {
   const userId = session?.user?.id;
 
   if (!userId) {
-    return null;
+    const email = session?.user?.email;
+    if (!email) {
+      return null;
+    }
+
+    return upsertUserFromIdentity({
+      email,
+      name: session.user?.name ?? null,
+      image: session.user?.image ?? null,
+    });
   }
 
   return getUserById(userId);

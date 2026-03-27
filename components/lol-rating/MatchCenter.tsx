@@ -8,7 +8,7 @@ import { StarIcon } from "./icons";
 import { getInitials, getStatusLabel, ratingTone } from "./utils";
 import { Avatar, Badge, Button, Card, CardContent, CardHeader, Input, Progress, SectionTitle, StatCard } from "./ui";
 import type { MatchWithWeek, UserProfile } from "./types";
-import { TeamLogo, getTeamDisplayName } from "./team-branding";
+import { getTeamDisplayName } from "./team-branding";
 
 export function MatchCenter({ match }: { match: MatchWithWeek }) {
   return (
@@ -47,13 +47,11 @@ export function MatchHero({ match }: { match: MatchWithWeek }) {
           <div className="text-xs uppercase tracking-[0.24em] text-slate-500">Scoreboard</div>
           <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-center">
             <div className="rounded-2xl bg-white p-4">
-              <TeamLogo team={match.teamA} size={80} />
-              <div className="mt-3 text-xl font-bold text-slate-950">{getTeamDisplayName(match.teamA)}</div>
+              <div className="text-xl font-bold text-slate-950">{getTeamDisplayName(match.teamA)}</div>
             </div>
             <div className="text-4xl font-black text-sky-600">{match.score}</div>
             <div className="rounded-2xl bg-white p-4">
-              <TeamLogo team={match.teamB} size={80} />
-              <div className="mt-3 text-xl font-bold text-slate-950">{getTeamDisplayName(match.teamB)}</div>
+              <div className="text-xl font-bold text-slate-950">{getTeamDisplayName(match.teamB)}</div>
             </div>
           </div>
           <div className="mt-4 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">일정: {match.date}</div>
@@ -106,8 +104,7 @@ export function PredictionSection({
               disabled={!canWrite}
             >
               <div className="text-xs uppercase tracking-[0.22em] text-slate-500">예측 비율</div>
-              <div className="mt-2 flex items-center gap-4">
-                <TeamLogo team={team} size={58} />
+              <div className="mt-2">
                 <div className="text-xl font-extrabold text-slate-950">{getTeamDisplayName(team)}</div>
               </div>
               <div className="mt-3 text-4xl font-black text-slate-950">
@@ -288,8 +285,8 @@ export function CommentsSection({
 export function SidePanel({ profile }: { profile: UserProfile }) {
   const profileLabel = profile.isAuthenticated ? "로그인 계정" : "게스트 모드";
   const profileSubLabel = profile.isAuthenticated
-    ? profile.email || `Lv.${profile.level} · ${profile.teamBadge}`
-    : `Lv.${profile.level} · ${profile.teamBadge}`;
+    ? profile.email || `Lv.${profile.level}`
+    : `Lv.${profile.level}`;
 
   return (
     <div className="xl:sticky xl:top-28 xl:self-start">
