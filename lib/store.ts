@@ -277,20 +277,34 @@ function withDefaults(store: Partial<StoreShape>): StoreShape {
         ],
     teamRosterEntries: store.teamRosterEntries ?? seed.teamRosterEntries,
     matches: (needsScheduleRefresh ? seed.matches : (store.matches ?? seed.matches)).map((match) => {
-      if (match.id !== "match_23") {
-        return match;
+      if (match.id === "match_23") {
+        const seededMatch = seed.matches.find((item) => item.id === match.id);
+        return {
+          ...match,
+          status: seededMatch?.status ?? "finished",
+          scheduledAt: "2026-04-16T11:30:00+09:00",
+          scoreA: seededMatch?.scoreA ?? match.scoreA,
+          scoreB: seededMatch?.scoreB ?? match.scoreB,
+          predictionLocked: true,
+          predictionLockedAt: "2026-04-16T11:20:00+09:00",
+          predictionSettledAt: seededMatch?.predictionSettledAt ?? match.predictionSettledAt,
+        };
       }
 
-      return {
-        ...match,
-        status: "scheduled",
-        scheduledAt: "2026-04-16T11:30:00+09:00",
-        scoreA: null,
-        scoreB: null,
-        predictionLocked: true,
-        predictionLockedAt: "2026-04-16T11:20:00+09:00",
-        predictionSettledAt: null,
-      };
+      if (match.id === "match_24") {
+        return {
+          ...match,
+          status: "scheduled",
+          scheduledAt: "2026-04-16T19:00:00+09:00",
+          scoreA: null,
+          scoreB: null,
+          predictionLocked: true,
+          predictionLockedAt: "2026-04-16T18:50:00+09:00",
+          predictionSettledAt: null,
+        };
+      }
+
+      return match;
     }),
     matchParticipants: needsScheduleRefresh ? seed.matchParticipants : (store.matchParticipants ?? seed.matchParticipants),
     matchSets: needsScheduleRefresh || needsSeededSets ? seed.matchSets : (store.matchSets ?? seed.matchSets),

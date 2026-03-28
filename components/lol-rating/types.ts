@@ -336,6 +336,47 @@ export interface HomePlayerLeaderboardItem {
   ratingCount: number;
 }
 
+export interface PlayerRankingItem {
+  playerId: string;
+  playerName: string;
+  teamCode: string;
+  role: PlayerRole;
+  seasonLabel: string;
+  averageRating: number;
+  recentForm: number;
+  matchCount: number;
+  participationCount: number;
+  weightedScore: number;
+}
+
+export interface PlayerRankingPageData {
+  title: string;
+  subtitle: string;
+  seasonOptions: string[];
+  defaultSeason: string;
+  minMatchDefault: number;
+  players: PlayerRankingItem[];
+}
+
+export interface PlayerRecentMatchRating {
+  matchId: string;
+  matchLabel: string;
+  score: number;
+  ratedAt: string;
+}
+
+export interface PlayerDetailPageData {
+  playerId: string;
+  playerName: string;
+  teamCode: string;
+  role: PlayerRole;
+  averageRating: number;
+  recentForm: number;
+  matchCount: number;
+  participationCount: number;
+  recentMatches: PlayerRecentMatchRating[];
+}
+
 export interface DashboardData {
   weeklySchedule: WeekSchedule[];
   userProfile: UserProfile;

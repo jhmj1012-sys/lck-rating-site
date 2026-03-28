@@ -25,6 +25,9 @@ import type {
   HomeCommentFeedItem,
   HomeHeroStats,
   HomePlayerLeaderboardItem,
+  PlayerDetailPageData,
+  PlayerRankingItem,
+  PlayerRankingPageData,
   MatchComment,
   MatchMonthGroup,
   MatchData,
@@ -66,7 +69,7 @@ import type {
 const relativeTime = new Intl.RelativeTimeFormat("ko", { numeric: "auto" });
 const roleOrder: Record<PlayerRole, number> = { TOP: 0, JGL: 1, MID: 2, ADC: 3, SUP: 4 };
 const scheduleWeekdayOrder = [4, 5, 6, 0, 1, 2, 3] as const;
-const DEMO_NOW_ISO = "2026-04-16T12:00:00+09:00";
+const DEMO_NOW_ISO = "2026-04-14T12:00:00+09:00";
 const DEMO_NOW_MS = new Date(DEMO_NOW_ISO).getTime();
 const COINS = {
   predictionSubmit: 10,
@@ -589,6 +592,14 @@ function getUserById(store: StoreShape, userId: string) {
 
 function getSetById(store: StoreShape, setId: string) {
   return store.matchSets.find((set) => set.id === setId) ?? null;
+}
+
+function getMatchById(store: StoreShape, matchId: string) {
+  return store.matches.find((match) => match.id === matchId) ?? null;
+}
+
+function getPlayerById(store: StoreShape, playerId: string) {
+  return store.players.find((player) => player.id === playerId) ?? null;
 }
 
 function countVisibleComments(comments: StoredComment[], matchId: string) {
@@ -1135,11 +1146,35 @@ function buildFeaturedMatch(store: StoreShape, viewerId: string | null) {
 }
 
 function buildTodayMatches(store: StoreShape, viewerId: string | null): MatchData[] {
-  return store.matches
+  const todayMatches = store.matches
     .filter((match) => isSameDemoDay(match.scheduledAt))
     .slice()
-    .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
-    .map((match) => buildMatchView(store, match, viewerId));
+    .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
+
+  if (todayMatches.length > 0) {
+    return todayMatches.map((match) => buildMatchView(store, match, viewerId));
+  }
+
+  const upcomingMatches = store.matches
+    .filter((match) => new Date(match.scheduledAt).getTime() > DEMO_NOW_MS)
+    .slice()
+    .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
+
+  if (upcomingMatches.length === 0) {
+    return [];
+  }
+
+  const firstUpcomingDate = new Date(upcomingMatches[0].scheduledAt);
+  const nextMatchdayMatches = upcomingMatches.filter((match) => {
+    const current = new Date(match.scheduledAt);
+    return (
+      current.getFullYear() === firstUpcomingDate.getFullYear() &&
+      current.getMonth() === firstUpcomingDate.getMonth() &&
+      current.getDate() === firstUpcomingDate.getDate()
+    );
+  });
+
+  return nextMatchdayMatches.map((match) => buildMatchView(store, match, viewerId));
 }
 
 function buildRecentFinishedMatches(store: StoreShape, viewerId: string | null): MatchData[] {
@@ -1201,6 +1236,141 @@ function buildPlayerLeaderboard(store: StoreShape): HomePlayerLeaderboardItem[] 
       rank: index + 1,
       ...player,
     }));
+}
+
+type PlayerRatingEntry = {
+  playerId: string;
+  matchId: string;
+  score: number;
+  ratedAt: string;
+  scheduledAt: string;
+};
+
+function getPlayerRatingEntries(store: StoreShape): PlayerRatingEntry[] {
+  const entriesFromMatch = store.playerRatings
+    .map((rating) => {
+      const match = getMatchById(store, rating.matchId);
+      if (!match) {
+        return null;
+      }
+      return {
+        playerId: rating.playerId,
+        matchId: match.id,
+        score: rating.score,
+        ratedAt: rating.createdAt,
+        scheduledAt: match.scheduledAt,
+      } satisfies PlayerRatingEntry;
+    })
+    .filter((entry): entry is PlayerRatingEntry => entry !== null);
+
+  const entriesFromSet = store.setPlayerRatings
+    .map((rating) => {
+      const set = getSetById(store, rating.matchSetId);
+      if (!set) {
+        return null;
+      }
+      const match = getMatchById(store, set.matchId);
+      if (!match) {
+        return null;
+      }
+      return {
+        playerId: rating.playerId,
+        matchId: match.id,
+        score: rating.score,
+        ratedAt: rating.createdAt,
+        scheduledAt: match.scheduledAt,
+      } satisfies PlayerRatingEntry;
+    })
+    .filter((entry): entry is PlayerRatingEntry => entry !== null);
+
+  return [...entriesFromMatch, ...entriesFromSet];
+}
+
+function buildPlayerRankingItems(store: StoreShape): PlayerRankingItem[] {
+  const entries = getPlayerRatingEntries(store);
+
+  return store.players
+    .map((player) => {
+      const team = getTeamById(store, player.teamId);
+      if (!team || team.code === "TBD") {
+        return null;
+      }
+
+      const playerEntries = entries.filter((entry) => entry.playerId === player.id);
+      if (playerEntries.length === 0) {
+        return null;
+      }
+
+      const uniqueMatchIds = new Set(playerEntries.map((entry) => entry.matchId));
+      const recentEntries = playerEntries
+        .slice()
+        .sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime())
+        .slice(0, 5);
+      const averageRating = Number(average(playerEntries.map((entry) => entry.score)).toFixed(2));
+      const recentForm = Number(average(recentEntries.map((entry) => entry.score)).toFixed(2));
+      const weightedScore = Number((averageRating * 0.7 + recentForm * 0.3).toFixed(2));
+
+      return {
+        playerId: player.id,
+        playerName: player.name,
+        teamCode: team.code,
+        role: player.role,
+        seasonLabel: "2026 LCK Spring",
+        averageRating,
+        recentForm,
+        matchCount: uniqueMatchIds.size,
+        participationCount: playerEntries.length,
+        weightedScore,
+      } satisfies PlayerRankingItem;
+    })
+    .filter((item): item is PlayerRankingItem => item !== null);
+}
+
+function buildPlayerDetailPageData(store: StoreShape, playerId: string): PlayerDetailPageData | null {
+  const player = getPlayerById(store, playerId);
+  if (!player) {
+    return null;
+  }
+
+  const team = getTeamById(store, player.teamId);
+  if (!team) {
+    return null;
+  }
+
+  const rankingRows = buildPlayerRankingItems(store);
+  const row = rankingRows.find((item) => item.playerId === playerId);
+  if (!row) {
+    return null;
+  }
+
+  const entries = getPlayerRatingEntries(store)
+    .filter((entry) => entry.playerId === playerId)
+    .slice()
+    .sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime())
+    .slice(0, 5)
+    .map((entry) => {
+      const match = getMatchById(store, entry.matchId);
+      const teamA = match ? getTeamById(store, match.teamAId)?.code ?? "TBD" : "TBD";
+      const teamB = match ? getTeamById(store, match.teamBId)?.code ?? "TBD" : "TBD";
+      return {
+        matchId: entry.matchId,
+        matchLabel: match ? `${formatDateLabel(match.scheduledAt)} ${teamA} vs ${teamB}` : entry.matchId,
+        score: Number(entry.score.toFixed(1)),
+        ratedAt: entry.ratedAt,
+      };
+    });
+
+  return {
+    playerId: player.id,
+    playerName: player.name,
+    teamCode: team.code,
+    role: player.role,
+    averageRating: Number(row.averageRating.toFixed(1)),
+    recentForm: Number(row.recentForm.toFixed(1)),
+    matchCount: row.matchCount,
+    participationCount: row.participationCount,
+    recentMatches: entries,
+  };
 }
 
 function buildSeasonPredictionCard(
@@ -1618,6 +1788,29 @@ export const getScheduleHubData = cache(async (viewerId: string | null): Promise
     unreadNotificationCount,
   };
 });
+
+export const getPlayerRankingPageData = cache(async (): Promise<PlayerRankingPageData> => {
+  const store = await readStoreWithPredictionLifecycle();
+
+  return {
+    title: "플레이어 랭킹",
+    subtitle: "팬 평점 기준",
+    seasonOptions: ["2026 LCK Spring"],
+    defaultSeason: "2026 LCK Spring",
+    minMatchDefault: 3,
+    players: buildPlayerRankingItems(store),
+  };
+});
+
+export async function getPlayerDetailPageData(playerId: string): Promise<PlayerDetailPageData> {
+  const store = await readStoreWithPredictionLifecycle();
+  const detail = buildPlayerDetailPageData(store, playerId);
+  if (!detail) {
+    throw new Error("선수 정보를 찾을 수 없습니다.");
+  }
+
+  return detail;
+}
 
 export const getTeamRosterHubData = cache(async (): Promise<TeamRosterSummary[]> => {
   const store = await readStore();

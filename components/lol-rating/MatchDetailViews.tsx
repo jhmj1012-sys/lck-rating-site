@@ -71,6 +71,27 @@ function buildScoreLabel(match: MatchData) {
   return match.score.replace(" : ", " - ");
 }
 
+type MatchTeamSlot = "teamA" | "teamB";
+
+function getMatchTeamSlots(match: Pick<MatchData, "teamA" | "teamB">) {
+  return [
+    { slot: "teamA" as const, code: match.teamA },
+    { slot: "teamB" as const, code: match.teamB },
+  ];
+}
+
+function getSelectedTeamSlot(match: Pick<MatchData, "teamA" | "teamB" | "myPredictionTeam">): MatchTeamSlot | null {
+  if (match.myPredictionTeam === match.teamA) {
+    return "teamA";
+  }
+
+  if (match.myPredictionTeam === match.teamB) {
+    return "teamB";
+  }
+
+  return null;
+}
+
 function getWinnerTeam(match: MatchData) {
   if (match.status !== "finished" || match.score === "-") {
     return null;
@@ -538,15 +559,15 @@ function OverallPlayerRatingPanel({ match }: { match: MatchData }) {
       ) : (
         <>
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
-            {[match.teamA, match.teamB].map((teamCode) => (
-              <div key={teamCode} className="rounded-[24px] border border-slate-200 bg-white p-4">
+            {getMatchTeamSlots(match).map(({ slot, code }) => (
+              <div key={slot} className="rounded-[24px] border border-slate-200 bg-white p-4">
                 <div className="mb-3 flex items-center justify-between gap-3">
-                  <div className="text-base font-bold text-slate-950">{getTeamDisplayName(teamCode)}</div>
-                  <Badge variant="outline">{teamCode}</Badge>
+                  <div className="text-base font-bold text-slate-950">{getTeamDisplayName(code)}</div>
+                  <Badge variant="outline">{code}</Badge>
                 </div>
                 <div className="space-y-3">
                   {match.players
-                    .filter((player) => player.team === teamCode)
+                    .filter((player) => player.team === code)
                     .map((player) => (
                       <button
                         key={player.id}
@@ -706,19 +727,17 @@ function RatingSection({ match, sets, status }: { match: MatchData; sets: MatchS
 
 function PredictionDistributionBars({ match, locked = false }: { match: MatchData; locked?: boolean }) {
   const summary = locked && match.lockedDistribution ? match.lockedDistribution : match.predictionSummary;
+  const teamSlots = getMatchTeamSlots(match);
 
   return (
     <div className="space-y-3">
-      {[
-        { team: match.teamA, share: summary.teamA },
-        { team: match.teamB, share: summary.teamB },
-      ].map((item) => (
-        <div key={item.team} className="rounded-[20px] border border-slate-200 bg-white px-4 py-4">
+      {teamSlots.map(({ slot, code }) => (
+        <div key={slot} className="rounded-[20px] border border-slate-200 bg-white px-4 py-4">
           <div className="flex items-center justify-between gap-3">
-            <div className="font-semibold text-slate-950">{getTeamDisplayName(item.team)}</div>
-            <div className="text-sm font-bold text-slate-700">{item.share}%</div>
+            <div className="font-semibold text-slate-950">{getTeamDisplayName(code)}</div>
+            <div className="text-sm font-bold text-slate-700">{summary[slot]}%</div>
           </div>
-          <Progress value={item.share} className="mt-3 h-2.5" />
+          <Progress value={summary[slot]} className="mt-3 h-2.5" />
         </div>
       ))}
     </div>
@@ -728,14 +747,14 @@ function PredictionDistributionBars({ match, locked = false }: { match: MatchDat
 function PredictionEntryPanel({ match }: { match: MatchData }) {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const [selectedSide, setSelectedSide] = useState(match.myPredictionTeam ?? "");
+  const [selectedSlot, setSelectedSlot] = useState<MatchTeamSlot | null>(() => getSelectedTeamSlot(match));
   const [feedback, setFeedback] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [now, setNow] = useState(() => new Date(match.serverNow).getTime());
 
   useEffect(() => {
-    setSelectedSide(match.myPredictionTeam ?? "");
-  }, [match.id, match.myPredictionTeam]);
+    setSelectedSlot(getSelectedTeamSlot(match));
+  }, [match.id, match.myPredictionTeam, match.teamA, match.teamB]);
 
   useEffect(() => {
     if (!match.predictionDeadlineAt || match.predictionLocked) {
@@ -750,7 +769,9 @@ function PredictionEntryPanel({ match }: { match: MatchData }) {
   const hasNickname = Boolean(session?.user?.hasNickname);
   const deadlineMs = match.predictionDeadlineAt ? new Date(match.predictionDeadlineAt).getTime() : null;
   const predictionLockedNow = match.predictionLocked || (deadlineMs !== null && deadlineMs <= now);
-  const blockReason = getPredictionBlockReason({ ...match, predictionLocked: predictionLockedNow }, canWrite, selectedSide, hasNickname);
+  const teamSlots = getMatchTeamSlots(match);
+  const selectedTeam = selectedSlot ? match[selectedSlot] : "";
+  const blockReason = getPredictionBlockReason({ ...match, predictionLocked: predictionLockedNow }, canWrite, selectedTeam, hasNickname);
   const countdownLabel = match.predictionDeadlineAt ? formatRemainingLabel(match.predictionDeadlineAt, now) : "마감 정보 없음";
 
   const helperText =
@@ -772,24 +793,26 @@ function PredictionEntryPanel({ match }: { match: MatchData }) {
     <div className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_320px]">
       <div className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-2">
-          {[match.teamA, match.teamB].map((teamCode) => (
-            <button
-              key={teamCode}
-              type="button"
-              onClick={() => {
-                setSelectedSide(teamCode);
-                setFeedback(null);
-              }}
-              className={cn(
-                "rounded-[24px] border p-5 text-left transition",
-                selectedSide === teamCode ? "border-sky-300 bg-sky-50 shadow-[0_14px_36px_rgba(14,165,233,0.12)]" : "border-slate-200 bg-white hover:bg-slate-50",
-              )}
-            >
+          {teamSlots.map(({ slot, code }) => {
+            return (
+              <button
+                key={slot}
+                type="button"
+                onClick={() => {
+                  setSelectedSlot(slot);
+                  setFeedback(null);
+                }}
+                className={cn(
+                  "rounded-[24px] border p-5 text-left transition",
+                  selectedSlot === slot ? "border-sky-300 bg-sky-50 shadow-[0_14px_36px_rgba(14,165,233,0.12)]" : "border-slate-200 bg-white hover:bg-slate-50",
+                )}
+              >
               <div className="text-xs uppercase tracking-[0.18em] text-slate-500">승부 예측</div>
-              <div className="mt-2 text-2xl font-black text-slate-950">{getTeamDisplayName(teamCode)}</div>
-              <div className="mt-3 text-sm text-slate-500">현재 비율 {teamCode === match.teamA ? match.predictionSummary.teamA : match.predictionSummary.teamB}%</div>
-            </button>
-          ))}
+              <div className="mt-2 text-2xl font-black text-slate-950">{getTeamDisplayName(code)}</div>
+              <div className="mt-3 text-sm text-slate-500">현재 비율 {match.predictionSummary[slot]}%</div>
+              </button>
+            );
+          })}
         </div>
 
         <div className="rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-7 text-slate-700">{helperText}</div>
@@ -801,7 +824,7 @@ function PredictionEntryPanel({ match }: { match: MatchData }) {
           onClick={async () => {
             try {
               setPending(true);
-              await postJson(`/api/matches/${match.id}/prediction`, { selectedTeam: selectedSide });
+              await postJson(`/api/matches/${match.id}/prediction`, { selectedTeam });
               setFeedback("예측을 저장했습니다.");
               startTransition(() => router.refresh());
             } catch (error) {

@@ -27,7 +27,7 @@ type SeedRoster = Record<string, SeedRosterPlayer[]>;
 const OFFICIAL_ROSTER_SOURCE = "https://lolesports.com/ko-KR/news/2026-r1-roster";
 const OFFICIAL_ROSTER_UPDATED_AT = "2026-03-26T09:00:00+09:00";
 const OFFICIAL_SCHEDULE_UPDATED_AT = "2026-03-27T10:00:00+09:00";
-const DEMO_NOW_ISO = "2026-04-16T12:00:00+09:00";
+const DEMO_NOW_ISO = "2026-04-14T12:00:00+09:00";
 const DEMO_NOW_MS = new Date(DEMO_NOW_ISO).getTime();
 const rosterByTeam: SeedRoster = {
   T1: [
@@ -353,7 +353,7 @@ function getNormalizedStage(matchId: string) {
 function createMatches(): StoredMatch[] {
   return seedMatches.map((match) => {
     const scheduledAt = match.id === "match_23" ? "2026-04-16T11:30:00+09:00" : match.scheduledAt;
-    const isFinished = match.id === "match_23" ? false : new Date(scheduledAt).getTime() < DEMO_NOW_MS;
+    const isFinished = match.id === "match_24" ? false : new Date(scheduledAt).getTime() < DEMO_NOW_MS;
     const generated = createGeneratedResult(match.id);
 
     return {
