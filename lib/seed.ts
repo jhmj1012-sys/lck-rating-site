@@ -27,7 +27,7 @@ type SeedRoster = Record<string, SeedRosterPlayer[]>;
 const OFFICIAL_ROSTER_SOURCE = "https://lolesports.com/ko-KR/news/2026-r1-roster";
 const OFFICIAL_ROSTER_UPDATED_AT = "2026-03-26T09:00:00+09:00";
 const OFFICIAL_SCHEDULE_UPDATED_AT = "2026-03-27T10:00:00+09:00";
-const DEMO_NOW_ISO = "2026-04-14T12:00:00+09:00";
+const DEMO_NOW_ISO = "2026-04-15T18:00:00+09:00";
 const DEMO_NOW_MS = new Date(DEMO_NOW_ISO).getTime();
 const rosterByTeam: SeedRoster = {
   T1: [
@@ -548,6 +548,8 @@ function createComments(users: StoredUser[], matches: StoredMatch[]): StoredComm
         userId: user.id,
         matchId: match.id,
         text,
+        parentId: null,
+        recommendUserIds: [],
         hidden: false,
         createdAt,
         updatedAt: createdAt,
@@ -672,11 +674,11 @@ function createSeasonPredictionQuestions(): StoredSeasonPredictionQuestion[] {
   return [
     {
       id: "season_question_1",
-      title: "2026 LCK Spring 우승팀은?",
-      description: "플레이오프와 결승까지 포함해 최종 우승 팀을 맞혀 보세요.",
+      title: "2026 LCK 정규시즌 우승 팀은?",
+      description: "2026 LCK 정규시즌 최종 우승 팀을 선택해 주세요.",
       category: "LCK",
       predictionType: "single",
-      season: "2026 LCK Spring",
+      season: "2026 LCK",
       openAt: "2026-03-20T10:00:00+09:00",
       closeAt: "2026-06-10T17:00:00+09:00",
       manualStatus: "active",
@@ -693,13 +695,13 @@ function createSeasonPredictionQuestions(): StoredSeasonPredictionQuestion[] {
     },
     {
       id: "season_question_2",
-      title: "2026 LCK Spring 결승 MVP는?",
-      description: "결승전 종료 후 공식 발표될 MVP 한 명을 선택합니다.",
-      category: "Awards",
+      title: "2026 월즈 우승 지역은?",
+      description: "LoL 7개 지역 중 월즈 우승 지역을 예측해 주세요.",
+      category: "WORLDS",
       predictionType: "single",
-      season: "2026 LCK Spring",
+      season: "2026 WORLDS",
       openAt: "2026-03-20T10:00:00+09:00",
-      closeAt: "2026-06-10T17:00:00+09:00",
+      closeAt: "2026-12-31T18:00:00+09:00",
       manualStatus: "active",
       visibility: "public",
       lockedAt: null,
@@ -714,55 +716,13 @@ function createSeasonPredictionQuestions(): StoredSeasonPredictionQuestion[] {
     },
     {
       id: "season_question_3",
-      title: "T1이 2026 MSI에 진출하는가?",
-      description: "T1의 MSI 진출 여부를 Yes / No로 예측합니다.",
-      category: "MSI",
-      predictionType: "yesno",
-      season: "2026 MSI",
-      openAt: "2026-03-20T10:00:00+09:00",
-      closeAt: "2026-05-30T12:00:00+09:00",
-      manualStatus: "active",
-      visibility: "public",
-      lockedAt: null,
-      resolvedAt: null,
-      resultOptionId: null,
-      resultValue: null,
-      rewardMode: "parimutuel",
-      baseRewardAmount: null,
-      lockedDistribution: null,
-      createdAt: DEMO_NOW_ISO,
-      updatedAt: DEMO_NOW_ISO,
-    },
-    {
-      id: "season_question_4",
-      title: "Gen.G 정규시즌 최종 순위는?",
-      description: "Gen.G의 2026 LCK Spring 정규시즌 최종 순위 구간을 선택해 주세요.",
-      category: "LCK",
-      predictionType: "range",
-      season: "2026 LCK Spring",
-      openAt: "2026-03-20T10:00:00+09:00",
-      closeAt: "2026-05-25T23:59:00+09:00",
-      manualStatus: "active",
-      visibility: "public",
-      lockedAt: null,
-      resolvedAt: null,
-      resultOptionId: null,
-      resultValue: null,
-      rewardMode: "parimutuel",
-      baseRewardAmount: null,
-      lockedDistribution: null,
-      createdAt: DEMO_NOW_ISO,
-      updatedAt: DEMO_NOW_ISO,
-    },
-    {
-      id: "season_question_5",
-      title: "2026 MSI 우승팀은?",
-      description: "국제전 최종 우승 팀을 시즌예측으로 미리 선택해 보세요.",
+      title: "2026 MSI 우승 지역은?",
+      description: "LoL 7개 지역 중 MSI 우승 지역을 예측해 주세요.",
       category: "MSI",
       predictionType: "single",
       season: "2026 MSI",
-      openAt: "2026-04-01T10:00:00+09:00",
-      closeAt: "2026-07-08T17:00:00+09:00",
+      openAt: "2026-03-20T10:00:00+09:00",
+      closeAt: "2026-07-31T18:00:00+09:00",
       manualStatus: "active",
       visibility: "public",
       lockedAt: null,
@@ -780,11 +740,23 @@ function createSeasonPredictionQuestions(): StoredSeasonPredictionQuestion[] {
 
 function createSeasonPredictionOptions(): StoredSeasonPredictionOption[] {
   const rows: Array<[string, string[]]> = [
-    ["season_question_1", ["GEN", "T1", "HLE", "DK", "KT", "BFX"]],
-    ["season_question_2", ["Chovy", "Faker", "Zeka", "ShowMaker", "Kiin", "Ruler"]],
-    ["season_question_3", ["Yes", "No"]],
-    ["season_question_4", ["1위", "2~3위", "4~6위", "7위 이하"]],
-    ["season_question_5", ["GEN", "T1", "HLE", "BLG", "TES", "G2"]],
+    [
+      "season_question_1",
+      [
+        "Gen.G Esports",
+        "T1",
+        "Hanwha Life Esports",
+        "Dplus KIA",
+        "kt Rolster",
+        "BNK FEARX",
+        "NONGSHIM RED FORCE",
+        "KIWOOM DRX",
+        "HANJIN BRION",
+        "DN SOOPers",
+      ],
+    ],
+    ["season_question_2", ["LCK (South Korea)", "LPL (China)", "LEC (Europe / EMEA)", "LCS (North America)", "CBLOL (Brazil)", "LCP (Asia-Pacific)"]],
+    ["season_question_3", ["LCK (South Korea)", "LPL (China)", "LEC (Europe / EMEA)", "LCS (North America)", "CBLOL (Brazil)", "LCP (Asia-Pacific)"]],
   ];
 
   return rows.flatMap(([questionId, labels]) =>

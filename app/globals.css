@@ -75,6 +75,10 @@ button:disabled {
   cursor: not-allowed;
 }
 
+button.allow-disabled-cursor:disabled {
+  cursor: default !important;
+}
+
 ::selection {
   background: rgba(56, 189, 248, 0.35);
   color: white;

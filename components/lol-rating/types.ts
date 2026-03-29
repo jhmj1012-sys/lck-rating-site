@@ -7,6 +7,7 @@ export type PredictionLifecycleState = "open" | "locked" | "settled";
 export type NotificationType = "prediction_joined" | "prediction_hit" | "prediction_missed" | "coin_earned" | "system";
 export type SeasonPredictionType = "single" | "yesno" | "range";
 export type SeasonPredictionQuestionStatus = "draft" | "open" | "locked" | "resolved" | "canceled";
+export type GlobalSearchResultType = "team" | "player" | "match";
 export type PredictionBlockReason =
   | "unauthenticated"
   | "profile-required"
@@ -14,6 +15,26 @@ export type PredictionBlockReason =
   | "unavailable"
   | "needs-selection"
   | null;
+
+export interface GlobalSearchResultItem {
+  type: GlobalSearchResultType;
+  id: string;
+  title: string;
+  subtitle: string;
+  href: string;
+}
+
+export interface GlobalSearchResultGroup {
+  type: GlobalSearchResultType;
+  label: string;
+  items: GlobalSearchResultItem[];
+}
+
+export interface GlobalSearchResultData {
+  query: string;
+  totalCount: number;
+  groups: GlobalSearchResultGroup[];
+}
 
 export interface PlayerRating {
   id: string;
@@ -26,13 +47,26 @@ export interface PlayerRating {
   viewerComment: string;
 }
 
+export interface MatchRatingComment {
+  id: string;
+  user: string;
+  playerName: string;
+  team: string;
+  score: number;
+  text: string;
+  createdLabel: string;
+}
+
 export interface MatchComment {
   id: string;
   userId: string | null;
+  parentId: string | null;
   user: string;
   userSummary: PublicUserSummary | null;
   createdLabel: string;
   likes: number;
+  likedByMe: boolean;
+  replyCount: number;
   text: string;
   tag: string;
 }
@@ -95,11 +129,16 @@ export interface SeasonPredictionQuestionCard {
   title: string;
   description: string;
   category: string;
+  logoKey: "lck" | "msi" | "worlds";
   season: string;
   predictionType: SeasonPredictionType;
   closeAt: string;
   status: SeasonPredictionQuestionStatus;
   totalEntries: number;
+  topOptions: Array<{
+    label: string;
+    percent: number;
+  }>;
   mySelectionLabel: string | null;
   isParticipating: boolean;
   resultLabel: string | null;
@@ -151,6 +190,7 @@ export interface MatchData {
   myPredictionSettlementResult: "hit" | "miss" | null;
   myPredictionSettlementCoins: number;
   players: PlayerRating[];
+  ratingComments: MatchRatingComment[];
   commentsList: MatchComment[];
   myPredictionTeam: string | null;
 }
@@ -247,6 +287,41 @@ export interface SetDetailData {
 export interface MatchDetailData {
   match: MatchData;
   sets: MatchSetSummary[];
+  preMatchInsights: PreMatchInsights;
+}
+
+export interface TeamRecentForm {
+  recent: Array<"W" | "L">;
+  streakLabel: string;
+}
+
+export interface KeyPlayerInsight {
+  playerId: string;
+  name: string;
+  role: PlayerRole;
+  avgRating: number;
+  ratingCount: number;
+}
+
+export interface PreMatchInsights {
+  teamAForm: TeamRecentForm;
+  teamBForm: TeamRecentForm;
+  h2h: {
+    teamAWins: number;
+    teamBWins: number;
+    totalMatches: number;
+  };
+  recentHeadToHead: Array<{
+    id: string;
+    label: string;
+    scoreA: number | null;
+    scoreB: number | null;
+    playedAt: string;
+  }>;
+  keyPlayers: {
+    teamA: KeyPlayerInsight | null;
+    teamB: KeyPlayerInsight | null;
+  };
 }
 
 export interface WeekSchedule {
@@ -362,6 +437,7 @@ export interface PlayerRecentMatchRating {
   matchId: string;
   matchLabel: string;
   score: number;
+  result: "W" | "L" | "-";
   ratedAt: string;
 }
 

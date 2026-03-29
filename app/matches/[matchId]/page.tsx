@@ -1,8 +1,8 @@
-﻿import Link from "next/link";
-import { notFound } from "next/navigation";
+﻿import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/auth";
+import { TopSiteNav } from "@/components/TopSiteNav";
 import { MatchDetailStateView } from "@/components/lol-rating/MatchDetailViews";
 import { getMatchDetailData } from "@/lib/service";
 
@@ -20,14 +20,11 @@ export default async function MatchDetailPage({
   }
 
   return (
-    <main className="app-shell px-4 py-8 sm:px-6">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <Link href="/" className="ui-action-secondary min-h-10">
-          일정으로 돌아가기
-        </Link>
+    <main className="app-shell pb-8">
+      <TopSiteNav active="match" notifications={[]} unreadNotificationCount={0} maxWidthClass="max-w-5xl" />
+      <div className="mx-auto mt-6 max-w-5xl space-y-6 px-4 sm:px-6">
         <MatchDetailStateView data={data} />
       </div>
     </main>
   );
 }
-

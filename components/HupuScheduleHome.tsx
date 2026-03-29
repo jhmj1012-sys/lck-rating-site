@@ -21,9 +21,14 @@ const LABELS = {
   hours: "\uC2DC\uAC04",
   minutesAfter: "\uBD84 \uB4A4 \uC2DC\uC791",
   resultView: "\uACB0\uACFC \uBCF4\uAE30",
+  ratingJoin: "\uD3C9\uC810 \uCC38\uC5EC\uD558\uAE30",
   matchView: "\uACBD\uAE30 \uBCF4\uAE30",
   predictNow: "\uC608\uCE21\uD558\uAE30",
   setRatingsView: "\uC138\uD2B8 \uD3C9\uC810 \uBCF4\uAE30",
+  latestRatingComments: "\uCD5C\uC2E0 \uD3C9\uC810 \uCF54\uBA58\uD2B8",
+  latestMatchComments: "\uCD5C\uC2E0 \uB313\uAE00",
+  noRatingComments: "\uC544\uC9C1 \uB0A8\uACA8\uC9C4 \uD3C9\uC810 \uCF54\uBA58\uD2B8\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  noMatchComments: "\uC544\uC9C1 \uB0A8\uACA8\uC9C4 \uB313\uAE00\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.",
   reactionsView: "\uBC18\uC751 \uBCF4\uAE30",
   joinToday: "\uC624\uB298\uB3C4 \uCC38\uC5EC \uC911",
   myPage: "\uB9C8\uC774\uD398\uC774\uC9C0",
@@ -178,7 +183,7 @@ function getPrimaryActionLabel(match: MatchData) {
   }
 
   if (match.status === "finished") {
-    return LABELS.resultView;
+    return LABELS.ratingJoin;
   }
 
   return match.predictionLocked ? LABELS.matchView : LABELS.predictNow;
@@ -281,15 +286,15 @@ function ActionPanel({ data }: { data: ScheduleHubData }) {
               </Link>
             </div>
             <div className="mt-4 grid grid-cols-3 gap-2">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-center">
                 <div className="text-[11px] text-slate-500">{LABELS.coinBalance}</div>
                 <div className="mt-1 text-[1.35rem] font-black text-slate-950">{userProfile.points.toLocaleString()}</div>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-center">
                 <div className="text-[11px] text-slate-500">{LABELS.accuracy}</div>
                 <div className="mt-1 text-[1.35rem] font-black text-slate-950">{userProfile.predictionAccuracy}%</div>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-center">
                 <div className="text-[11px] text-slate-500">{LABELS.streak}</div>
                 <div className="mt-1 text-[1.35rem] font-black text-slate-950">{userProfile.predictionStats.streak}</div>
               </div>
@@ -421,6 +426,9 @@ function ScheduleRow({ match }: { match: MatchListItem }) {
 
 function TodayMatchCard({ match, forcePredictCta = false }: { match: MatchData; forcePredictCta?: boolean }) {
   const liveLike = isLiveMatch(match);
+  const ratingCommentPreview = match.ratingComments.slice(0, 3);
+  const matchCommentPreview = match.commentsList.filter((comment) => !comment.parentId).slice(0, 3);
+  const isFinished = match.status === "finished";
 
   return (
     <Link
@@ -469,6 +477,35 @@ function TodayMatchCard({ match, forcePredictCta = false }: { match: MatchData; 
         </div>
         <div className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-[22px] bg-sky-500 px-4 text-lg font-black text-white shadow-[0_12px_26px_rgba(14,165,233,0.22)] transition group-hover:bg-sky-600">
           {forcePredictCta ? "승부예측하기" : getPrimaryActionLabel(match)}
+        </div>
+        <div className="mt-4 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+            {isFinished ? LABELS.latestRatingComments : LABELS.latestMatchComments}
+          </div>
+          <div className="mt-2 space-y-1.5">
+            {isFinished ? (
+              ratingCommentPreview.length > 0 ? (
+                ratingCommentPreview.map((item) => (
+                  <div key={item.id} className="flex items-center gap-2 text-xs text-slate-600">
+                    <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
+                      {item.playerName} {item.score.toFixed(1)}
+                    </span>
+                    <span className="min-w-0 truncate">{item.text}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="text-xs text-slate-500">{LABELS.noRatingComments}</div>
+              )
+            ) : matchCommentPreview.length > 0 ? (
+              matchCommentPreview.map((item) => (
+                <div key={item.id} className="flex items-center gap-2 text-xs text-slate-600">
+                  <span className="min-w-0 truncate">{item.text}</span>
+                </div>
+              ))
+            ) : (
+              <div className="text-xs text-slate-500">{LABELS.noMatchComments}</div>
+            )}
+          </div>
         </div>
       </div>
     </Link>
@@ -603,6 +640,12 @@ export default function HupuScheduleHome({
               <div className="mt-1 text-sm text-slate-600">{LABELS.scheduleExplorerCopy}</div>
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="팀, 리그, 스테이지로 일정 검색"
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 placeholder:text-slate-400"
+              />
               <select value={league} onChange={(event) => setLeague(event.target.value)} className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700">
                 {leagues.map((item) => (
                   <option key={item} value={item}>
@@ -610,7 +653,7 @@ export default function HupuScheduleHome({
                   </option>
                 ))}
               </select>
-              <select value={status} onChange={(event) => setStatus(event.target.value)} className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700">
+              <select value={status} onChange={(event) => setStatus(event.target.value)} className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 sm:col-span-2">
                 <option value="all">{LABELS.allStatus}</option>
                 <option value="scheduled">{LABELS.scheduledMatch}</option>
                 <option value="finished">{LABELS.finishedMatch}</option>
@@ -681,8 +724,6 @@ export default function HupuScheduleHome({
   return (
     <div className="app-shell">
         <SiteHeader
-          query={query}
-          setQuery={setQuery}
           notifications={initialData.notifications}
           unreadNotificationCount={initialData.unreadNotificationCount}
         />
@@ -705,7 +746,7 @@ export default function HupuScheduleHome({
               isSchedulePage ? "text-sky-700" : "text-slate-600 hover:text-slate-900",
             )}
           >
-            경기 일정
+            경기일정
             {isSchedulePage ? <span className="absolute inset-x-4 bottom-0 h-[3px] rounded-full bg-sky-500" /> : null}
           </Link>
           <Link
@@ -721,7 +762,7 @@ export default function HupuScheduleHome({
               "text-slate-600 hover:text-slate-900",
             )}
           >
-            시즌 예측
+            시즌예측
           </Link>
         </nav>
       </div>
@@ -851,45 +892,64 @@ export default function HupuScheduleHome({
               </div>
             </section> : null}
 
-            {predictionTab === "match" ? <section className="grid gap-4 xl:grid-cols-2">
+            {predictionTab === "match" ? <section>
               <div className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-[0_12px_32px_rgba(15,23,42,0.06)]">
                 <div className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-600">Player Ratings</div>
-                <h2 className="mt-1 text-[22px] font-black tracking-[-0.035em] text-slate-950 sm:text-[24px]">{LABELS.playerRankings}</h2>
-                <div className="mt-4 space-y-3">
-                  {initialData.playerLeaderboard.map((player) => (
-                    <div key={player.playerId} className="grid grid-cols-[34px_minmax(0,1fr)_52px_52px] items-center rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                      <div className="text-lg font-black text-slate-950">{player.rank}</div>
-                      <div className="min-w-0">
-                        <div className="truncate font-bold text-slate-950">{player.playerName}</div>
-                        <div className="text-[12px] text-slate-500">
-                          {player.teamCode} \u00B7 {LABELS.participation} {player.ratingCount}
-                        </div>
-                      </div>
-                      <div className="text-right text-sm font-semibold text-slate-600">{player.teamCode}</div>
-                      <div className="text-right text-lg font-black text-slate-950">{player.averageRating}</div>
-                    </div>
-                  ))}
+                <h2 className="mt-1 text-[22px] font-black tracking-[-0.035em] text-slate-950 sm:text-[24px]">실시간 평점 랭킹</h2>
+                <div className="mt-5 rounded-[24px] border border-slate-200 bg-slate-50/70 px-3 py-4 sm:px-4">
+                  <div className="grid grid-cols-3 items-end gap-2 sm:gap-3">
+                    {[
+                      initialData.playerLeaderboard.find((player) => player.rank === 2),
+                      initialData.playerLeaderboard.find((player) => player.rank === 1),
+                      initialData.playerLeaderboard.find((player) => player.rank === 3),
+                    ]
+                      .filter((player): player is (typeof initialData.playerLeaderboard)[number] => Boolean(player))
+                      .map((player) => (
+                        <Link
+                          key={player.playerId}
+                          href={`/player/${player.playerId}`}
+                          className={cn(
+                            "flex flex-col justify-between rounded-2xl border px-2 py-3 text-center transition hover:-translate-y-0.5 sm:px-3",
+                            player.rank === 1
+                              ? "h-[170px] border-amber-300 bg-[linear-gradient(180deg,#fff7d1_0%,#f5df93_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"
+                              : player.rank === 2
+                                ? "h-[142px] border-slate-300 bg-[linear-gradient(180deg,#f8fafc_0%,#dfe5ef_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"
+                                : "h-[130px] border-orange-300 bg-[linear-gradient(180deg,#ffe9d8_0%,#e9bf93_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]",
+                          )}
+                        >
+                          <div className="text-lg font-black text-slate-950">{player.rank}</div>
+                          <div className="space-y-1">
+                            <div className="truncate text-[14px] font-black text-slate-950 sm:text-[15px]">{player.playerName}</div>
+                            <div className="text-[11px] font-semibold text-slate-600">{player.teamCode}</div>
+                          </div>
+                          <div className="text-xl font-black text-slate-950">{player.averageRating.toFixed(1)}</div>
+                        </Link>
+                      ))}
+                  </div>
+                  <div className="mt-3 space-y-2">
+                    {initialData.playerLeaderboard
+                      .filter((player) => player.rank >= 4 && player.rank <= 6)
+                      .map((player) => (
+                        <Link
+                          key={player.playerId}
+                          href={`/player/${player.playerId}`}
+                          className="grid grid-cols-[32px_minmax(0,1fr)_56px_52px] items-center rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-sm transition hover:bg-slate-50"
+                        >
+                          <div className="text-base font-black text-slate-700">{player.rank}</div>
+                          <div className="min-w-0 truncate font-semibold text-slate-900">{player.playerName}</div>
+                          <div className="text-right text-xs font-semibold text-slate-500">{player.teamCode}</div>
+                          <div className="text-right text-base font-black text-slate-900">{player.averageRating.toFixed(1)}</div>
+                        </Link>
+                      ))}
+                  </div>
                 </div>
-              </div>
-
-              <div className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-[0_12px_32px_rgba(15,23,42,0.06)]">
-                <div className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-600">Fan Reactions</div>
-                <h2 className="mt-1 text-[22px] font-black tracking-[-0.035em] text-slate-950 sm:text-[24px]">{LABELS.recentFanReactions}</h2>
-                <div className="mt-4 space-y-3">
-                  {initialData.recentComments.map((comment) => (
-                    <div key={comment.id} className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
-                      <div className="flex items-center justify-between gap-3">
-                        <PublicUserTrigger
-                          summary={comment.userSummary}
-                          label={comment.user}
-                          className="text-sm font-semibold text-slate-950"
-                        />
-                        <div className="text-[12px] text-slate-500">{comment.createdLabel}</div>
-                      </div>
-                      <div className="mt-1 text-[12px] font-medium uppercase tracking-[0.12em] text-sky-600">{comment.matchLabel}</div>
-                      <p className="mt-3 text-sm leading-7 text-slate-700">{comment.text}</p>
-                    </div>
-                  ))}
+                <div className="mt-4">
+                  <Link
+                    href="/ratings"
+                    className="inline-flex w-full items-center justify-center rounded-2xl bg-sky-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-sky-600"
+                  >
+                    평점 보러가기
+                  </Link>
                 </div>
               </div>
             </section> : null}

@@ -11,7 +11,7 @@ export function AccountActions({ hasNickname }: { hasNickname: boolean }) {
       <Link
         href="/me?setup=1"
         aria-label={nicknameLabel}
-        className="ui-action-secondary"
+        className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-sky-200 hover:bg-sky-50 hover:text-sky-700"
       >
         {nicknameLabel}
       </Link>
@@ -19,7 +19,7 @@ export function AccountActions({ hasNickname }: { hasNickname: boolean }) {
         type="button"
         aria-label="\uB85C\uADF8\uC544\uC6C3"
         onClick={() => signOut({ callbackUrl: "/" })}
-        className="ui-action-secondary"
+        className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700"
       >
         {"\uB85C\uADF8\uC544\uC6C3"}
       </button>

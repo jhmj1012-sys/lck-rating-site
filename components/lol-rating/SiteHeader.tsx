@@ -1,33 +1,34 @@
-'use client';
+﻿'use client';
 
 import Link from "next/link";
-import { useState } from "react";
 import { useSession } from "next-auth/react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 
-import type { NotificationItem } from "./types";
+import type { GlobalSearchResultGroup, GlobalSearchResultItem, NotificationItem } from "./types";
 import { BellIcon, SearchIcon, ShieldIcon, ShopIcon, TeamIcon, UserIcon } from "./icons";
 import { Input } from "./ui";
+import { cn } from "./utils";
 
 type SiteHeaderProps = {
-  query: string;
-  setQuery: (value: string) => void;
   notifications?: NotificationItem[];
   unreadNotificationCount?: number;
 };
 
 const HEADER_LABELS = {
-  title: "GG \uB808\uC774\uD305",
-  subtitle: "LCK \uC77C\uC815, \uC608\uCE21, \uC138\uD2B8 \uD3C9\uC810\uACFC \uBC18\uC751\uC744 \uD55C \uACF3\uC5D0\uC11C",
-  teams: "\uD300 \uB85C\uC2A4\uD130",
-  admin: "\uAD00\uB9AC\uC790",
-  account: "\uB0B4 \uACC4\uC815",
-  shop: "\uCF54\uC778 \uC0C1\uC810",
-  seasonPredictions: "\uC2DC\uC98C \uC608\uCE21",
-  notifications: "\uC54C\uB9BC",
-  viewAllNotifications: "\uC54C\uB9BC \uC790\uC138\uD788 \uBCF4\uAE30",
-  signin: "\uB85C\uADF8\uC778",
-  checking: "\uD655\uC778 \uC911",
-  searchPlaceholder: "\uD300, \uC120\uC218, \uACBD\uAE30 \uD0A4\uC6CC\uB4DC\uB97C \uAC80\uC0C9\uD574 \uBCF4\uC138\uC694",
+  title: "GG 레이팅",
+  subtitle: "LCK 일정, 예측, 세트 평점과 반응을 한 곳에서",
+  teams: "팀 로스터",
+  admin: "관리자",
+  account: "내 계정",
+  shop: "코인 상점",
+  notifications: "알림",
+  viewAllNotifications: "알림 자세히 보기",
+  signin: "로그인",
+  checking: "확인 중",
+  searchPlaceholder: "팀, 선수, 경기 키워드를 검색해 보세요",
+  searchEmpty: "검색 결과가 없습니다.",
+  searchLoading: "검색 중...",
 } as const;
 
 function IconNavLink({
@@ -124,10 +125,165 @@ function NotificationButton({
   );
 }
 
-export function SiteHeader({ query, setQuery, notifications = [], unreadNotificationCount = 0 }: SiteHeaderProps) {
+export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: SiteHeaderProps) {
   const { data: session, status } = useSession();
   const isLoggedIn = status === "authenticated";
   const isAdmin = session?.user?.role === "admin";
+
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const [searchInput, setSearchInput] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [searchGroups, setSearchGroups] = useState<GlobalSearchResultGroup[]>([]);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const searchWrapRef = useRef<HTMLDivElement | null>(null);
+
+  const flatResults = useMemo(
+    () => searchGroups.flatMap((group) => group.items),
+    [searchGroups],
+  );
+
+  useEffect(() => {
+    const currentQuery = searchParams.get("q") ?? "";
+    setSearchInput(currentQuery);
+    setDebouncedSearch(currentQuery);
+    setHighlightedIndex(-1);
+  }, [pathname, searchParams]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setDebouncedSearch(searchInput.trim());
+    }, 180);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [searchInput]);
+
+  useEffect(() => {
+    const query = debouncedSearch.trim();
+    if (!query) {
+      setSearchGroups([]);
+      setIsSearchLoading(false);
+      setHighlightedIndex(-1);
+      return;
+    }
+
+    const controller = new AbortController();
+    setIsSearchLoading(true);
+
+    fetch(`/api/search?q=${encodeURIComponent(query)}&limit=4`, { signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error("검색 실패");
+        }
+        const payload = (await response.json()) as { groups?: GlobalSearchResultGroup[] };
+        setSearchGroups(payload.groups ?? []);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          setSearchGroups([]);
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setIsSearchLoading(false);
+          setHighlightedIndex(-1);
+        }
+      });
+
+    return () => controller.abort();
+  }, [debouncedSearch]);
+
+  useEffect(() => {
+    const onMouseDown = (event: MouseEvent) => {
+      if (!searchWrapRef.current) {
+        return;
+      }
+      if (!searchWrapRef.current.contains(event.target as Node)) {
+        setIsSearchOpen(false);
+        setHighlightedIndex(-1);
+      }
+    };
+
+    document.addEventListener("mousedown", onMouseDown);
+    return () => document.removeEventListener("mousedown", onMouseDown);
+  }, []);
+
+  const navigateTo = (href: string) => {
+    setIsSearchOpen(false);
+    setHighlightedIndex(-1);
+    router.push(href);
+  };
+
+  const submitSearch = () => {
+    const term = searchInput.trim();
+    if (!term) {
+      return;
+    }
+    navigateTo(`/search?q=${encodeURIComponent(term)}`);
+  };
+
+  const onSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Escape") {
+      setIsSearchOpen(false);
+      setHighlightedIndex(-1);
+      return;
+    }
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      if (flatResults.length === 0) {
+        return;
+      }
+      setIsSearchOpen(true);
+      setHighlightedIndex((current) => (current + 1) % flatResults.length);
+      return;
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      if (flatResults.length === 0) {
+        return;
+      }
+      setIsSearchOpen(true);
+      setHighlightedIndex((current) => (current <= 0 ? flatResults.length - 1 : current - 1));
+      return;
+    }
+
+    if (event.key === "Enter") {
+      event.preventDefault();
+      if (isSearchOpen && highlightedIndex >= 0 && highlightedIndex < flatResults.length) {
+        navigateTo(flatResults[highlightedIndex].href);
+        return;
+      }
+      submitSearch();
+    }
+  };
+
+  const renderSearchItem = (item: GlobalSearchResultItem, index: number) => {
+    const selected = index === highlightedIndex;
+
+    return (
+      <button
+        key={`${item.type}_${item.id}`}
+        type="button"
+        onMouseEnter={() => setHighlightedIndex(index)}
+        onClick={() => navigateTo(item.href)}
+        className={cn(
+          "w-full rounded-xl px-3 py-2 text-left transition",
+          selected ? "bg-sky-50" : "hover:bg-slate-50",
+        )}
+      >
+        <div className="truncate text-sm font-semibold text-slate-900">{item.title}</div>
+        <div className="truncate text-xs text-slate-500">{item.subtitle}</div>
+      </button>
+    );
+  };
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/88 backdrop-blur-xl">
@@ -149,9 +305,6 @@ export function SiteHeader({ query, setQuery, notifications = [], unreadNotifica
               <IconNavLink href="/shop" label={HEADER_LABELS.shop}>
                 <ShopIcon className="h-4 w-4" />
               </IconNavLink>
-              <Link href="/season-predictions" className="hidden rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 lg:inline-flex">
-                {HEADER_LABELS.seasonPredictions}
-              </Link>
               <IconNavLink href="/teams" label={HEADER_LABELS.teams}>
                 <TeamIcon className="h-4 w-4" />
               </IconNavLink>
@@ -173,15 +326,53 @@ export function SiteHeader({ query, setQuery, notifications = [], unreadNotifica
           </div>
 
           <div className="grid gap-2.5 lg:min-w-[720px] lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
-            <div className="relative">
+            <div ref={searchWrapRef} className="relative">
               <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <Input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
+                value={searchInput}
+                onChange={(event) => {
+                  setSearchInput(event.target.value);
+                  setIsSearchOpen(true);
+                }}
+                onFocus={() => {
+                  if (searchInput.trim()) {
+                    setIsSearchOpen(true);
+                  }
+                }}
+                onKeyDown={onSearchKeyDown}
                 placeholder={HEADER_LABELS.searchPlaceholder}
                 className="h-10 rounded-[18px] border-slate-200/90 bg-slate-50 pl-12 pr-4 text-[13px] focus:bg-white"
                 style={{ paddingLeft: "3rem" }}
               />
+
+              {isSearchOpen && searchInput.trim() ? (
+                <div className="absolute left-0 right-0 top-12 z-50 rounded-2xl border border-slate-200 bg-white p-2 shadow-[0_16px_36px_rgba(15,23,42,0.14)]">
+                  {isSearchLoading ? (
+                    <div className="px-3 py-3 text-sm text-slate-500">{HEADER_LABELS.searchLoading}</div>
+                  ) : searchGroups.length === 0 ? (
+                    <div className="px-3 py-3 text-sm text-slate-500">{HEADER_LABELS.searchEmpty}</div>
+                  ) : (
+                    <div className="space-y-1">
+                      {(() => {
+                        let rowIndex = 0;
+                        return searchGroups.map((group) => {
+                          const start = rowIndex;
+                          rowIndex += group.items.length;
+
+                          return (
+                            <div key={group.type} className="rounded-xl border border-slate-100 bg-white/70 p-1">
+                              <div className="px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">{group.label}</div>
+                              <div className="space-y-0.5">
+                                {group.items.map((item, offset) => renderSearchItem(item, start + offset))}
+                              </div>
+                            </div>
+                          );
+                        });
+                      })()}
+                    </div>
+                  )}
+                </div>
+              ) : null}
             </div>
 
             <div className="hidden items-center gap-2 lg:flex">

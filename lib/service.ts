@@ -22,6 +22,10 @@ import type {
 import { createId, mutateStore, readStore } from "@/lib/store";
 import type {
   DashboardData,
+  GlobalSearchResultData,
+  GlobalSearchResultGroup,
+  GlobalSearchResultItem,
+  GlobalSearchResultType,
   HomeCommentFeedItem,
   HomeHeroStats,
   HomePlayerLeaderboardItem,
@@ -29,6 +33,7 @@ import type {
   PlayerRankingItem,
   PlayerRankingPageData,
   MatchComment,
+  MatchRatingComment,
   MatchMonthGroup,
   MatchData,
   MatchDateGroup,
@@ -38,8 +43,10 @@ import type {
   MatchWeekGroup,
   MyCommentItem,
   NotificationItem,
+  KeyPlayerInsight,
   MyPageData,
   MyPointLedgerItem,
+  PreMatchInsights,
   PublicUserSummary,
   PredictionComparisonItem,
   PredictionInsightItem,
@@ -69,7 +76,7 @@ import type {
 const relativeTime = new Intl.RelativeTimeFormat("ko", { numeric: "auto" });
 const roleOrder: Record<PlayerRole, number> = { TOP: 0, JGL: 1, MID: 2, ADC: 3, SUP: 4 };
 const scheduleWeekdayOrder = [4, 5, 6, 0, 1, 2, 3] as const;
-const DEMO_NOW_ISO = "2026-04-14T12:00:00+09:00";
+const DEMO_NOW_ISO = "2026-04-15T18:00:00+09:00";
 const DEMO_NOW_MS = new Date(DEMO_NOW_ISO).getTime();
 const COINS = {
   predictionSubmit: 10,
@@ -559,6 +566,145 @@ function getTeamById(store: StoreShape, teamId: string) {
   return store.teams.find((team) => team.id === teamId) ?? null;
 }
 
+function normalizeSearchText(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}.:\s-]+/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function tokenizeSearchQuery(query: string) {
+  return normalizeSearchText(query).split(" ").filter(Boolean);
+}
+
+function getMatchSearchStatusLabel(match: StoredMatch) {
+  if (match.status === "finished") {
+    return "종료";
+  }
+  return new Date(match.scheduledAt).getTime() <= DEMO_NOW_MS ? "진행중" : "예정";
+}
+
+function getSearchScore(haystack: string, rawQuery: string, tokens: string[]) {
+  const text = normalizeSearchText(haystack);
+  const query = normalizeSearchText(rawQuery);
+  if (!text || !query) {
+    return 0;
+  }
+
+  if (text === query) {
+    return 300;
+  }
+  if (text.startsWith(query)) {
+    return 220;
+  }
+  if (!text.includes(query)) {
+    return 0;
+  }
+
+  const matchedTokens = tokens.filter((token) => text.includes(token)).length;
+  return 150 + matchedTokens * 25;
+}
+
+function buildGlobalSearchResultData(
+  store: StoreShape,
+  query: string,
+  limitPerType?: number,
+): GlobalSearchResultData {
+  const normalizedQuery = normalizeSearchText(query);
+  if (!normalizedQuery) {
+    return { query, totalCount: 0, groups: [] };
+  }
+
+  const tokens = tokenizeSearchQuery(normalizedQuery);
+
+  const collect = <T extends GlobalSearchResultType>(
+    type: T,
+    label: string,
+    items: Array<GlobalSearchResultItem & { score: number }>,
+  ): GlobalSearchResultGroup => ({
+    type,
+    label,
+    items: items
+      .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title, "ko"))
+      .slice(0, limitPerType && limitPerType > 0 ? limitPerType : undefined)
+      .map(({ score: _score, ...rest }) => rest),
+  });
+
+  const teamItems = store.teams
+    .filter((team) => team.code !== "TBD")
+    .map((team) => {
+      const title = team.code;
+      const subtitle = team.name;
+      const score = getSearchScore(`${team.code} ${team.name} ${team.shortName}`, normalizedQuery, tokens);
+      return {
+        type: "team" as const,
+        id: team.id,
+        title,
+        subtitle,
+        href: `/teams?team=${team.code}`,
+        score,
+      };
+    })
+    .filter((item) => item.score > 0);
+
+  const playerItems = store.players
+    .map((player) => {
+      const team = getTeamById(store, player.teamId);
+      const teamCode = team?.code ?? "-";
+      const roleLabel = player.role;
+      const score = getSearchScore(
+        `${player.name} ${teamCode} ${team?.name ?? ""} ${roleLabel}`,
+        normalizedQuery,
+        tokens,
+      );
+      return {
+        type: "player" as const,
+        id: player.id,
+        title: player.name,
+        subtitle: `${teamCode} · ${roleLabel}`,
+        href: `/player/${player.id}`,
+        score,
+      };
+    })
+    .filter((item) => item.score > 0);
+
+  const matchItems = store.matches
+    .map((match) => {
+      const teamA = getTeamById(store, match.teamAId)?.code ?? "TBD";
+      const teamB = getTeamById(store, match.teamBId)?.code ?? "TBD";
+      const statusLabel = getMatchSearchStatusLabel(match);
+      const dateLabel = formatDateLabel(match.scheduledAt);
+      const stageLabel = normalizeStageLabel(match.stage, match.id);
+      const score = getSearchScore(
+        `${teamA} ${teamB} ${teamA} vs ${teamB} ${dateLabel} ${statusLabel} ${stageLabel}`,
+        normalizedQuery,
+        tokens,
+      );
+      return {
+        type: "match" as const,
+        id: match.id,
+        title: `${teamA} vs ${teamB}`,
+        subtitle: `${dateLabel} · ${statusLabel}`,
+        href: `/matches/${match.id}`,
+        score,
+      };
+    })
+    .filter((item) => item.score > 0);
+
+  const groups = [
+    collect("team", "팀", teamItems),
+    collect("player", "선수", playerItems),
+    collect("match", "경기", matchItems),
+  ].filter((group) => group.items.length > 0);
+
+  return {
+    query,
+    totalCount: groups.reduce((sum, group) => sum + group.items.length, 0),
+    groups,
+  };
+}
+
 function getRosterEntriesForTeam(store: StoreShape, teamId: string) {
   return store.teamRosterEntries
     .filter((entry) => entry.teamId === teamId && entry.season === "2026" && entry.phase === "R1")
@@ -611,9 +757,37 @@ function getSetRatings(store: StoreShape, matchSetId: string, playerId: string) 
 }
 
 function getMatchPlayers(store: StoreShape, matchId: string, viewerId: string | null) {
+  const match = getMatchById(store, matchId);
   const participants = store.matchParticipants.filter((participant) => participant.matchId === matchId);
+  const fallbackParticipants =
+    participants.length > 0 || !match
+      ? participants
+      : [match.teamAId, match.teamBId].flatMap((teamId) => {
+          const roster = getRosterEntriesForTeam(store, teamId);
+          const rosterPlayers = buildRosterPlayerItems(store, roster);
+          const pickedPlayerIds =
+            rosterPlayers.length > 0
+              ? rosterPlayers
+                  .slice()
+                  .sort((a, b) => roleOrder[a.role] - roleOrder[b.role] || a.displayOrder - b.displayOrder)
+                  .slice(0, 5)
+                  .map((item) => item.playerId)
+              : store.players
+                  .filter((player) => player.teamId === teamId)
+                  .slice()
+                  .sort((a, b) => roleOrder[a.role] - roleOrder[b.role])
+                  .slice(0, 5)
+                  .map((player) => player.id);
 
-  return participants
+          return pickedPlayerIds.map((playerId) => ({
+            id: `fallback_${matchId}_${teamId}_${playerId}`,
+            matchId,
+            teamId,
+            playerId,
+          }));
+        });
+
+  return fallbackParticipants
     .map((participant) => {
       const player = store.players.find((candidate) => candidate.id === participant.playerId);
       const team = getTeamById(store, participant.teamId);
@@ -627,6 +801,13 @@ function getMatchPlayers(store: StoreShape, matchId: string, viewerId: string | 
         return set?.matchId === matchId && rating.playerId === participant.playerId;
       });
       const allScores = [...ratings.map((rating) => rating.score), ...setRatings.map((rating) => rating.score)];
+      const fallbackScores =
+        allScores.length > 0
+          ? allScores
+          : [
+              ...store.playerRatings.filter((rating) => rating.playerId === participant.playerId).map((rating) => rating.score),
+              ...store.setPlayerRatings.filter((rating) => rating.playerId === participant.playerId).map((rating) => rating.score),
+            ];
       const viewerRating = viewerId
         ? ratings.find((rating) => rating.userId === viewerId) ?? null
         : null;
@@ -636,8 +817,8 @@ function getMatchPlayers(store: StoreShape, matchId: string, viewerId: string | 
         name: player.name,
         team: team.code,
         role: player.role,
-        rating: Number(average(allScores).toFixed(1)),
-        ratingCount: allScores.length,
+        rating: Number(average(fallbackScores).toFixed(1)),
+        ratingCount: fallbackScores.length,
         viewerScore: viewerRating?.score ?? null,
         viewerComment: viewerRating?.comment ?? "",
       } satisfies PlayerRating;
@@ -669,22 +850,59 @@ function buildPredictionSummary(store: StoreShape, match: StoredMatch) {
   };
 }
 
-function buildComments(store: StoreShape, matchId: string): MatchComment[] {
+function buildComments(store: StoreShape, matchId: string, viewerId: string | null): MatchComment[] {
+  const visible = store.comments.filter((comment) => comment.matchId === matchId && !comment.hidden);
+  const replyCountByParent = new Map<string, number>();
+
+  for (const comment of visible) {
+    if (!comment.parentId) {
+      continue;
+    }
+    replyCountByParent.set(comment.parentId, (replyCountByParent.get(comment.parentId) ?? 0) + 1);
+  }
+
   return store.comments
     .filter((comment) => comment.matchId === matchId && !comment.hidden)
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .map((comment) => {
       const author = getUserById(store, comment.userId);
+      const recommendationCount = comment.recommendUserIds.length;
       return {
         id: comment.id,
         userId: author?.id ?? null,
+        parentId: comment.parentId,
         user: getPublicName(author),
         userSummary: buildPublicUserSummary(store, author?.id ?? null),
         createdLabel: formatRelativeLabel(comment.createdAt),
-        likes: Math.max(1, Math.round(comment.text.length / 12)),
+        likes: recommendationCount,
+        likedByMe: viewerId ? comment.recommendUserIds.includes(viewerId) : false,
+        replyCount: replyCountByParent.get(comment.id) ?? 0,
         text: comment.text,
         tag: "반응",
       };
+    });
+}
+
+function buildMatchRatingComments(store: StoreShape, matchId: string): MatchRatingComment[] {
+  return store.playerRatings
+    .filter((rating) => rating.matchId === matchId)
+    .filter((rating) => rating.comment.trim().length > 0)
+    .slice()
+    .sort((a, b) => new Date(b.updatedAt ?? b.createdAt).getTime() - new Date(a.updatedAt ?? a.createdAt).getTime())
+    .map((rating) => {
+      const author = getUserById(store, rating.userId);
+      const player = store.players.find((item) => item.id === rating.playerId);
+      const teamCode = player ? getTeamById(store, player.teamId)?.code ?? "-" : "-";
+
+      return {
+        id: rating.id,
+        user: getPublicName(author),
+        playerName: player?.name ?? rating.playerId,
+        team: teamCode,
+        score: rating.score,
+        text: rating.comment.trim(),
+        createdLabel: formatRelativeLabel(rating.updatedAt ?? rating.createdAt),
+      } satisfies MatchRatingComment;
     });
 }
 
@@ -745,6 +963,177 @@ function buildSetSummary(store: StoreShape, set: StoredMatchSet, viewerId: strin
   };
 }
 
+function getTeamRecentMatches(store: StoreShape, teamId: string, beforeIso: string, limit = 5) {
+  const cutoff = new Date(beforeIso).getTime();
+  return store.matches
+    .filter((item) => item.status === "finished")
+    .filter((item) => (item.teamAId === teamId || item.teamBId === teamId) && new Date(item.scheduledAt).getTime() < cutoff)
+    .slice()
+    .sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime())
+    .slice(0, limit);
+}
+
+function toFormAndStreak(matches: StoredMatch[], teamId: string) {
+  const recent = matches
+    .map((item) => {
+      if (item.scoreA === null || item.scoreB === null) {
+        return null;
+      }
+      const teamScore = item.teamAId === teamId ? item.scoreA : item.scoreB;
+      const opponentScore = item.teamAId === teamId ? item.scoreB : item.scoreA;
+      return teamScore > opponentScore ? "W" : "L";
+    })
+    .filter((item): item is "W" | "L" => item !== null);
+
+  if (recent.length === 0) {
+    return { recent: [] as Array<"W" | "L">, streakLabel: "최근 데이터 없음" };
+  }
+
+  const streakResult = recent[0];
+  let streakCount = 0;
+  for (const result of recent) {
+    if (result !== streakResult) {
+      break;
+    }
+    streakCount += 1;
+  }
+
+  return {
+    recent,
+    streakLabel: streakResult === "W" ? `${streakCount}연승` : `${streakCount}연패`,
+  };
+}
+
+function buildHeadToHead(store: StoreShape, match: StoredMatch) {
+  const cutoff = new Date(match.scheduledAt).getTime();
+  const recent = store.matches
+    .filter((item) => item.status === "finished")
+    .filter((item) => {
+      const isSamePair =
+        (item.teamAId === match.teamAId && item.teamBId === match.teamBId) ||
+        (item.teamAId === match.teamBId && item.teamBId === match.teamAId);
+      return isSamePair && new Date(item.scheduledAt).getTime() < cutoff;
+    })
+    .slice()
+    .sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime())
+    .slice(0, 5);
+
+  let teamAWins = 0;
+  let teamBWins = 0;
+  for (const item of recent) {
+    if (item.scoreA === null || item.scoreB === null || item.scoreA === item.scoreB) {
+      continue;
+    }
+    const winner = item.scoreA > item.scoreB ? item.teamAId : item.teamBId;
+    if (winner === match.teamAId) {
+      teamAWins += 1;
+    } else if (winner === match.teamBId) {
+      teamBWins += 1;
+    }
+  }
+
+  return { teamAWins, teamBWins, totalMatches: recent.length };
+}
+
+function buildRecentHeadToHead(store: StoreShape, match: StoredMatch) {
+  const cutoff = new Date(match.scheduledAt).getTime();
+  const samePair = store.matches
+    .filter((item) => {
+      const isSamePair =
+        (item.teamAId === match.teamAId && item.teamBId === match.teamBId) ||
+        (item.teamAId === match.teamBId && item.teamBId === match.teamAId);
+      return isSamePair && new Date(item.scheduledAt).getTime() < cutoff;
+    })
+    .slice()
+    .sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime())
+    .slice(0, 3);
+
+  const sourceMatches =
+    samePair.length > 0
+      ? samePair
+      : [
+          {
+            id: `${match.id}_placeholder`,
+            stage: match.stage,
+            scheduledAt: match.scheduledAt,
+            teamAId: match.teamAId,
+            teamBId: match.teamBId,
+            scoreA: null,
+            scoreB: null,
+          } satisfies Pick<StoredMatch, "id" | "stage" | "scheduledAt" | "teamAId" | "teamBId" | "scoreA" | "scoreB">,
+        ];
+
+  return sourceMatches
+    .map((item) => {
+      const rawScoreA = item.teamAId === match.teamAId ? item.scoreA : item.scoreB;
+      const rawScoreB = item.teamBId === match.teamBId ? item.scoreB : item.scoreA;
+      return {
+        id: item.id,
+        label: normalizeStageLabel(item.stage, item.id),
+        scoreA: rawScoreA ?? null,
+        scoreB: rawScoreB ?? null,
+        playedAt: item.scheduledAt,
+      };
+    });
+}
+
+function getTeamKeyPlayerInsight(store: StoreShape, match: StoredMatch, teamId: string): KeyPlayerInsight | null {
+  const participantIds = store.matchParticipants
+    .filter((item) => item.matchId === match.id && item.teamId === teamId)
+    .map((item) => item.playerId);
+  const fallbackIds = store.players.filter((player) => player.teamId === teamId).map((player) => player.id);
+  const candidateIds = participantIds.length > 0 ? participantIds : fallbackIds;
+
+  const candidates = candidateIds
+    .map((playerId) => {
+      const player = store.players.find((item) => item.id === playerId);
+      if (!player) {
+        return null;
+      }
+
+      const legacyScores = store.playerRatings.filter((rating) => rating.playerId === playerId).map((rating) => rating.score);
+      const setScores = store.setPlayerRatings.filter((rating) => rating.playerId === playerId).map((rating) => rating.score);
+      const allScores = [...legacyScores, ...setScores];
+      if (allScores.length === 0) {
+        return null;
+      }
+
+      const avgRating = Number(average(allScores).toFixed(1));
+      return {
+        playerId: player.id,
+        name: player.name,
+        role: player.role,
+        avgRating,
+        ratingCount: allScores.length,
+      } satisfies KeyPlayerInsight;
+    })
+    .filter((item): item is KeyPlayerInsight => item !== null)
+    .sort((a, b) => {
+      if (b.avgRating !== a.avgRating) {
+        return b.avgRating - a.avgRating;
+      }
+      return b.ratingCount - a.ratingCount;
+    });
+
+  return candidates[0] ?? null;
+}
+
+function buildPreMatchInsights(store: StoreShape, match: StoredMatch): PreMatchInsights {
+  const teamARecent = getTeamRecentMatches(store, match.teamAId, match.scheduledAt, 5);
+  const teamBRecent = getTeamRecentMatches(store, match.teamBId, match.scheduledAt, 5);
+
+  return {
+    teamAForm: toFormAndStreak(teamARecent, match.teamAId),
+    teamBForm: toFormAndStreak(teamBRecent, match.teamBId),
+    h2h: buildHeadToHead(store, match),
+    recentHeadToHead: buildRecentHeadToHead(store, match),
+    keyPlayers: {
+      teamA: getTeamKeyPlayerInsight(store, match, match.teamAId),
+      teamB: getTeamKeyPlayerInsight(store, match, match.teamBId),
+    },
+  };
+}
+
 function buildMatchView(store: StoreShape, match: StoredMatch, viewerId: string | null): MatchData {
   const teamA = getTeamById(store, match.teamAId);
   const teamB = getTeamById(store, match.teamBId);
@@ -753,7 +1142,8 @@ function buildMatchView(store: StoreShape, match: StoredMatch, viewerId: string 
   }
 
   const players = getMatchPlayers(store, match.id, viewerId);
-  const comments = buildComments(store, match.id);
+  const comments = buildComments(store, match.id, viewerId);
+  const ratingComments = buildMatchRatingComments(store, match.id);
   const predictionSummary = match.lockedDistribution ?? buildPredictionSummary(store, match);
   const totalRatings =
     store.playerRatings.filter((rating) => rating.matchId === match.id).length +
@@ -801,6 +1191,7 @@ function buildMatchView(store: StoreShape, match: StoredMatch, viewerId: string 
     myPredictionSettlementResult: myPrediction?.settlementResult ?? null,
     myPredictionSettlementCoins: myPrediction?.settlementCoins ?? 0,
     players,
+    ratingComments,
     commentsList: comments,
     myPredictionTeam: myPrediction?.teamId === match.teamAId ? teamA.code : myPrediction?.teamId === match.teamBId ? teamB.code : null,
   };
@@ -1315,7 +1706,7 @@ function buildPlayerRankingItems(store: StoreShape): PlayerRankingItem[] {
         playerName: player.name,
         teamCode: team.code,
         role: player.role,
-        seasonLabel: "2026 LCK Spring",
+        seasonLabel: "2026 LCK 정규시즌",
         averageRating,
         recentForm,
         matchCount: uniqueMatchIds.size,
@@ -1343,19 +1734,60 @@ function buildPlayerDetailPageData(store: StoreShape, playerId: string): PlayerD
     return null;
   }
 
-  const entries = getPlayerRatingEntries(store)
-    .filter((entry) => entry.playerId === playerId)
-    .slice()
+  const groupedByMatch = new Map<
+    string,
+    {
+      matchId: string;
+      scheduledAt: string;
+      ratedAt: string;
+      scores: number[];
+    }
+  >();
+
+  for (const entry of getPlayerRatingEntries(store).filter((item) => item.playerId === playerId)) {
+    const current = groupedByMatch.get(entry.matchId);
+    if (!current) {
+      groupedByMatch.set(entry.matchId, {
+        matchId: entry.matchId,
+        scheduledAt: entry.scheduledAt,
+        ratedAt: entry.ratedAt,
+        scores: [entry.score],
+      });
+      continue;
+    }
+    current.scores.push(entry.score);
+    if (new Date(entry.ratedAt).getTime() > new Date(current.ratedAt).getTime()) {
+      current.ratedAt = entry.ratedAt;
+    }
+  }
+
+  const entries = Array.from(groupedByMatch.values())
     .sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime())
     .slice(0, 5)
     .map((entry) => {
       const match = getMatchById(store, entry.matchId);
       const teamA = match ? getTeamById(store, match.teamAId)?.code ?? "TBD" : "TBD";
       const teamB = match ? getTeamById(store, match.teamBId)?.code ?? "TBD" : "TBD";
+      const averageScore = Number(average(entry.scores).toFixed(1));
+
+      let result: "W" | "L" | "-" = "-";
+      if (
+        match &&
+        typeof match.scoreA === "number" &&
+        typeof match.scoreB === "number" &&
+        match.scoreA !== match.scoreB
+      ) {
+        const isTeamA = player.teamId === match.teamAId;
+        const myScore = isTeamA ? match.scoreA : match.scoreB;
+        const opponentScore = isTeamA ? match.scoreB : match.scoreA;
+        result = myScore > opponentScore ? "W" : "L";
+      }
+
       return {
         matchId: entry.matchId,
         matchLabel: match ? `${formatDateLabel(match.scheduledAt)} ${teamA} vs ${teamB}` : entry.matchId,
-        score: Number(entry.score.toFixed(1)),
+        score: averageScore,
+        result,
         ratedAt: entry.ratedAt,
       };
     });
@@ -1380,20 +1812,46 @@ function buildSeasonPredictionCard(
 ): SeasonPredictionQuestionCard {
   const entries = getSeasonQuestionEntries(store, question.id);
   const options = getSeasonQuestionOptions(store, question.id);
+  const lockedDistribution = question.lockedDistribution;
   const myEntry = viewerId ? entries.find((entry) => entry.userId === viewerId) ?? null : null;
   const myOption = myEntry ? options.find((option) => option.id === myEntry.selectedOptionId) ?? null : null;
   const resultOption = question.resultOptionId ? options.find((option) => option.id === question.resultOptionId) ?? null : null;
+  const totalEntries = entries.length;
+  const shares = options
+    .map((option) => {
+      const currentVoteCount = entries.filter((entry) => entry.selectedOptionId === option.id).length;
+      const currentPercent = totalEntries > 0 ? Math.round((currentVoteCount / totalEntries) * 100) : 0;
+      const lockedShare = lockedDistribution?.optionShares.find((share) => share.optionId === option.id) ?? null;
+      const percent = lockedShare?.sharePercent ?? currentPercent;
+
+      return {
+        label: option.label,
+        percent,
+      };
+    })
+    .sort((a, b) => b.percent - a.percent || a.label.localeCompare(b.label, "en"))
+    .slice(0, 2);
+
+  const categoryUpper = question.category.toUpperCase();
+  const logoKey: "lck" | "msi" | "worlds" =
+    categoryUpper.includes("WORLD") || categoryUpper.includes("WORLDS")
+      ? "worlds"
+      : categoryUpper.includes("MSI")
+        ? "msi"
+        : "lck";
 
   return {
     id: question.id,
     title: question.title,
     description: question.description,
     category: question.category,
+    logoKey,
     season: question.season,
     predictionType: question.predictionType,
     closeAt: question.closeAt,
     status: getSeasonQuestionStatus(question),
-    totalEntries: entries.length,
+    totalEntries,
+    topOptions: shares,
     mySelectionLabel: myOption?.label ?? null,
     isParticipating: Boolean(myEntry),
     resultLabel: resultOption?.label ?? question.resultValue ?? null,
@@ -1795,12 +2253,17 @@ export const getPlayerRankingPageData = cache(async (): Promise<PlayerRankingPag
   return {
     title: "플레이어 랭킹",
     subtitle: "팬 평점 기준",
-    seasonOptions: ["2026 LCK Spring"],
-    defaultSeason: "2026 LCK Spring",
+    seasonOptions: ["2026 LCK 정규시즌"],
+    defaultSeason: "2026 LCK 정규시즌",
     minMatchDefault: 3,
     players: buildPlayerRankingItems(store),
   };
 });
+
+export async function getGlobalSearchData(query: string, limitPerType?: number): Promise<GlobalSearchResultData> {
+  const store = await readStoreWithPredictionLifecycle();
+  return buildGlobalSearchResultData(store, query, limitPerType);
+}
 
 export async function getPlayerDetailPageData(playerId: string): Promise<PlayerDetailPageData> {
   const store = await readStoreWithPredictionLifecycle();
@@ -1881,10 +2344,12 @@ export async function getMatchDetailData(matchId: string, viewerId: string | nul
   if (!match) {
     throw new Error("경기를 찾을 수 없습니다.");
   }
+  const sets = getMatchSets(store, matchId);
 
   return {
     match: buildMatchView(store, match, viewerId),
-    sets: getMatchSets(store, matchId).map((set) => buildSetSummary(store, set, viewerId)),
+    sets: sets.map((set) => buildSetSummary(store, set, viewerId)),
+    preMatchInsights: buildPreMatchInsights(store, match),
   };
 }
 
@@ -2447,6 +2912,7 @@ export async function submitComment(input: {
   viewerId: string;
   matchId: string;
   text: string;
+  parentId?: string | null;
 }) {
   return mutateStore(async (store) => {
     const match = store.matches.find((item) => item.id === input.matchId);
@@ -2459,12 +2925,22 @@ export async function submitComment(input: {
       throw new Error("댓글은 두 글자 이상 입력해 주세요.");
     }
 
+    const parentId = input.parentId ?? null;
+    if (parentId) {
+      const parent = store.comments.find((comment) => comment.id === parentId && !comment.hidden);
+      if (!parent || parent.matchId !== input.matchId) {
+        throw new Error("답글 대상 댓글을 찾을 수 없습니다.");
+      }
+    }
+
     const commentId = createId(store, "comments", "comment");
     store.comments.push({
       id: commentId,
       userId: input.viewerId,
       matchId: input.matchId,
       text,
+      parentId,
+      recommendUserIds: [],
       hidden: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -2478,6 +2954,27 @@ export async function submitComment(input: {
       referenceType: "comment_submit",
       referenceId: commentId,
     });
+  });
+}
+
+export async function toggleCommentRecommendation(input: {
+  viewerId: string;
+  matchId: string;
+  commentId: string;
+}) {
+  return mutateStore(async (store) => {
+    const comment = store.comments.find((item) => item.id === input.commentId && !item.hidden);
+    if (!comment || comment.matchId !== input.matchId) {
+      throw new Error("댓글을 찾을 수 없습니다.");
+    }
+
+    const alreadyRecommended = comment.recommendUserIds.includes(input.viewerId);
+    if (alreadyRecommended) {
+      comment.recommendUserIds = comment.recommendUserIds.filter((userId) => userId !== input.viewerId);
+    } else {
+      comment.recommendUserIds = [...comment.recommendUserIds, input.viewerId];
+    }
+    comment.updatedAt = new Date().toISOString();
   });
 }
 

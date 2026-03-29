@@ -30,7 +30,7 @@ export default function SignInPage() {
             disabled={pending}
             onClick={async () => {
               setPending(true);
-              await signIn("google", { callbackUrl: "/me?setup=1" });
+              await signIn("google", { callbackUrl: "/me" });
               setPending(false);
             }}
             className="ui-action-primary flex w-full"

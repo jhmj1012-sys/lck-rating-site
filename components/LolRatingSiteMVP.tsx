@@ -73,7 +73,7 @@ export default function LolRatingSiteMVP({ initialData }: { initialData: Dashboa
   if (!activeMatch) {
     return (
       <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(56,189,248,0.12),transparent_24%),linear-gradient(180deg,#f8fafc_0%,#f8fbff_45%,#eef6ff_100%)] text-slate-900">
-        <SiteHeader query={query} setQuery={setQuery} />
+        <SiteHeader />
         <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
           <div className="rounded-[28px] border border-dashed border-slate-300 bg-white p-10 text-center text-slate-600">
             등록된 경기가 없습니다. 관리자 페이지에서 첫 경기를 만들어 주세요.
@@ -91,7 +91,7 @@ export default function LolRatingSiteMVP({ initialData }: { initialData: Dashboa
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(56,189,248,0.12),transparent_24%),linear-gradient(180deg,#f8fafc_0%,#f8fbff_45%,#eef6ff_100%)] text-slate-900">
-      <SiteHeader query={query} setQuery={setQuery} />
+      <SiteHeader />
 
       <main className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-6">
         <section className="mb-5 rounded-[24px] border border-slate-200 bg-white/92 p-2 shadow-[0_16px_40px_rgba(15,23,42,0.05)]">

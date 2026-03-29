@@ -172,7 +172,7 @@ export default async function AdminPage({
             </label>
             <label className="grid gap-2 text-sm text-slate-700">
               시즌
-              <input name="season" defaultValue="2026 LCK Spring" className="rounded-2xl border border-slate-200 px-4 py-3" />
+              <input name="season" defaultValue="2026 LCK 정규시즌" className="rounded-2xl border border-slate-200 px-4 py-3" />
             </label>
             <label className="grid gap-2 text-sm text-slate-700">
               유형

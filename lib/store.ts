@@ -384,6 +384,8 @@ function withDefaults(store: Partial<StoreShape>): StoreShape {
     comments: (needsScheduleRefresh ? [] : (store.comments ?? seed.comments)).map((comment) => ({
       ...comment,
       text: looksGarbled(comment.text) ? fallbackCommentText(comment.id) : comment.text,
+      parentId: "parentId" in comment ? comment.parentId ?? null : null,
+      recommendUserIds: "recommendUserIds" in comment ? comment.recommendUserIds ?? [] : [],
       updatedAt: comment.updatedAt ?? comment.createdAt,
     })),
     pointLedger: (store.pointLedger ?? seed.pointLedger).map((entry) => ({

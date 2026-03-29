@@ -204,6 +204,8 @@ export interface StoredComment {
   userId: string;
   matchId: string;
   text: string;
+  parentId: string | null;
+  recommendUserIds: string[];
   hidden: boolean;
   createdAt: string;
   updatedAt?: string | null;

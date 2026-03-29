@@ -1,7 +1,6 @@
-'use client';
+﻿'use client';
 
 import Link from "next/link";
-import { useState } from "react";
 
 import { SiteHeader } from "@/components/lol-rating/SiteHeader";
 import type { NotificationItem } from "@/components/lol-rating/types";
@@ -13,23 +12,21 @@ export function TopSiteNav({
   active,
   notifications,
   unreadNotificationCount,
+  maxWidthClass = "max-w-[1320px]",
 }: {
   active: TopNavKey;
   notifications: NotificationItem[];
   unreadNotificationCount: number;
+  maxWidthClass?: string;
 }) {
-  const [query, setQuery] = useState("");
-
   return (
     <>
       <SiteHeader
-        query={query}
-        setQuery={setQuery}
         notifications={notifications}
         unreadNotificationCount={unreadNotificationCount}
       />
       <div className="border-y border-slate-200/80 bg-white/90">
-        <nav className="mx-auto flex max-w-[1320px] items-center gap-1 px-4 sm:px-6">
+        <nav className={cn("mx-auto flex items-center gap-1 px-4 sm:px-6", maxWidthClass)}>
           <Link
             href="/"
             className={cn(
@@ -47,7 +44,7 @@ export function TopSiteNav({
               active === "schedule" ? "text-sky-700" : "text-slate-600 hover:text-slate-900",
             )}
           >
-            경기 일정
+            경기일정
             {active === "schedule" ? <span className="absolute inset-x-4 bottom-0 h-[3px] rounded-full bg-sky-500" /> : null}
           </Link>
           <Link
@@ -67,7 +64,7 @@ export function TopSiteNav({
               active === "season" ? "text-sky-700" : "text-slate-600 hover:text-slate-900",
             )}
           >
-            시즌 예측
+            시즌예측
             {active === "season" ? <span className="absolute inset-x-4 bottom-0 h-[3px] rounded-full bg-sky-500" /> : null}
           </Link>
         </nav>
