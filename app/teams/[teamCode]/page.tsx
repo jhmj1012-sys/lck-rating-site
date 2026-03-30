@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getTeamRosterDetailData } from "@/lib/service";
@@ -66,7 +66,7 @@ export default async function TeamRosterDetailPage({
         <section className="ui-card p-6">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-700">Recent Matches</div>
+    
               <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950">최근 경기 바로가기</h2>
             </div>
           </div>

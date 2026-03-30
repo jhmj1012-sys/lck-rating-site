@@ -26,7 +26,7 @@ export default async function SeasonPredictionDetailPage({
 
   return (
     <main className="app-shell px-4 py-8 sm:px-6">
-      <div className="mx-auto max-w-4xl space-y-6">
+      <div className="mx-auto max-w-5xl space-y-6">
         <div className="flex flex-wrap gap-3">
           <Link href="/season-predictions" className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700">
             시즌예측 목록으로

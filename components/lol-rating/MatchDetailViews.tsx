@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import Image from 'next/image';
@@ -275,7 +275,7 @@ function PredictionGamePanel({ match }: { match: MatchData }) {
             : 'border-slate-200 bg-slate-50 hover:bg-white',
         )}
       >
-        <div className='text-xs uppercase tracking-[0.16em] text-slate-500'>PICK</div>
+        
         <div className='mt-2 text-2xl font-black text-slate-950'>{getTeamDisplayName(team)}</div>
       </button>
     );
@@ -366,7 +366,7 @@ function PreMatchInsights({ data }: { data: MatchDetailData }) {
   return (
     <Card>
       <CardContent className='px-5 pb-5 pt-5 sm:px-6 sm:pb-6 sm:pt-6'>
-        <div className='text-[11px] font-semibold uppercase tracking-[0.24em] text-sky-700'>Preview Insights</div>
+        
         <h2 className='mt-2 text-2xl font-black tracking-[-0.03em] text-slate-950'>예측 참고 정보</h2>
 
         <div className='mt-4 space-y-3'>
@@ -1219,7 +1219,7 @@ function CommentsSection({ data }: { data: MatchDetailData }) {
       <CardContent className='space-y-4 px-4 pb-4 pt-5 sm:px-6 sm:pb-5 sm:pt-6'>
         <div className='flex items-end justify-between gap-3'>
           <div>
-            <div className='text-[11px] font-semibold uppercase tracking-[0.24em] text-sky-700'>Community</div>
+            
             <h2 className='mt-2 text-2xl font-black tracking-[-0.03em] text-slate-950'>댓글</h2>
           </div>
           <div className='flex items-center gap-2 text-sm'>

@@ -43,8 +43,8 @@ export default async function PlayerDetailPage({ params }: PageProps) {
         <div className="mx-auto max-w-5xl space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-700">PLAYER DETAIL</div>
-              <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">{player.playerName}</h1>
+
+              <h1 className="text-3xl font-black tracking-tight text-slate-950">{player.playerName}</h1>
               <p className="mt-1 text-sm text-slate-600">
                 {player.teamCode} · {player.role}
               </p>

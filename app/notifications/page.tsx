@@ -51,7 +51,7 @@ export default async function NotificationsPage({
       <div className="mx-auto max-w-5xl space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-700">Notifications</div>
+
             <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">알림</h1>
             <p className="mt-2 text-sm leading-6 text-slate-600">예측 참여, 정산 결과, 코인 반영 내역을 한곳에서 확인합니다.</p>
           </div>

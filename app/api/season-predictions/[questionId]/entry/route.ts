@@ -12,8 +12,9 @@ export async function POST(
     const user = await requireNamedUser();
     const { questionId } = await params;
     const body = (await request.json()) as { selectedOptionId?: string };
+
     if (!body.selectedOptionId) {
-      return NextResponse.json({ error: "선택지를 먼저 골라 주세요." }, { status: 400 });
+      return NextResponse.json({ error: "Please select an option first." }, { status: 400 });
     }
 
     await submitSeasonPredictionEntry({
@@ -26,11 +27,15 @@ export async function POST(
     revalidatePath("/season-predictions");
     revalidatePath(`/season-predictions/${questionId}`);
     revalidatePath("/me");
+
     return NextResponse.json({ ok: true });
   } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to save season prediction.";
+    const status = message === "로그인이 필요합니다." ? 401 : 400;
+
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "시즌예측 저장에 실패했습니다." },
-      { status: 400 },
+      { error: message },
+      { status },
     );
   }
 }

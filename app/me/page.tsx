@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/lib/authz";
@@ -210,8 +210,8 @@ export default async function MyPage({
       <div className="mx-auto max-w-7xl space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-700">My Page</div>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">내 활동</h1>
+
+              <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">마이페이지</h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Link
@@ -245,7 +245,6 @@ export default async function MyPage({
           <section className="rounded-[22px] border border-sky-100 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)] p-4 shadow-[0_10px_24px_rgba(15,23,42,0.06)] sm:p-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-700">Nickname</div>
                 <div className="mt-1 text-base font-black text-slate-950">
                   {data.profile.hasNickname ? "닉네임 변경" : "닉네임 설정"}
                 </div>
@@ -323,7 +322,7 @@ export default async function MyPage({
             {currentTab === "profile" ? (
               <div className="space-y-5">
                 <div>
-                  <div className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">Profile</div>
+  
                   <h2 className="mt-2 text-2xl font-black text-slate-950">프로필 핵심 요약</h2>
                 </div>
 
@@ -365,7 +364,7 @@ export default async function MyPage({
             {currentTab === "metrics" ? (
               <div className="space-y-6">
                 <div>
-                  <div className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">Prediction Insights</div>
+  
                   <h2 className="mt-2 text-2xl font-black text-slate-950">내 예측 지표</h2>
                 </div>
 
@@ -380,7 +379,7 @@ export default async function MyPage({
                 </div>
 
                 <div>
-                  <div className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">Compare</div>
+  
                   <h3 className="mt-2 text-xl font-black text-slate-950">내 예측 vs 참여자 평균</h3>
                 </div>
                 <div className="space-y-3">
@@ -413,7 +412,7 @@ export default async function MyPage({
               <div>
                 <div className="flex items-end justify-between gap-3">
                   <div>
-                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">Prediction History</div>
+      
                     <h2 className="mt-2 text-xl font-black text-slate-950">내 예측 기록</h2>
                   </div>
                   <div className="text-sm text-slate-500">{data.predictions.length}개</div>
@@ -454,7 +453,7 @@ export default async function MyPage({
               <div>
                 <div className="flex items-end justify-between gap-3">
                   <div>
-                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">Season Prediction History</div>
+      
                     <h2 className="mt-2 text-xl font-black text-slate-950">시즌예측 내역</h2>
                   </div>
                   <div className="text-sm text-slate-500">{filteredSeasonPredictions.length}개</div>
@@ -523,7 +522,7 @@ export default async function MyPage({
               <div>
                 <div className="flex items-end justify-between gap-3">
                   <div>
-                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">Coin Ledger</div>
+      
                     <h2 className="mt-2 text-xl font-black text-slate-950">코인 내역</h2>
                   </div>
                   <div className="text-sm text-slate-500">{data.pointLedger.length}개</div>
@@ -567,7 +566,7 @@ export default async function MyPage({
               <div>
                 <div className="flex items-end justify-between gap-3">
                   <div>
-                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">History</div>
+    
                     <h2 className="mt-2 text-xl font-black text-slate-950">히스토리 (평점 + 댓글)</h2>
                   </div>
                   <div className="text-sm text-slate-500">{filteredHistory.length}개</div>

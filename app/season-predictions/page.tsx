@@ -48,11 +48,10 @@ export default async function SeasonPredictionsPage({
       />
 
       <main className="app-shell px-4 py-8 sm:px-6">
-        <div className="mx-auto max-w-6xl space-y-6">
+        <div className="mx-auto max-w-5xl space-y-6">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-700">Season Markets</div>
-              <h1 className="mt-2 text-3xl font-black text-slate-950">시즌예측</h1>
+              <h1 className="text-3xl font-black text-slate-950">시즌예측</h1>
             </div>
             <Link
               href="/"
@@ -70,9 +69,9 @@ export default async function SeasonPredictionsPage({
                 <Link
                   key={item.id}
                   href={`/season-predictions/${item.id}`}
-                  className="group rounded-[22px] border border-slate-200 bg-white p-4 shadow-[0_10px_26px_rgba(15,23,42,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(15,23,42,0.1)]"
+                  className="group relative rounded-[22px] border border-slate-200 bg-white p-4 shadow-[0_10px_26px_rgba(15,23,42,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(15,23,42,0.1)]"
                 >
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3 pr-16">
                     <div className="flex min-w-0 items-center gap-2">
                       <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-white">
                         <Image src={logo.src} alt={logo.alt} width={28} height={28} className="h-7 w-7 object-contain" />
@@ -81,9 +80,6 @@ export default async function SeasonPredictionsPage({
                         <div className="truncate text-[17px] font-black text-slate-950">{item.title}</div>
                       </div>
                     </div>
-                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
-                      {getStatusLabel(item.status)}
-                    </span>
                   </div>
 
                   <div className="mt-4 space-y-2.5">
@@ -95,9 +91,12 @@ export default async function SeasonPredictionsPage({
                     ))}
                   </div>
 
-                  <div className="mt-4 border-t border-slate-200 pt-3 text-sm font-semibold text-slate-500">
+                  <div className="mt-4 border-t border-slate-200 pt-3 pr-20 text-sm font-semibold text-slate-500">
                     현재 {item.totalEntries.toLocaleString()}명 참가중
                   </div>
+                  <span className="absolute bottom-4 right-4 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                    {getStatusLabel(item.status)}
+                  </span>
                 </Link>
               );
             })}

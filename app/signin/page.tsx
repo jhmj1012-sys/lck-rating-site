@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
@@ -14,14 +14,14 @@ export default function SignInPage() {
           <p className="mt-3 text-sm leading-6 text-slate-600">
             구글 계정으로 바로 참여하기
             <br />
-            필요한 정보만 안전하게 사용됩니다
+            필요한 정보만 안전하게 사용합니다.
           </p>
         </div>
 
         <div className="ui-card-soft mt-6 space-y-1 px-4 py-4 text-sm leading-6 text-slate-700">
-          <div>✔ 승부예측 참여하기</div>
-          <div>✔ 선수 평점 남기기</div>
-          <div>✔ 나의 기록 쌓고 비교하기</div>
+          <div>실시간 예측 참여하기</div>
+          <div>매치별 점수 맞히기</div>
+          <div>나와 팀원 기록 비교하기</div>
         </div>
 
         <div className="mt-6 space-y-3">
@@ -30,7 +30,10 @@ export default function SignInPage() {
             disabled={pending}
             onClick={async () => {
               setPending(true);
-              await signIn("google", { callbackUrl: "/me" });
+              const query = new URLSearchParams(window.location.search);
+              const rawCallbackUrl = query.get("callbackUrl");
+              const callbackUrl = rawCallbackUrl && rawCallbackUrl.startsWith("/") ? rawCallbackUrl : "/";
+              await signIn("google", { callbackUrl });
               setPending(false);
             }}
             className="ui-action-primary flex w-full"
@@ -57,7 +60,7 @@ export default function SignInPage() {
                     fill="#EA4335"
                   />
                 </svg>
-                구글로 3초 시작하기
+                구글로 3초 만에 시작하기
               </>
             )}
           </button>

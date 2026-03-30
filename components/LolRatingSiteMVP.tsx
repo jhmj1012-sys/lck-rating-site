@@ -109,7 +109,6 @@ export default function LolRatingSiteMVP({ initialData }: { initialData: Dashboa
                       : "border-slate-200 bg-white hover:bg-slate-50"
                   }`}
                 >
-                  <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-sky-600/70">Menu</div>
                   <div className="mt-1 text-lg font-bold tracking-[-0.03em] text-slate-950">{tab.label}</div>
                   <div className="mt-1 text-[13px] text-slate-500">{tab.description}</div>
                 </button>
@@ -150,7 +149,7 @@ export default function LolRatingSiteMVP({ initialData }: { initialData: Dashboa
               <>
                 <div className="flex items-center justify-between gap-3 rounded-[24px] border border-slate-200 bg-white px-5 py-4">
                   <div>
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-sky-600/70">Schedule Mode</div>
+
                     <div className="mt-1 text-xl font-bold tracking-[-0.03em] text-slate-950">경기를 고르면 바로 예측과 평점 흐름을 확인할 수 있습니다.</div>
                   </div>
                   <Button variant="secondary" onClick={() => setActiveTab("prediction")}>

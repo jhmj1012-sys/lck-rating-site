@@ -36,7 +36,7 @@ export default async function SearchPage({
       <main className="app-shell px-4 py-8 sm:px-6">
         <div className="mx-auto max-w-6xl space-y-5">
           <section className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_12px_28px_rgba(15,23,42,0.08)]">
-            <div className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-600">Global Search</div>
+
             <h1 className="mt-2 text-3xl font-black tracking-[-0.035em] text-slate-950">검색 결과</h1>
             {query ? (
               <div className="mt-2 text-sm text-slate-600">

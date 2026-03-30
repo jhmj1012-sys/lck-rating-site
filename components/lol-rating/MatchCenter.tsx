@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Image from "next/image";
 import Link from "next/link";
@@ -44,7 +44,7 @@ export function MatchHero({ match }: { match: MatchWithWeek }) {
         </div>
 
         <div className="rounded-[28px] border border-slate-200 bg-slate-50 p-5">
-          <div className="text-xs uppercase tracking-[0.24em] text-slate-500">Scoreboard</div>
+  
           <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-center">
             <div className="rounded-2xl bg-white p-4">
               <div className="text-xl font-bold text-slate-950">{getTeamDisplayName(match.teamA)}</div>

@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 
@@ -32,7 +32,6 @@ export default async function MatchSetDetailPage({
         </div>
 
         <section className="ui-card p-6">
-          <div className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-700">Set Detail</div>
           <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">{data.title}</h1>
           <div className="mt-3 flex flex-wrap gap-3 text-sm text-slate-600">
             <span>승리 팀 {data.winnerTeam ?? "-"}</span>

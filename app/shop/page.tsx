@@ -6,7 +6,7 @@ export default function ShopPage() {
       <div className="mx-auto max-w-5xl space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-700">Coin Shop</div>
+  
             <h1 className="mt-2 text-3xl font-black text-slate-950">코인 상점</h1>
             <p className="mt-2 text-sm leading-6 text-slate-600">
               예측과 평점 참여로 모은 코인을 어디에 쓸지 보여주는 공간입니다. 세부 아이템은 다음 단계에서 확장합니다.
@@ -31,12 +31,10 @@ export default function ShopPage() {
         <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-5 py-5">
-              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">Title</div>
               <div className="mt-2 text-xl font-black text-slate-950">프로필 인장</div>
               <p className="mt-2 text-sm leading-6 text-slate-600">예측 기록과 활동 스타일에 맞는 프로필 문구 보상을 준비 중입니다.</p>
             </div>
             <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-5 py-5">
-              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">Theme</div>
               <div className="mt-2 text-xl font-black text-slate-950">테마 효과</div>
               <p className="mt-2 text-sm leading-6 text-slate-600">프로필 카드와 페이지 분위기를 바꾸는 꾸미기 요소를 확장할 예정입니다.</p>
             </div>

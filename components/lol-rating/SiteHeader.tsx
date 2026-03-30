@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 
@@ -17,7 +17,6 @@ type SiteHeaderProps = {
 
 const HEADER_LABELS = {
   title: "GG 레이팅",
-  subtitle: "LCK 일정, 예측, 세트 평점과 반응을 한 곳에서",
   teams: "팀 로스터",
   admin: "관리자",
   account: "내 계정",
@@ -51,6 +50,83 @@ function IconNavLink({
         {label}
       </span>
     </Link>
+  );
+}
+
+function AccountEntryButton({
+  isLoggedIn,
+  label,
+  email,
+}: {
+  isLoggedIn: boolean;
+  label: string;
+  email?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const onMouseDown = (event: MouseEvent) => {
+      if (!menuRef.current) {
+        return;
+      }
+      if (!menuRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", onMouseDown);
+    return () => document.removeEventListener("mousedown", onMouseDown);
+  }, []);
+
+  if (!isLoggedIn) {
+    return (
+      <Link
+        href="/signin"
+        className="inline-flex h-10 items-center gap-1.5 rounded-full bg-sky-500 px-3.5 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(14,165,233,0.24)] transition hover:bg-sky-600"
+      >
+        <UserIcon className="h-4 w-4" />
+        <span>로그인</span>
+      </Link>
+    );
+  }
+
+  return (
+    <div ref={menuRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        className="inline-flex h-10 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+      >
+        <UserIcon className="h-4 w-4" />
+        <span className="max-w-[90px] truncate">{label}</span>
+        <span className="text-[10px] text-slate-400">▼</span>
+      </button>
+
+      {open ? (
+        <div className="absolute right-0 top-12 z-50 w-[220px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_16px_36px_rgba(15,23,42,0.14)]">
+          <div className="border-b border-slate-100 px-4 py-3">
+            <div className="truncate text-sm font-semibold text-slate-950">{label}</div>
+            {email ? <div className="mt-0.5 truncate text-xs text-slate-500">{email}</div> : null}
+          </div>
+          <div className="p-2">
+            <Link href="/me" className="flex min-h-10 items-center rounded-xl px-3 text-[13px] font-medium text-slate-700 transition hover:bg-slate-50" onClick={() => setOpen(false)}>
+              마이페이지
+            </Link>
+            <Link href="/notifications" className="flex min-h-10 items-center rounded-xl px-3 text-[13px] font-medium text-slate-700 transition hover:bg-slate-50" onClick={() => setOpen(false)}>
+              알림
+            </Link>
+            <button
+              type="button"
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="flex min-h-10 w-full items-center rounded-xl px-3 text-left text-[13px] font-medium text-rose-600 transition hover:bg-rose-50"
+            >
+              로그아웃
+            </button>
+          </div>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -129,6 +205,11 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
   const { data: session, status } = useSession();
   const isLoggedIn = status === "authenticated";
   const isAdmin = session?.user?.role === "admin";
+  const accountLabel =
+    (session?.user as { nickname?: string; name?: string } | undefined)?.nickname ??
+    session?.user?.name ??
+    HEADER_LABELS.account;
+  const accountEmail = (session?.user as { email?: string } | undefined)?.email;
 
   const router = useRouter();
   const pathname = usePathname();
@@ -287,7 +368,7 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/88 backdrop-blur-xl">
-      <div className="mx-auto max-w-7xl px-4 py-2.5 sm:px-6">
+      <div className="mx-auto max-w-5xl px-4 py-2.5 sm:px-6">
         <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center justify-between gap-3">
             <Link href="/" className="flex min-w-0 items-center gap-3">
@@ -296,7 +377,6 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
               </div>
               <div className="min-w-0">
                 <div className="truncate text-[17px] font-bold tracking-[-0.03em] text-slate-950">{HEADER_LABELS.title}</div>
-                <div className="truncate text-[12px] text-slate-500">{HEADER_LABELS.subtitle}</div>
               </div>
             </Link>
 
@@ -313,19 +393,11 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
                   <ShieldIcon className="h-4 w-4" />
                 </IconNavLink>
               ) : null}
-              {isLoggedIn ? (
-                <IconNavLink href="/me" label={HEADER_LABELS.account}>
-                  <UserIcon className="h-4 w-4" />
-                </IconNavLink>
-              ) : (
-                <IconNavLink href="/signin" label={HEADER_LABELS.signin}>
-                  <UserIcon className="h-4 w-4" />
-                </IconNavLink>
-              )}
+              <AccountEntryButton isLoggedIn={isLoggedIn} label={accountLabel} email={accountEmail} />
             </div>
           </div>
 
-          <div className="grid gap-2.5 lg:min-w-[720px] lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+          <div className="grid gap-2.5 lg:w-2/3 lg:min-w-0 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
             <div ref={searchWrapRef} className="relative">
               <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <Input
@@ -388,15 +460,7 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
                   <ShieldIcon className="h-4 w-4" />
                 </IconNavLink>
               ) : null}
-              {isLoggedIn ? (
-                <IconNavLink href="/me" label={HEADER_LABELS.account}>
-                  <UserIcon className="h-4 w-4" />
-                </IconNavLink>
-              ) : (
-                <IconNavLink href="/signin" label={status === "loading" ? HEADER_LABELS.checking : HEADER_LABELS.signin}>
-                  <UserIcon className="h-4 w-4" />
-                </IconNavLink>
-              )}
+              <AccountEntryButton isLoggedIn={isLoggedIn} label={accountLabel} email={accountEmail} />
             </div>
           </div>
         </div>

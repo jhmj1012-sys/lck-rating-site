@@ -1,9 +1,19 @@
-'use client';
+﻿'use client';
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import type { SeasonPredictionDetail } from "./types";
+
+class EntrySubmitError extends Error {
+  status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "EntrySubmitError";
+    this.status = status;
+  }
+}
 
 async function postEntry(questionId: string, selectedOptionId: string) {
   const response = await fetch(`/api/season-predictions/${questionId}/entry`, {
@@ -14,7 +24,7 @@ async function postEntry(questionId: string, selectedOptionId: string) {
 
   const payload = (await response.json().catch(() => ({}))) as { error?: string };
   if (!response.ok) {
-    throw new Error(payload.error ?? "시즌예측 저장에 실패했습니다.");
+    throw new EntrySubmitError(response.status, payload.error ?? "시즌예측 저장에 실패했습니다.");
   }
 }
 
@@ -34,12 +44,17 @@ export function SeasonPredictionEntryForm({ detail }: { detail: SeasonPrediction
 
   return (
     <div className="space-y-4">
+      {feedback ? (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{feedback}</div>
+      ) : null}
+
       <div className="grid gap-3">
         {detail.options.map((option) => {
           const percent = getPercent(option);
           const votes = getVoteCount(option);
           const isMine = detail.myEntry?.selectedOptionId === option.id;
           const isPending = pendingOptionId === option.id;
+
           return (
             <div
               key={option.id}
@@ -67,7 +82,15 @@ export function SeasonPredictionEntryForm({ detail }: { detail: SeasonPrediction
                       setFeedback(`${option.label} 선택이 저장되었습니다.`);
                       router.refresh();
                     } catch (error) {
-                      setFeedback(error instanceof Error ? error.message : "시즌예측 저장에 실패했습니다.");
+                      const message = error instanceof Error ? error.message : "시즌예측 저장에 실패했습니다.";
+
+                      if (error instanceof EntrySubmitError && error.status === 401) {
+                        const callbackUrl = `${window.location.pathname}${window.location.search}`;
+                        router.push(`/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`);
+                        return;
+                      }
+
+                      setFeedback(message);
                     } finally {
                       setPendingOptionId(null);
                     }
@@ -100,14 +123,12 @@ export function SeasonPredictionEntryForm({ detail }: { detail: SeasonPrediction
                 detail.myEntry.hitStatus === "hit"
                   ? "적중"
                   : detail.myEntry.hitStatus === "miss"
-                    ? "실패"
+                    ? "미적중"
                     : "대기"
               }`
             : ""}
         </div>
       ) : null}
-
-      {feedback ? <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{feedback}</div> : null}
     </div>
   );
 }

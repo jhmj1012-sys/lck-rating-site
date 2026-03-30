@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 
 import { PublicUserTrigger } from "@/components/lol-rating/PublicUserTrigger";
 import { SiteHeader } from "@/components/lol-rating/SiteHeader";
+import { ScheduleFilterBar } from "@/components/schedule/FilterBar";
 import type {
   MatchData,
   MatchDateGroup,
@@ -46,10 +47,10 @@ const LABELS = {
   commentReact: "\uBAA8\uC740 \uCF54\uC778\uC73C\uB85C \uD300 \uBC30\uC9C0\uC640 \uD14C\uB9C8 \uD6A8\uACFC \uC0AC\uC6A9",
   todayPredict: "\uC624\uB298 \uACBD\uAE30 \uC608\uCE21\uD558\uAE30",
   browseFirst: "\uBA3C\uC800 \uB458\uB7EC\uBCF4\uAE30",
-  standingsTitle: "LCK \uC815\uADDC \uC21C\uC704",
+  standingsTitle: "LCK\uC815\uADDC\uC21C\uC704",
   rank: "\uC21C\uC704",
   team: "\uD300",
-  record: "\uC804\uC801",
+  record: "\uC2B9/\uD328",
   set: "\uC138\uD2B8",
   leaderboardTitle: "\uC608\uCE21 \uB7AD\uD0B9",
   nickname: "\uB2C9\uB124\uC784",
@@ -72,7 +73,7 @@ const LABELS = {
   yesterdayMatch: "\uC5B4\uC81C \uACBD\uAE30",
   thisWeekMatch: "\uC774\uBC88 \uC8FC \uC9C0\uB09C \uACBD\uAE30",
   lastWeekMatch: "\uC9C0\uB09C\uC8FC \uB9C8\uC9C0\uB9C9 \uACBD\uAE30",
-  heroTitleLine1: "2026 LCK \uACBD\uAE30 \uC9C0\uAE08 \uC608\uCE21\uD558\uACE0 \uD3C9\uC810 \uB0A8\uAE30\uAE30",
+  heroTitleLine1: "LCK \uACBD\uAE30 \uC608\uCE21 & \uD3C9\uC810 \uD55C\uB208\uC5D0",
   heroTitleLine2: "",
   heroCopy:
     "\uAC00\uC7A5 \uB208\uAE38 \uAC00\uB294 \uB9E4\uCE58\uB97C \uACE0\uB974\uACE0, \uD310 \uD22C\uD45C \uD750\uB984\uC744 \uC77D\uC740 \uB4A4 \uACBD\uAE30 \uD6C4 \uD3C9\uC810\uAE4C\uC9C0 \uC790\uC5F0\uC2A4\uB7FD\uAC8C \uC774\uC5B4\uAC00\uC138\uC694.",
@@ -120,20 +121,6 @@ function filterDates(dates: MatchDateGroup[], query: string, league: string, sta
     .filter((group) => group.matches.length > 0);
 }
 
-function filterMonths(months: MatchMonthGroup[], query: string, league: string, status: string) {
-  return months
-    .map((month) => ({
-      ...month,
-      weeks: month.weeks
-        .map((week) => ({
-          ...week,
-          dates: filterDates(week.dates, query, league, status),
-        }))
-        .filter((week) => week.dates.length > 0),
-    }))
-    .filter((month) => month.weeks.length > 0);
-}
-
 function isLiveMatch(match: MatchData | MatchListItem, serverNow?: string) {
   if (match.status === "finished") {
     return false;
@@ -175,6 +162,16 @@ function getStatusTone(status: MatchData["status"] | MatchListItem["status"], li
   }
 
   return liveLike ? "bg-amber-100 text-amber-800" : "bg-sky-100 text-sky-800";
+}
+
+function getScheduleStatusTone(status: MatchData["status"] | MatchListItem["status"], liveLike = false) {
+  if (status === "finished") {
+    return "border border-slate-200 bg-slate-100 text-slate-700";
+  }
+
+  return liveLike
+    ? "border border-slate-900 bg-slate-900 text-white"
+    : "border border-slate-300 bg-white text-slate-700";
 }
 
 function getPrimaryActionLabel(match: MatchData) {
@@ -228,140 +225,37 @@ function chunkMatches(matches: MatchData[], size: number) {
   return pages;
 }
 
-function MatchTeamCard({
-  team,
-  rate,
-  winner,
-  compact = false,
-}: {
-  team: string;
-  rate: number;
-  winner: boolean;
-  compact?: boolean;
-}) {
-  return (
-    <div
-      className={cn(
-        "relative min-w-0 overflow-hidden rounded-[24px] border text-center",
-        compact ? "px-4 py-4" : "px-5 py-5",
-        winner ? "border-sky-200 bg-sky-50" : "border-slate-200 bg-white",
-      )}
-    >
-      {winner ? (
-        <span className="pointer-events-none absolute right-3 top-3 rotate-[-9deg] rounded-sm border-2 border-rose-500 bg-white/90 px-2 py-0.5 text-[10px] font-black tracking-[0.18em] text-rose-600 shadow-[0_4px_12px_rgba(244,63,94,0.16)]">
-          WIN
-        </span>
-      ) : null}
-      <div
-        className={cn(
-          "truncate font-black leading-none tracking-[-0.03em] text-slate-950",
-          compact ? "text-[19px] sm:text-[21px]" : "text-[22px] sm:text-[24px]",
-        )}
-      >
-        {team}
-      </div>
-      <div className={cn("mt-2 font-semibold text-slate-500", compact ? "text-[15px]" : "text-[17px]")}>{rate}%</div>
-    </div>
-  );
-}
-
 function ActionPanel({ data }: { data: ScheduleHubData }) {
-  const { userProfile, standings, predictionLeaderboard } = data;
+  const { standings, predictionLeaderboard } = data;
 
   return (
-    <aside className="space-y-4 xl:sticky xl:top-24">
-      <section className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-[0_14px_36px_rgba(15,23,42,0.08)]">
-        <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-sky-600">Join In</div>
-        {userProfile.isAuthenticated ? (
-          <>
-            <div className="mt-2 flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="text-sm text-slate-500">{LABELS.joinToday}</div>
-                <div className="mt-1 break-words text-[18px] font-black leading-[1.15] tracking-[-0.03em] text-slate-950 sm:text-[19px]">
-                  {userProfile.nickname}
-                </div>
-              </div>
-              <Link href="/me" className="rounded-full border border-slate-200 px-3 py-1.5 text-[11px] font-semibold text-slate-600">
-                {LABELS.myPage}
-              </Link>
-            </div>
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-center">
-                <div className="text-[11px] text-slate-500">{LABELS.coinBalance}</div>
-                <div className="mt-1 text-[1.35rem] font-black text-slate-950">{userProfile.points.toLocaleString()}</div>
-              </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-center">
-                <div className="text-[11px] text-slate-500">{LABELS.accuracy}</div>
-                <div className="mt-1 text-[1.35rem] font-black text-slate-950">{userProfile.predictionAccuracy}%</div>
-              </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-center">
-                <div className="text-[11px] text-slate-500">{LABELS.streak}</div>
-                <div className="mt-1 text-[1.35rem] font-black text-slate-950">{userProfile.predictionStats.streak}</div>
-              </div>
-            </div>
-            <div className="mt-4 rounded-2xl border border-sky-200 bg-white px-4 py-3 text-sm leading-6 text-slate-600">
-              예측 적중으로 코인을 더 모으고, 보유 코인으로 프로필 테마와 꾸미기 요소를 확장할 수 있습니다.
-            </div>
-            <Link href="/me" className="mt-4 inline-flex min-h-10 w-full items-center justify-center rounded-2xl bg-sky-500 px-4 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(14,165,233,0.18)] transition hover:bg-sky-600">
-              {LABELS.myRecord}
-            </Link>
-          </>
-        ) : (
-          <>
-            <h2 className="mt-2 text-[22px] font-black tracking-[-0.03em] text-slate-950">3초 만에 참여하기</h2>
-            <p className="mt-1.5 text-sm text-slate-600">내가 좋아하는 선수의 평점을 남겨보세요.</p>
-
-            <div className="mt-5 space-y-2.5">
-              <Link href="/signin" className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-sky-500 px-4 text-base font-black text-white shadow-[0_12px_26px_rgba(14,165,233,0.22)] transition hover:bg-sky-600">
-                로그인
-              </Link>
-            </div>
-
-            <div className="mt-5 rounded-[20px] border border-slate-200 bg-slate-50 p-4">
-              <ul className="space-y-1.5 text-sm font-medium text-slate-700">
-                <li>예측 참여 +10 코인</li>
-                <li>평점 작성 +2 코인</li>
-                <li>적중 시 추가 보상</li>
-              </ul>
-            </div>
-
-            <div className="mt-4 text-sm font-bold text-slate-900">
-              현재 {(data.heroStats.totalPredictions > 0 ? data.heroStats.totalPredictions : 842).toLocaleString()}명이 참여 중입니다
-            </div>
-          </>
-        )}
-      </section>
-      <section className="rounded-[24px] border border-slate-200/80 bg-white p-4 shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
-        <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-sky-600">Standings</div>
-        <h3 className="mt-1 text-lg font-black text-slate-950">{LABELS.standingsTitle}</h3>
+    <aside className="space-y-4 xl:sticky xl:top-24 xl:pt-[78px]">
+      <section className="rounded-[24px] border border-slate-200/80 bg-white p-3 shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
+        <h3 className="text-lg font-black text-slate-950">{LABELS.standingsTitle}</h3>
         <div className="mt-3 overflow-hidden rounded-2xl border border-slate-200">
-          <div className="grid grid-cols-[34px_1fr_60px_52px] bg-slate-50 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+          <div className="grid grid-cols-[34px_1fr_70px] bg-slate-50 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
             <div>{LABELS.rank}</div>
             <div>{LABELS.team}</div>
-            <div className="text-center">{LABELS.record}</div>
-            <div className="text-right">{LABELS.set}</div>
+            <div className="text-right">{LABELS.record}</div>
           </div>
           <div className="divide-y divide-slate-100">
             {standings.map((team) => (
-              <div key={team.teamCode} className="grid grid-cols-[34px_1fr_60px_52px] items-center px-3 py-2.5 text-sm text-slate-700">
+              <div key={team.teamCode} className="grid grid-cols-[34px_1fr_70px] items-center px-3 py-2.5 text-sm text-slate-700">
                 <div className="font-black text-slate-950">{team.rank}</div>
                 <div className="min-w-0">
                   <div className="font-bold text-slate-950">{team.teamCode}</div>
-                  <div className="text-[11px] text-slate-500">{team.winRate}%</div>
                 </div>
-                <div className="text-center font-semibold text-slate-700">
-                  {team.wins}-{team.losses}
+                <div className="text-right font-semibold text-slate-700">
+                  {team.wins}/{team.losses}
                 </div>
-                <div className="text-right font-semibold text-slate-700">{team.setDiff > 0 ? `+${team.setDiff}` : team.setDiff}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="rounded-[24px] border border-slate-200/80 bg-white p-4 shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
-        <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-sky-600">Leaderboard</div>
-        <h3 className="mt-1 text-lg font-black text-slate-950">{LABELS.leaderboardTitle}</h3>
+      <section className="rounded-[24px] border border-slate-200/80 bg-white p-3 shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
+        <h3 className="text-lg font-black text-slate-950">{LABELS.leaderboardTitle}</h3>
         <div className="mt-3 overflow-hidden rounded-2xl border border-slate-200">
           <div className="grid grid-cols-[34px_1fr_56px_52px] bg-slate-50 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
             <div>{LABELS.rank}</div>
@@ -399,29 +293,62 @@ function ActionPanel({ data }: { data: ScheduleHubData }) {
   );
 }
 
-function ScheduleRow({ match }: { match: MatchListItem }) {
-  const teamAWin = match.winnerTeamCode === match.teamA;
-  const teamBWin = match.winnerTeamCode === match.teamB;
+function ScheduleRow({ match, revealSpoiler }: { match: MatchListItem; revealSpoiler: boolean }) {
+  const liveLike = isLiveMatch(match);
+  const statusLabel = liveLike ? LABELS.inProgress : getStatusLabel(match.status);
+  const hideScore = match.status === "finished" && !revealSpoiler;
+  const scoreTokens = match.status === "finished" ? match.score.split(":").map((value) => value.trim()) : ["", ""];
+  const leftScore = scoreTokens[0] ?? "";
+  const rightScore = scoreTokens[1] ?? "";
 
   return (
     <Link
       href={`/matches/${match.id}`}
-      className="grid gap-3 border-b border-slate-100 px-5 py-4 transition hover:bg-slate-50 sm:grid-cols-[80px_minmax(0,1fr)_132px_minmax(0,1fr)] sm:items-stretch sm:px-6"
+      className="grid gap-3 border-b border-slate-100 px-5 py-4 transition hover:bg-slate-50 sm:grid-cols-[80px_minmax(0,1fr)] sm:items-stretch sm:px-6"
     >
       <div className="flex flex-col justify-start pt-1">
         <div className="text-[13px] font-bold leading-none tracking-[-0.02em] text-slate-950 sm:text-[14px]">{match.timeLabel}</div>
         <div className="mt-2 text-[11px] font-medium leading-5 text-slate-500">{match.stage}</div>
-        <div className={cn("mt-2 inline-flex w-fit rounded-full px-2.5 py-1 text-[11px] font-semibold", getStatusTone(match.status, isLiveMatch(match)))}>
-          {isLiveMatch(match) ? LABELS.inProgress : getStatusLabel(match.status)}
+      </div>
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center rounded-[24px] border border-slate-200 bg-white px-4 py-4">
+        <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 sm:gap-5">
+          <span className="shrink-0 text-[13px] font-semibold text-slate-500">{match.predictionRateA}%</span>
+          <span className="truncate text-center text-[19px] font-black leading-none tracking-[-0.03em] text-slate-950 sm:text-[21px]">{match.teamA}</span>
+          <span
+            className={cn(
+              "w-8 text-center text-[24px] font-black leading-none tracking-[-0.03em] text-slate-950 sm:w-9 sm:text-[26px]",
+              hideScore ? "blur-[6px] opacity-75 select-none" : "",
+            )}
+          >
+            {leftScore}
+          </span>
+        </div>
+        <div className="px-4">
+          <span className={cn("inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold", getScheduleStatusTone(match.status, liveLike))}>
+            {statusLabel}
+          </span>
+        </div>
+        <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 sm:gap-5">
+          <span
+            className={cn(
+              "w-8 text-center text-[24px] font-black leading-none tracking-[-0.03em] text-slate-950 sm:w-9 sm:text-[26px]",
+              hideScore ? "blur-[6px] opacity-75 select-none" : "",
+            )}
+          >
+            {rightScore}
+          </span>
+          <span className="truncate text-center text-[19px] font-black leading-none tracking-[-0.03em] text-slate-950 sm:text-[21px]">{match.teamB}</span>
+          <span className="shrink-0 text-[13px] font-semibold text-slate-500">{match.predictionRateB}%</span>
         </div>
       </div>
-      <MatchTeamCard team={match.teamA} rate={match.predictionRateA} winner={teamAWin} compact />
-        <div className="flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-4 text-[22px] font-black tracking-[-0.03em] text-slate-950 sm:text-[24px]">
-        {getDisplayScore(match)}
-      </div>
-      <MatchTeamCard team={match.teamB} rate={match.predictionRateB} winner={teamBWin} compact />
     </Link>
   );
+}
+
+function getDefaultMonthId(months: MatchMonthGroup[], fallbackId?: string) {
+  const monthNumber = new Date().getMonth() + 1;
+  const current = months.find((month) => month.label.includes(`${monthNumber}월`));
+  return current?.id ?? fallbackId ?? months[0]?.id ?? "";
 }
 
 function TodayMatchCard({ match, forcePredictCta = false }: { match: MatchData; forcePredictCta?: boolean }) {
@@ -478,7 +405,7 @@ function TodayMatchCard({ match, forcePredictCta = false }: { match: MatchData; 
         <div className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-[22px] bg-sky-500 px-4 text-lg font-black text-white shadow-[0_12px_26px_rgba(14,165,233,0.22)] transition group-hover:bg-sky-600">
           {forcePredictCta ? "승부예측하기" : getPrimaryActionLabel(match)}
         </div>
-        <div className="mt-4 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+        <div className="mt-4 rounded-2xl bg-white px-4 py-3">
           <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
             {isFinished ? LABELS.latestRatingComments : LABELS.latestMatchComments}
           </div>
@@ -486,11 +413,11 @@ function TodayMatchCard({ match, forcePredictCta = false }: { match: MatchData; 
             {isFinished ? (
               ratingCommentPreview.length > 0 ? (
                 ratingCommentPreview.map((item) => (
-                  <div key={item.id} className="flex items-center gap-2 text-xs text-slate-600">
+                  <div key={item.id} className="flex min-w-0 items-center gap-2 text-xs text-slate-600">
                     <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
                       {item.playerName} {item.score.toFixed(1)}
                     </span>
-                    <span className="min-w-0 truncate">{item.text}</span>
+                    <span className="min-w-0 flex-1 truncate whitespace-nowrap">{item.text}</span>
                   </div>
                 ))
               ) : (
@@ -498,8 +425,8 @@ function TodayMatchCard({ match, forcePredictCta = false }: { match: MatchData; 
               )
             ) : matchCommentPreview.length > 0 ? (
               matchCommentPreview.map((item) => (
-                <div key={item.id} className="flex items-center gap-2 text-xs text-slate-600">
-                  <span className="min-w-0 truncate">{item.text}</span>
+                <div key={item.id} className="flex min-w-0 items-center gap-2 text-xs text-slate-600">
+                  <span className="min-w-0 flex-1 truncate whitespace-nowrap">{item.text}</span>
                 </div>
               ))
             ) : (
@@ -597,23 +524,30 @@ export default function HupuScheduleHome({
   initialData: ScheduleHubData;
   mode?: "home" | "schedule";
 }) {
-  const [query, setQuery] = useState("");
+  const initialMonthId = getDefaultMonthId(initialData.months, initialData.selectedMonthId ?? undefined);
+  const initialWeekId = initialData.months.find((month) => month.id === initialMonthId)?.weeks[0]?.id ?? "";
+
   const [league, setLeague] = useState("all");
-  const [status, setStatus] = useState("all");
-  const [selectedMonthId, setSelectedMonthId] = useState(initialData.selectedMonthId ?? initialData.months[0]?.id ?? "");
-  const [selectedWeekId, setSelectedWeekId] = useState(initialData.selectedWeekId ?? initialData.months[0]?.weeks[0]?.id ?? "");
+  const [status, setStatus] = useState<"all" | "scheduled" | "finished">("all");
+  const [selectedMonthId, setSelectedMonthId] = useState(initialMonthId);
+  const [selectedWeekId, setSelectedWeekId] = useState(initialWeekId);
   const [selectedTodayPage, setSelectedTodayPage] = useState(0);
   const [predictionTab, setPredictionTab] = useState<"match" | "season" | "betting">("match");
   const [revealPastSpoilers, setRevealPastSpoilers] = useState(false);
+  const [revealScheduleSpoilers, setRevealScheduleSpoilers] = useState(false);
 
   const leagues = useMemo(
     () => ["all", ...new Set(initialData.months.flatMap((month) => month.weeks.flatMap((week) => week.dates.flatMap((date) => date.matches.map((match) => match.league)))))],
     [initialData.months],
   );
 
-  const filteredMonths = useMemo(() => filterMonths(initialData.months, query, league, status), [initialData.months, query, league, status]);
-  const selectedMonth = filteredMonths.find((month) => month.id === selectedMonthId) ?? filteredMonths[0] ?? null;
+  const monthOptions = initialData.months;
+  const selectedMonth = monthOptions.find((month) => month.id === selectedMonthId) ?? monthOptions[0] ?? null;
   const selectedWeek = selectedMonth?.weeks.find((week) => week.id === selectedWeekId) ?? selectedMonth?.weeks[0] ?? null;
+  const visibleWeekDates = useMemo(
+    () => (selectedWeek ? filterDates(selectedWeek.dates, "", league, status) : []),
+    [selectedWeek, league, status],
+  );
   const heroTodayMatches = useMemo(() => {
     if (initialData.todayMatches.length > 0) {
       return initialData.todayMatches;
@@ -626,90 +560,46 @@ export default function HupuScheduleHome({
   const safeTodayPage = todayPageCount === 0 ? 0 : ((selectedTodayPage % todayPageCount) + todayPageCount) % todayPageCount;
   const visibleTodayMatches = todayMatchPages[safeTodayPage] ?? [];
   const hasTodayMatches = initialData.heroStats.todayMatches > 0;
-  const todaySectionEyebrow = hasTodayMatches ? "Today's Matches" : "Upcoming Matches";
   const todaySectionTitle = hasTodayMatches ? "오늘의 경기" : "다가오는 경기";
   const isSchedulePage = mode === "schedule";
   const scheduleExplorerSection = (
-    <section id="schedule-explorer" className="overflow-hidden rounded-[30px] border border-slate-200/80 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.08)]">
-      <div className="border-b border-slate-200 bg-[linear-gradient(180deg,#f8fafc_0%,#f1f5f9_100%)] px-5 py-4 sm:px-6">
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-700/70">Schedule Explorer</div>
-              <h2 className="mt-1 text-[22px] font-black tracking-[-0.035em] text-slate-950 sm:text-[24px]">{LABELS.scheduleExplorer}</h2>
-              <div className="mt-1 text-sm text-slate-600">{LABELS.scheduleExplorerCopy}</div>
-            </div>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="팀, 리그, 스테이지로 일정 검색"
-                className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 placeholder:text-slate-400"
-              />
-              <select value={league} onChange={(event) => setLeague(event.target.value)} className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700">
-                {leagues.map((item) => (
-                  <option key={item} value={item}>
-                    {item === "all" ? LABELS.allLeague : item}
-                  </option>
-                ))}
-              </select>
-              <select value={status} onChange={(event) => setStatus(event.target.value)} className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 sm:col-span-2">
-                <option value="all">{LABELS.allStatus}</option>
-                <option value="scheduled">{LABELS.scheduledMatch}</option>
-                <option value="finished">{LABELS.finishedMatch}</option>
-              </select>
-            </div>
+    <section id="schedule-explorer" className="mx-auto w-full max-w-5xl overflow-hidden rounded-[30px] border border-slate-200/80 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.08)]">
+      <div className="border-b border-slate-200 bg-[linear-gradient(180deg,#f8fafc_0%,#f1f5f9_100%)] px-4 py-3 sm:px-5">
+        <div className="flex flex-col gap-3">
+          <div>
+            <h2 className="text-[22px] font-black tracking-[-0.035em] text-slate-950 sm:text-[24px]">경기일정</h2>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            {filteredMonths.map((month) => (
-              <button
-                key={month.id}
-                onClick={() => {
-                  setSelectedMonthId(month.id);
-                  setSelectedWeekId(month.weeks[0]?.id ?? "");
-                }}
-                className={cn(
-                  "rounded-full border px-4 py-2 text-sm font-semibold transition",
-                  selectedMonth?.id === month.id
-                    ? "border-slate-950 bg-slate-950 !text-white shadow-[0_10px_24px_rgba(15,23,42,0.2)]"
-                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-100",
-                )}
-              >
-                {month.label}
-              </button>
-            ))}
-          </div>
-
-          {selectedMonth ? (
-            <div className="flex flex-wrap gap-2">
-              {selectedMonth.weeks.map((week) => (
-                <button
-                  key={week.id}
-                  onClick={() => setSelectedWeekId(week.id)}
-                  className={cn(
-                    "rounded-full border px-4 py-2 text-sm font-medium transition",
-                    selectedWeek?.id === week.id
-                      ? "border-sky-200 bg-sky-100 text-sky-800"
-                      : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50",
-                  )}
-                >
-                  {week.label}
-                </button>
-              ))}
-            </div>
-          ) : null}
+          <ScheduleFilterBar
+            status={status}
+            onStatusChange={(value) => setStatus(value)}
+            league={league}
+            leagues={leagues}
+            onLeagueChange={(value) => setLeague(value)}
+            monthOptions={monthOptions}
+            selectedMonthId={selectedMonthId}
+            onMonthChange={(value) => {
+              setSelectedMonthId(value);
+              const month = monthOptions.find((item) => item.id === value);
+              setSelectedWeekId(month?.weeks[0]?.id ?? "");
+            }}
+            weekOptions={selectedMonth?.weeks ?? []}
+            selectedWeekId={selectedWeekId}
+            onWeekChange={(value) => setSelectedWeekId(value)}
+            revealSpoilers={revealScheduleSpoilers}
+            onToggleSpoilers={() => setRevealScheduleSpoilers((current) => !current)}
+          />
         </div>
       </div>
 
       <div className="divide-y divide-slate-200">
-        {selectedWeek ? (
-          selectedWeek.dates.map((group) => (
+        {selectedWeek && visibleWeekDates.length > 0 ? (
+          visibleWeekDates.map((group) => (
             <div key={group.id}>
               <div className="bg-slate-100 px-5 py-3 text-sm font-bold text-slate-700 sm:px-6">{group.label}</div>
               <div>
                 {group.matches.map((match) => (
-                  <ScheduleRow key={match.id} match={match} />
+                  <ScheduleRow key={match.id} match={match} revealSpoiler={revealScheduleSpoilers} />
                 ))}
               </div>
             </div>
@@ -727,12 +617,12 @@ export default function HupuScheduleHome({
           notifications={initialData.notifications}
           unreadNotificationCount={initialData.unreadNotificationCount}
         />
-      <div className="border-y border-slate-200/80 bg-white/90">
-        <nav className="mx-auto flex max-w-[1320px] items-center gap-1 px-4 sm:px-6">
+      <div className="border-y border-slate-200/80 bg-[linear-gradient(180deg,#f8fbff_0%,#eef5fc_100%)]">
+        <nav className="mx-auto flex max-w-5xl items-center gap-1 px-4 sm:px-6">
           <Link
             href="/"
             className={cn(
-              "relative px-5 py-4 text-[17px] font-bold tracking-[-0.02em] transition",
+              "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
               !isSchedulePage ? "text-sky-700" : "text-slate-600 hover:text-slate-900",
             )}
           >
@@ -742,7 +632,7 @@ export default function HupuScheduleHome({
           <Link
             href="/schedule"
             className={cn(
-              "relative px-5 py-4 text-[17px] font-bold tracking-[-0.02em] transition",
+              "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
               isSchedulePage ? "text-sky-700" : "text-slate-600 hover:text-slate-900",
             )}
           >
@@ -751,39 +641,44 @@ export default function HupuScheduleHome({
           </Link>
           <Link
             href="/ratings"
-            className="relative px-5 py-4 text-[17px] font-bold tracking-[-0.02em] text-slate-600 transition hover:text-slate-900"
+            className="relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] text-slate-600 transition hover:text-slate-900"
           >
             평점순위
           </Link>
           <Link
             href="/season-predictions"
             className={cn(
-              "relative px-5 py-4 text-[17px] font-bold tracking-[-0.02em] transition",
+              "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
               "text-slate-600 hover:text-slate-900",
             )}
           >
             시즌예측
           </Link>
+          <Link
+            href="/games/15-dollar-challenge"
+            className="relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] text-slate-600 transition hover:text-slate-900"
+          >
+            게임
+          </Link>
         </nav>
       </div>
-      <main className="mx-auto max-w-[1320px] px-4 py-6 sm:px-6">
+      <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
         {isSchedulePage ? (
           <div className="space-y-6">{scheduleExplorerSection}</div>
         ) : (
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_296px]">
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_220px]">
           <div className="space-y-6">
-            <section className="rounded-[40px] border border-slate-200/80 bg-[linear-gradient(135deg,#ffffff_0%,#eef7ff_55%,#f8fbff_100%)] p-6 shadow-[0_24px_70px_rgba(15,23,42,0.10)] sm:p-8">
+            <section className="space-y-4">
               <div className="max-w-[760px]">
                 <h1 className="max-w-[700px] text-balance text-[clamp(1.35rem,2.6vw,2.3rem)] font-black leading-[1.12] tracking-[-0.035em] text-slate-950">
                   {LABELS.heroTitleLine1}
                 </h1>
               </div>
 
-              <div id="today-matches" className="mt-9 rounded-[34px] border border-sky-100 bg-white/85 p-5 shadow-[0_16px_44px_rgba(14,165,233,0.10)] sm:p-6">
+              <div id="today-matches" className="rounded-[34px] border border-sky-100 bg-white/85 p-5 shadow-[0_16px_44px_rgba(14,165,233,0.10)] sm:p-6">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                     <div>
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-sky-700">{todaySectionEyebrow}</div>
-                      <h2 className="mt-2 text-[28px] font-black tracking-[-0.045em] text-slate-950">{todaySectionTitle}</h2>
+                      <h2 className="text-[28px] font-black tracking-[-0.045em] text-slate-950">{todaySectionTitle}</h2>
                     </div>
                   {todayPageCount > 1 ? (
                     <div className="flex flex-wrap items-center gap-2">
@@ -823,12 +718,30 @@ export default function HupuScheduleHome({
 
             </section>
 
+            <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_12px_30px_rgba(15,23,42,0.06)] sm:p-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h2 className="text-[22px] font-black tracking-[-0.035em] text-slate-950 sm:text-[24px]">
+                    15달러 챌린지
+                  </h2>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    15달러 예산 안에서 TOP, JUNGLE, MID, ADC, SUPPORT를 각각 1명씩 골라 나만의 베스트 5를 완성해보세요.
+                  </p>
+                </div>
+                <Link
+                  href="/games/15-dollar-challenge"
+                  className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-slate-900 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
+                >
+                  지금 도전하기
+                </Link>
+              </div>
+            </section>
+
             {predictionTab === "season" ? (
               <section className="space-y-4">
                 <div className="flex items-end justify-between gap-3">
                   <div>
-                    <div className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-600">Season Predictions</div>
-                    <h2 className="mt-1 text-[22px] font-black tracking-[-0.035em] text-slate-950 sm:text-[26px]">지금 참여 가능한 시즌예측</h2>
+                    <h2 className="text-[22px] font-black tracking-[-0.035em] text-slate-950 sm:text-[26px]">지금 참여 가능한 시즌예측</h2>
                   </div>
                   <Link href="/season-predictions" className="text-sm font-semibold text-sky-700">
                     전체 보기
@@ -849,8 +762,7 @@ export default function HupuScheduleHome({
 
             {predictionTab === "betting" ? (
               <section className="rounded-[30px] border border-slate-200 bg-white p-6 shadow-[0_12px_32px_rgba(15,23,42,0.06)]">
-                <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Betting</div>
-                <h2 className="mt-2 text-[22px] font-black text-slate-950">배팅 기능 준비 중</h2>
+                <h2 className="text-[22px] font-black text-slate-950">배팅 기능 준비 중</h2>
                 <p className="mt-3 text-sm leading-6 text-slate-600">시즌예측과 경기예측 흐름을 먼저 안정화한 뒤 다음 단계에서 확장합니다.</p>
               </section>
             ) : null}
@@ -858,8 +770,7 @@ export default function HupuScheduleHome({
             {predictionTab === "match" ? <section id="recent-finished" className="space-y-4">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <div className="text-xs font-semibold uppercase tracking-[0.22em] text-rose-600">RECENT MATCHES</div>
-                  <h2 className="mt-1 text-[22px] font-black tracking-[-0.035em] text-slate-950 sm:text-[26px]">{LABELS.previousMatchTitle}</h2>
+                  <h2 className="text-[22px] font-black tracking-[-0.035em] text-slate-950 sm:text-[26px]">{LABELS.previousMatchTitle}</h2>
                 </div>
                 <div className="flex items-center gap-3">
                   <button
@@ -894,8 +805,7 @@ export default function HupuScheduleHome({
 
             {predictionTab === "match" ? <section>
               <div className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-[0_12px_32px_rgba(15,23,42,0.06)]">
-                <div className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-600">Player Ratings</div>
-                <h2 className="mt-1 text-[22px] font-black tracking-[-0.035em] text-slate-950 sm:text-[24px]">실시간 평점 랭킹</h2>
+                <h2 className="text-[22px] font-black tracking-[-0.035em] text-slate-950 sm:text-[24px]">실시간 평점 랭킹</h2>
                 <div className="mt-5 rounded-[24px] border border-slate-200 bg-slate-50/70 px-3 py-4 sm:px-4">
                   <div className="grid grid-cols-3 items-end gap-2 sm:gap-3">
                     {[
@@ -963,4 +873,7 @@ export default function HupuScheduleHome({
     </div>
   );
 }
+
+
+
 

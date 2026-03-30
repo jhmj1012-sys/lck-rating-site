@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from "next/link";
 import { startTransition, useEffect, useMemo, useState } from "react";
@@ -88,12 +88,10 @@ export function MatchOverviewPanel({ match, sets }: { match: MatchData; sets: Ma
       <CardContent className="space-y-5 pt-5">
         <div className="grid gap-4 lg:grid-cols-[1fr_auto_1fr] lg:items-center">
           <div className="rounded-[24px] border border-slate-200 bg-white px-5 py-4">
-            <div className="text-sm uppercase tracking-[0.18em] text-slate-500">Blue</div>
             <div className="mt-2 text-2xl font-black text-slate-950">{getTeamDisplayName(match.teamA)}</div>
           </div>
           <div className="text-center text-5xl font-black tracking-tight text-slate-950">{match.score}</div>
           <div className="rounded-[24px] border border-slate-200 bg-white px-5 py-4 text-left lg:text-right">
-            <div className="text-sm uppercase tracking-[0.18em] text-slate-500">Red</div>
             <div className="mt-2 text-2xl font-black text-slate-950">{getTeamDisplayName(match.teamB)}</div>
           </div>
         </div>
@@ -107,12 +105,12 @@ export function MatchOverviewPanel({ match, sets }: { match: MatchData; sets: Ma
         {match.lockedOdds && match.lockedDistribution ? (
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-2xl border border-sky-100 bg-sky-50 px-4 py-3 text-sm text-slate-700">
-              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">Locked Distribution</div>
+
               <div className="mt-2 font-semibold text-slate-950">{match.teamA} {match.lockedDistribution.teamA}% · {match.teamB} {match.lockedDistribution.teamB}%</div>
               <div className="mt-1 text-slate-600">마감 시점 참여 {match.lockedDistribution.totalVotes}건 기준</div>
             </div>
             <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
-              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Locked Odds</div>
+
               <div className="mt-2 font-semibold text-slate-950">{match.teamA} {match.lockedOdds.teamA.oddsPercent}% · {match.teamB} {match.lockedOdds.teamB.oddsPercent}%</div>
               <div className="mt-1 text-slate-600">적중 시 추가 {match.lockedOdds.teamA.hitBonusCoins} / {match.lockedOdds.teamB.hitBonusCoins} Coin</div>
             </div>
@@ -245,12 +243,10 @@ export function MatchEngagementPanel({ match }: { match: MatchData }) {
         <CardContent className="space-y-4 pt-5">
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-[24px] border border-sky-100 bg-sky-50 px-4 py-3 text-sm text-slate-700">
-              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">Reward</div>
               <div className="mt-2 font-semibold text-slate-950">참여 보상 +10 Coin</div>
               <div className="mt-1 text-slate-600">선택만 완료해도 코인이 쌓입니다.</div>
             </div>
             <div className="rounded-[24px] border border-amber-100 bg-amber-50 px-4 py-3 text-sm text-slate-700">
-              <div className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-700">Bonus</div>
               <div className="mt-2 font-semibold text-slate-950">적중 시 추가 +5 Coin</div>
               <div className="mt-1 text-slate-600">팬 평균과 비교하면서 적중률도 함께 기록됩니다.</div>
             </div>
@@ -323,12 +319,12 @@ export function MatchEngagementPanel({ match }: { match: MatchData }) {
           {match.lockedOdds && match.lockedDistribution ? (
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
-                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Locked Distribution</div>
+
                 <div className="mt-2 font-semibold text-slate-950">{match.teamA} {match.lockedDistribution.teamA}% · {match.teamB} {match.lockedDistribution.teamB}%</div>
                 <div className="mt-1 text-slate-600">예측 마감 후 확정된 참여 분포입니다.</div>
               </div>
               <div className="rounded-2xl border border-sky-100 bg-sky-50 px-4 py-3 text-sm text-slate-700">
-                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">Locked Rewards</div>
+
                 <div className="mt-2 font-semibold text-slate-950">{match.teamA} +{match.lockedOdds.teamA.hitBonusCoins} Coin · {match.teamB} +{match.lockedOdds.teamB.hitBonusCoins} Coin</div>
                 <div className="mt-1 text-slate-600">확정 배당 {match.lockedOdds.teamA.oddsPercent}% / {match.lockedOdds.teamB.oddsPercent}%</div>
               </div>
@@ -546,12 +542,10 @@ export function SetRatingPanel({ data }: { data: SetDetailData }) {
       <CardContent className="space-y-5 pt-5">
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-[24px] border border-sky-100 bg-sky-50 px-4 py-3 text-sm text-slate-700">
-            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">Reward</div>
             <div className="mt-2 font-semibold text-slate-950">선수 1명 저장마다 +2 Coin</div>
             <div className="mt-1 text-slate-600">한 번에 여러 명을 저장하면 코인도 함께 누적됩니다.</div>
           </div>
           <div className="rounded-[24px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
-            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Use</div>
             <div className="mt-2 font-semibold text-slate-950">모은 코인은 프로필 꾸미기에 사용</div>
             <div className="mt-1 text-slate-600">인장과 테마 효과 같은 보상으로 이어집니다.</div>
           </div>

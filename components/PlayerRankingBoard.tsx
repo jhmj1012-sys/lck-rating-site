@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Image from "next/image";
 import Link from "next/link";
@@ -26,6 +26,7 @@ function getRatingTone(value: number) {
 
 function sortRows(rows: PlayerRankingItem[], sort: SortKey) {
   const sorted = rows.slice();
+
   if (sort === "form") {
     sorted.sort(
       (a, b) =>
@@ -36,6 +37,7 @@ function sortRows(rows: PlayerRankingItem[], sort: SortKey) {
     );
     return sorted;
   }
+
   if (sort === "participation") {
     sorted.sort(
       (a, b) =>
@@ -46,6 +48,7 @@ function sortRows(rows: PlayerRankingItem[], sort: SortKey) {
     );
     return sorted;
   }
+
   sorted.sort(
     (a, b) =>
       b.averageRating - a.averageRating ||
@@ -53,11 +56,13 @@ function sortRows(rows: PlayerRankingItem[], sort: SortKey) {
       b.participationCount - a.participationCount ||
       a.playerName.localeCompare(b.playerName, "ko"),
   );
+
   return sorted;
 }
 
 function RatingValue({ value }: { value: number }) {
   const [major, minor] = value.toFixed(1).split(".");
+
   return (
     <span className={cn("font-black leading-none tracking-[-0.04em]", getRatingTone(value), "text-[20px]")}>
       {major}
@@ -85,69 +90,69 @@ export function PlayerRankingBoard({ data }: { data: PlayerRankingPageData }) {
       const seasonMatch = player.seasonLabel === season;
       return roleMatch && seasonMatch;
     });
+
     return sortRows(rows, sortKey).map((player, index) => ({ ...player, rank: index + 1 }));
   }, [data.players, position, season, sortKey]);
 
   return (
     <main className="app-shell px-4 py-7 sm:px-6">
-      <div className="mx-auto max-w-[1320px] space-y-5">
+      <div className="mx-auto max-w-5xl space-y-5">
         <section className="rounded-[26px] border border-slate-200 bg-white p-5 shadow-[0_12px_28px_rgba(15,23,42,0.08)]">
-          <div className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-600">PLAYER RATINGS</div>
-          <h1 className="mt-1.5 text-[30px] font-black tracking-[-0.04em] text-slate-950">평점 순위</h1>
-          <p className="mt-1 text-sm text-slate-600">{data.subtitle}</p>
+          <h1 className="text-[30px] font-black tracking-[-0.04em] text-slate-950">평점 순위</h1>
 
-          <div className="mt-4 space-y-3">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <div className="text-xs font-semibold text-slate-500">포지션</div>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {(["ALL", "TOP", "JGL", "MID", "ADC", "SUP"] as const).map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    onClick={() => startTransition(() => setPosition(item))}
-                    className={cn(
-                      "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition",
-                      position === item
-                        ? "bg-sky-500 text-white shadow-[0_8px_18px_rgba(14,165,233,0.28)]"
-                        : "bg-white text-slate-600 hover:bg-slate-100",
-                    )}
+          <div className="mt-4 rounded-2xl border border-slate-200 bg-white px-3 py-2.5">
+            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="inline-flex h-8 items-center rounded-lg border border-slate-200 bg-slate-50 p-0.5">
+                  {(["ALL", "TOP", "JGL", "MID", "ADC", "SUP"] as const).map((item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => startTransition(() => setPosition(item))}
+                      className={cn(
+                        "inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-semibold transition",
+                        position === item
+                          ? "bg-sky-50 text-sky-700"
+                          : "text-slate-600 hover:bg-slate-100 hover:text-slate-800",
+                      )}
+                    >
+                      {item === "ALL" ? (
+                        "전체"
+                      ) : (
+                        <Image src={ROLE_ICON[item]} alt={item} width={16} height={16} className="h-4 w-4 object-contain" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                <label className="flex min-w-[132px] items-center gap-2">
+                  <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">시즌</span>
+                  <select
+                    value={season}
+                    onChange={(event) => startTransition(() => setSeason(event.target.value))}
+                    className="h-8 w-full rounded-lg border border-slate-200 bg-white px-2.5 text-sm text-slate-700 outline-none transition hover:border-slate-300 focus:border-slate-300 focus:ring-2 focus:ring-slate-200/70"
                   >
-                    {item === "ALL" ? (
-                      "전체"
-                    ) : (
-                      <Image src={ROLE_ICON[item]} alt={item} width={18} height={18} className="h-[18px] w-[18px] object-contain" />
-                    )}
-                  </button>
-                ))}
+                    {data.seasonOptions.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="flex min-w-[132px] items-center gap-2">
+                  <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">정렬</span>
+                  <select
+                    value={sortKey}
+                    onChange={(event) => startTransition(() => setSortKey(event.target.value as SortKey))}
+                    className="h-8 w-full rounded-lg border border-slate-200 bg-white px-2.5 text-sm text-slate-700 outline-none transition hover:border-slate-300 focus:border-slate-300 focus:ring-2 focus:ring-slate-200/70"
+                  >
+                    <option value="rating">평점순</option>
+                    <option value="form">최근폼</option>
+                    <option value="participation">참여수</option>
+                  </select>
+                </label>
               </div>
-            </div>
-
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <div className="text-xs font-semibold text-slate-500">시즌</div>
-              <select
-                value={season}
-                onChange={(event) => startTransition(() => setSeason(event.target.value))}
-                className="mt-2 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700"
-              >
-                {data.seasonOptions.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-              <div className="text-xs font-semibold text-slate-500">정렬</div>
-              <select
-                value={sortKey}
-                onChange={(event) => startTransition(() => setSortKey(event.target.value as SortKey))}
-                className="mt-2 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700"
-              >
-                <option value="rating">평점순</option>
-                <option value="form">최근폼</option>
-                <option value="participation">참여수</option>
-              </select>
             </div>
           </div>
         </section>
@@ -160,7 +165,7 @@ export function PlayerRankingBoard({ data }: { data: PlayerRankingPageData }) {
           <section
             className={cn(
               "overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_14px_36px_rgba(15,23,42,0.08)] transition-all duration-300",
-              isPending ? "opacity-70 translate-y-1" : "opacity-100 translate-y-0",
+              isPending ? "translate-y-1 opacity-70" : "translate-y-0 opacity-100",
             )}
           >
             <div className="max-h-[640px] overflow-auto">
@@ -170,7 +175,7 @@ export function PlayerRankingBoard({ data }: { data: PlayerRankingPageData }) {
                 <div>팀</div>
                 <div>평균 평점</div>
                 <div>경기 수</div>
-                <div title="참여수 = 평점 참여 인원">참여 수</div>
+                <div title="참여수 = 평점 참여 인원">참여수</div>
                 <div title="최근폼 = 최근 5경기 평균">최근폼</div>
                 <div className="text-right">상세</div>
               </div>
