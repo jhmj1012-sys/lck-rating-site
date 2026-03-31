@@ -7,7 +7,7 @@ import { authOptions } from "@/auth";
 import type { StoreShape, StoredUser, UserRole } from "@/lib/domain";
 import { createId, mutateStore, readStore } from "@/lib/store";
 
-const nicknamePattern = /^[A-Za-z0-9가-힣_-]{2,16}$/;
+const nicknamePattern = /^[A-Za-z0-9가-힣]{2,10}$/;
 export const GUEST_USER_COOKIE = "gg_guest_id";
 const LOL_NICKNAME_WORDS = [
   "칼날부리",
@@ -51,7 +51,7 @@ export function validateNickname(input: string) {
   const nickname = normalizeNickname(input);
 
   if (!nicknamePattern.test(nickname)) {
-    throw new Error("닉네임은 2~16자, 한글/영문/숫자/밑줄(_)과 하이픈(-)만 사용할 수 있습니다.");
+    throw new Error("닉네임은 2~10자, 한글/영문/숫자만 사용할 수 있습니다.");
   }
 
   return nickname;
@@ -128,6 +128,24 @@ export async function updateUserNickname(userId: string, rawNickname: string) {
     user.nicknameOnboardingSeen = true;
     user.nicknameUpdatedAt = now;
     user.updatedAt = now;
+    return user;
+  });
+}
+
+export async function updateUserBio(userId: string, rawBio: string) {
+  return mutateStore(async (store) => {
+    const user = store.users.find((item) => item.id === userId);
+    if (!user) {
+      throw new Error("사용자를 찾을 수 없습니다.");
+    }
+
+    const bio = rawBio.trim();
+    if (bio.length > 50) {
+      throw new Error("소개문구는 50자 이하로 작성해 주세요.");
+    }
+
+    user.bio = bio.length > 0 ? bio : null;
+    user.updatedAt = new Date().toISOString();
     return user;
   });
 }

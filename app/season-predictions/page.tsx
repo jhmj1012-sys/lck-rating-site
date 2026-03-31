@@ -47,18 +47,12 @@ export default async function SeasonPredictionsPage({
         unreadNotificationCount={hubData.unreadNotificationCount}
       />
 
-      <main className="app-shell px-4 py-8 sm:px-6">
+      <main className="min-h-screen bg-[#1C1C1F] px-4 py-8 sm:px-6">
         <div className="mx-auto max-w-5xl space-y-6">
-          <div className="flex flex-wrap items-end justify-between gap-3">
+          <div className="flex flex-wrap items-end gap-3">
             <div>
-              <h1 className="text-3xl font-black text-slate-950">시즌예측</h1>
+              <h1 className="text-3xl font-black text-[#FFFFFF]">시즌예측</h1>
             </div>
-            <Link
-              href="/"
-              className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700"
-            >
-              홈으로 돌아가기
-            </Link>
           </div>
 
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -69,7 +63,7 @@ export default async function SeasonPredictionsPage({
                 <Link
                   key={item.id}
                   href={`/season-predictions/${item.id}`}
-                  className="group relative rounded-[22px] border border-slate-200 bg-white p-4 shadow-[0_10px_26px_rgba(15,23,42,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(15,23,42,0.1)]"
+                  className="group relative rounded-[22px] bg-[#3A3A47] p-4 shadow-[0_10px_26px_rgba(2,6,23,0.28)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(2,6,23,0.34)]"
                 >
                   <div className="flex items-start gap-3 pr-16">
                     <div className="flex min-w-0 items-center gap-2">
@@ -77,16 +71,16 @@ export default async function SeasonPredictionsPage({
                         <Image src={logo.src} alt={logo.alt} width={28} height={28} className="h-7 w-7 object-contain" />
                       </span>
                       <div className="min-w-0">
-                        <div className="truncate text-[17px] font-black text-slate-950">{item.title}</div>
+                        <div className="truncate text-[17px] font-normal text-[#FFFFFF]">{item.title}</div>
                       </div>
                     </div>
                   </div>
 
                   <div className="mt-4 space-y-2.5">
-                    {topRows.slice(0, 2).map((row, index) => (
+                    {topRows.slice(0, 3).map((row, index) => (
                       <div key={`${item.id}_top_${index}`} className="flex items-center justify-between gap-2">
-                        <span className="truncate text-sm font-semibold text-slate-700">{row.label}</span>
-                        <span className="text-2xl font-black tracking-tight text-slate-950">{row.percent}%</span>
+                        <span className="truncate text-sm font-normal text-[#FFFFFF]">{row.label}</span>
+                        <span className="text-2xl font-normal tracking-tight text-[#FFFFFF]">{row.percent}%</span>
                       </div>
                     ))}
                   </div>

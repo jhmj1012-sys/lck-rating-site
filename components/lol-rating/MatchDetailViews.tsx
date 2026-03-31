@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import Image from 'next/image';
@@ -17,11 +17,11 @@ type CommentSort = 'latest' | 'top';
 const PREDICTION_JOIN_REWARD_COINS = 10;
 const ROLE_ORDER: Array<'TOP' | 'JGL' | 'MID' | 'ADC' | 'SUP'> = ['TOP', 'JGL', 'MID', 'ADC', 'SUP'];
 const ROLE_META: Record<'TOP' | 'JGL' | 'MID' | 'ADC' | 'SUP', { iconPath: string; label: string }> = {
-  TOP: { iconPath: '/icons/positions/icon-position-top.png', label: '탑' },
-  JGL: { iconPath: '/icons/positions/icon-position-jungle.png', label: '정글' },
-  MID: { iconPath: '/icons/positions/icon-position-middle.png', label: '미드' },
-  ADC: { iconPath: '/icons/positions/icon-position-bottom.png', label: '원딜' },
-  SUP: { iconPath: '/icons/positions/icon-position-utility.png', label: '서폿' },
+  TOP: { iconPath: '/icons/positions/icon-position-top-disabled.png', label: '탑' },
+  JGL: { iconPath: '/icons/positions/icon-position-jungle-disabled.png', label: '정글' },
+  MID: { iconPath: '/icons/positions/icon-position-middle-disabled.png', label: '미드' },
+  ADC: { iconPath: '/icons/positions/icon-position-bottom-disabled.png', label: '원딜' },
+  SUP: { iconPath: '/icons/positions/icon-position-utility-disabled.png', label: '서폿' },
 };
 
 function resolveDetailState(match: MatchData): DetailState {
@@ -40,6 +40,20 @@ function formatDateTime(value: string) {
     minute: '2-digit',
     hour12: false,
   }).format(new Date(value));
+}
+
+function LiveBadge({ compact = false }: { compact?: boolean }) {
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center rounded-full bg-transparent text-[#FF5A67]',
+        compact ? 'gap-1.5 px-2.5 py-1 text-[11px] font-bold' : 'gap-2 px-3 py-1.5 text-[12px] font-bold',
+      )}
+    >
+      <span className={cn('live-dot rounded-full bg-[#FF4D5E]', compact ? 'h-2 w-2' : 'h-2.5 w-2.5')} />
+      <span className='tracking-[0.08em]'>LIVE</span>
+    </span>
+  );
 }
 
 function formatScore(score: string) {
@@ -86,34 +100,34 @@ function getSeriesFormatLabel(sets: MatchSetSummary[]) {
 
 function getRatingChipTone(score: number | null, opponentScore: number | null) {
   if (score === null) {
-    return 'bg-slate-500 text-white';
+    return 'bg-[#5C6B82] text-white';
   }
   if (opponentScore === null) {
-    return 'bg-slate-700 text-white';
+    return 'bg-[#465774] text-white';
   }
   if (score > opponentScore) {
-    return 'bg-slate-800 text-white';
+    return 'bg-[#11294A] text-white';
   }
   if (score < opponentScore) {
-    return 'bg-slate-600 text-white';
+    return 'bg-[#6A7D98] text-white';
   }
-  return 'bg-slate-700 text-white';
+  return 'bg-[#465774] text-white';
 }
 
 function getShareRatingChipColor(score: number | null, opponentScore: number | null) {
   if (score === null) {
-    return '#64748b';
+    return '#5C6B82';
   }
   if (opponentScore === null) {
-    return '#334155';
+    return '#465774';
   }
   if (score > opponentScore) {
-    return '#0f172a';
+    return '#11294A';
   }
   if (score < opponentScore) {
-    return '#475569';
+    return '#6A7D98';
   }
-  return '#334155';
+  return '#465774';
 }
 
 function getCalendarDayDiff(target: Date, now: Date) {
@@ -174,6 +188,17 @@ async function postJson(url: string, body: unknown) {
   }
 }
 
+async function deleteJson(url: string) {
+  const response = await fetch(url, {
+    method: 'DELETE',
+  });
+
+  const payload = (await response.json().catch(() => ({}))) as { error?: string };
+  if (!response.ok) {
+    throw new Error(payload.error ?? '요청을 처리하지 못했습니다.');
+  }
+}
+
 function MatchHeader({ data, state }: { data: MatchDetailData; state: DetailState }) {
   const status = getStatusBadge(state);
   const seriesFormat = getSeriesFormatLabel(data.sets);
@@ -192,7 +217,10 @@ function MatchHeader({ data, state }: { data: MatchDetailData; state: DetailStat
     <Card className='overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.14),transparent_34%),linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)]'>
       <CardContent className='px-5 pb-5 pt-5 sm:px-6 sm:pb-6 sm:pt-6'>
         <div className='text-center'>
-          <div className='text-left text-[11px] font-semibold uppercase tracking-[0.28em] text-sky-700'>{data.match.league}</div>
+          <div className='flex items-start justify-between gap-3'>
+            <div className='text-left text-[11px] font-semibold uppercase tracking-[0.28em] text-sky-700'>{data.match.league}</div>
+            {state === 'LIVE' ? <LiveBadge compact /> : null}
+          </div>
           <div className='mx-auto mt-3 grid max-w-[860px] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 rounded-[20px] border border-slate-200 bg-white px-5 py-5 sm:px-8'>
             <div className='text-center'>
               <div className='text-2xl font-black tracking-[-0.03em] text-slate-950 sm:text-3xl'>{getTeamDisplayName(data.match.teamA)}</div>
@@ -271,7 +299,9 @@ function PredictionGamePanel({ match }: { match: MatchData }) {
           'rounded-[20px] border p-4 transition',
           isLeft ? 'text-left' : 'text-right',
           active
-            ? 'border-sky-300 bg-[linear-gradient(180deg,#f0f9ff_0%,#e0f2fe_100%)] shadow-[0_12px_30px_rgba(14,165,233,0.18)]'
+            ? isLeft
+              ? 'border-[#234D74] bg-[linear-gradient(180deg,#2E5C88_0%,#234D74_100%)] shadow-none'
+              : 'border-[#672C44] bg-[linear-gradient(180deg,#7A3753_0%,#672C44_100%)] shadow-none'
             : 'border-slate-200 bg-slate-50 hover:bg-white',
         )}
       >
@@ -295,11 +325,22 @@ function PredictionGamePanel({ match }: { match: MatchData }) {
         </div>
 
         <div className='mt-4 rounded-[16px] border border-slate-200 bg-slate-50 px-3 py-3'>
-          <div className='mt-2 h-2.5 overflow-hidden rounded-full bg-slate-200'>
+          <div className='relative mt-2 h-2.5 overflow-hidden rounded-full bg-[#2A2A34]'>
             <div className='flex h-full w-full'>
-              <div className='h-full bg-sky-500' style={{ width: `${match.predictionSummary.teamA}%` }} />
-              <div className='h-full bg-slate-500' style={{ width: `${match.predictionSummary.teamB}%` }} />
+              <div className='h-full bg-[#234D74]' style={{ width: `${match.predictionSummary.teamA}%` }} />
+              <div className='h-full bg-[#672C44]' style={{ width: `${match.predictionSummary.teamB}%` }} />
             </div>
+            {match.predictionSummary.teamA > 0 && match.predictionSummary.teamA < 100 ? (
+              <div
+                className='pointer-events-none absolute inset-y-0 w-4 -translate-x-1/2'
+                style={{
+                  left: `${match.predictionSummary.teamA}%`,
+                  background: 'linear-gradient(90deg, #234D74 0%, #672C44 100%)',
+                  filter: 'blur(1.6px)',
+                  opacity: 0.9,
+                }}
+              />
+            ) : null}
           </div>
           <div className='mt-2 flex items-center justify-between text-base font-black text-slate-800'>
             <span>
@@ -562,7 +603,7 @@ function StarScorePicker({
             }}
             aria-label={`${index}별`}
           >
-            <span className='absolute inset-0 text-2xl leading-7 text-slate-300'>★</span>
+            <span className='absolute inset-0 text-2xl leading-7 text-[#555569]'>★</span>
             {full ? <span className='absolute inset-0 text-2xl leading-7 text-slate-800'>★</span> : null}
             {half ? (
               <span className='absolute inset-0 w-1/2 overflow-hidden text-2xl leading-7 text-slate-800'>★</span>
@@ -706,7 +747,7 @@ function FinishedView({ data }: { data: MatchDetailData }) {
       <Card>
         <CardContent className='relative space-y-4 px-5 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-5 sm:px-6 sm:pb-[calc(6.5rem+env(safe-area-inset-bottom))] sm:pt-6'>
           <div className='flex flex-wrap items-center justify-between gap-3'>
-            <h2 className='text-2xl font-black tracking-[-0.03em] text-slate-950'>평점 참여하기&확인하기</h2>
+            <h2 className='text-2xl font-black tracking-[-0.03em] text-slate-950'>선수 별 평점</h2>
             <div className='text-xs text-slate-500'>선수 아래 별을 눌러 바로 평점을 남기세요.</div>
           </div>
           {ratingActionError ? <div className='text-sm font-medium text-rose-600'>{ratingActionError}</div> : null}
@@ -847,69 +888,70 @@ function FinishedView({ data }: { data: MatchDetailData }) {
 
       <Card>
         <CardContent className='space-y-4 px-5 pb-5 pt-5 sm:px-6 sm:pb-6 sm:pt-6'>
-          <div className='grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px]'>
-            <div className='space-y-3'>
-              <div className='text-2xl font-black tracking-[-0.03em] text-slate-950'>실시간 평점 코멘트</div>
-              {data.match.ratingComments.length > 0 ? (
-                <>
-                  <div className='space-y-2'>
-                    {pagedRatingComments.map((item) => (
-                      <div key={item.id} className='rounded-[14px] border border-slate-200 bg-slate-50 px-3 py-2'>
-                        <div className='flex flex-wrap items-center gap-2 text-xs text-slate-500'>
-                          <span className='font-semibold text-slate-700'>{item.user}</span>
-                          <span>·</span>
-                          <span>{item.team} {item.playerName}</span>
-                          <span className='rounded-full bg-slate-200 px-2 py-0.5 font-semibold text-slate-700'>{item.score.toFixed(1)}</span>
-                          <span>· {item.createdLabel}</span>
-                        </div>
-                        <div className='mt-1 break-words text-sm text-slate-800'>{item.text}</div>
+          <div className='space-y-3'>
+            <div className='text-2xl font-black tracking-[-0.03em] text-slate-950'>실시간 평점 코멘트</div>
+            {data.match.ratingComments.length > 0 ? (
+              <>
+                <div className='space-y-2'>
+                  {pagedRatingComments.map((item) => (
+                    <div key={item.id} className='rounded-[14px] border border-slate-200 bg-slate-50 px-3 py-2'>
+                      <div className='flex flex-wrap items-center gap-2 text-xs text-slate-500'>
+                        <span className='font-semibold text-slate-700'>{item.user}</span>
+                        <span>·</span>
+                        <span>{item.team} {item.playerName}</span>
+                        <span className='rounded-full bg-slate-200 px-2 py-0.5 font-semibold text-slate-700'>{item.score.toFixed(1)}</span>
+                        <span>· {item.createdLabel}</span>
                       </div>
+                      <div className='mt-1 break-words text-sm text-slate-800'>{item.text}</div>
+                    </div>
+                  ))}
+                </div>
+                {totalRatingCommentPages > 1 ? (
+                  <div className='flex flex-wrap items-center justify-center gap-1.5 pt-1'>
+                    {Array.from({ length: totalRatingCommentPages }, (_, idx) => idx + 1).map((page) => (
+                      <button
+                        key={`rating_comment_page_${page}`}
+                        type='button'
+                        onClick={() => setRatingCommentPage(page)}
+                        className={cn(
+                          'h-8 min-w-8 rounded-full border px-2 text-xs font-semibold',
+                          ratingCommentPage === page
+                            ? 'border-slate-700 bg-slate-700 text-white'
+                            : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300',
+                        )}
+                      >
+                        {page}
+                      </button>
                     ))}
                   </div>
-                  {totalRatingCommentPages > 1 ? (
-                    <div className='flex flex-wrap items-center justify-center gap-1.5 pt-1'>
-                      {Array.from({ length: totalRatingCommentPages }, (_, idx) => idx + 1).map((page) => (
-                        <button
-                          key={`rating_comment_page_${page}`}
-                          type='button'
-                          onClick={() => setRatingCommentPage(page)}
-                          className={cn(
-                            'h-8 min-w-8 rounded-full border px-2 text-xs font-semibold',
-                            ratingCommentPage === page
-                              ? 'border-slate-700 bg-slate-700 text-white'
-                              : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300',
-                          )}
-                        >
-                          {page}
-                        </button>
-                      ))}
-                    </div>
-                  ) : null}
-                </>
-              ) : (
-                <div className='rounded-[14px] border border-slate-200 bg-slate-50 px-3 py-5 text-center text-sm text-slate-500'>
-                  아직 등록된 선수 평점 코멘트가 없습니다.
-                </div>
-              )}
-            </div>
-            <div className='rounded-[16px] border border-slate-200 bg-white p-4 lg:sticky lg:top-4 lg:self-start'>
-              <div className='text-2xl font-black tracking-[-0.03em] text-slate-950'>내 예측 결과</div>
-              <div className='mt-3 grid gap-3'>
-                <div>
-                  <div className='text-xs text-slate-500'>선택 팀</div>
-                  <div className='mt-1 text-lg font-black text-slate-950'>{data.match.myPredictionTeam ?? '미참여'}</div>
-                </div>
-                <div>
-                  <div className='text-xs text-slate-500'>결과</div>
-                  <div className='mt-1 text-lg font-black text-slate-950'>
-                    {data.match.myPredictionSettlementResult === 'hit' ? '적중' : data.match.myPredictionSettlementResult === 'miss' ? '실패' : '대기'}
-                  </div>
-                </div>
-                <div>
-                  <div className='text-xs text-slate-500'>보상</div>
-                  <div className='mt-1 text-lg font-black text-slate-950'>+{data.match.myPredictionSettlementCoins}</div>
-                </div>
+                ) : null}
+              </>
+            ) : (
+              <div className='rounded-[14px] border border-slate-200 bg-slate-50 px-3 py-5 text-center text-sm text-slate-500'>
+                아직 등록된 선수 평점 코멘트가 없습니다.
               </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className='space-y-3 px-5 pb-5 pt-5 sm:px-6 sm:pb-6 sm:pt-6'>
+          <div className='text-2xl font-black tracking-[-0.03em] text-slate-950'>내 예측 결과</div>
+          <div className='grid gap-3 sm:grid-cols-3'>
+            <div className='rounded-[14px] border border-slate-200 bg-slate-50 px-4 py-3'>
+              <div className='text-xs text-slate-500'>선택 팀</div>
+              <div className='mt-1 text-lg font-black text-slate-950'>{data.match.myPredictionTeam ?? '미참여'}</div>
+            </div>
+            <div className='rounded-[14px] border border-slate-200 bg-slate-50 px-4 py-3'>
+              <div className='text-xs text-slate-500'>결과</div>
+              <div className='mt-1 text-lg font-black text-slate-950'>
+                {data.match.myPredictionSettlementResult === 'hit' ? '적중' : data.match.myPredictionSettlementResult === 'miss' ? '실패' : '대기'}
+              </div>
+            </div>
+            <div className='rounded-[14px] border border-slate-200 bg-slate-50 px-4 py-3'>
+              <div className='text-xs text-slate-500'>보상</div>
+              <div className='mt-1 text-lg font-black text-slate-950'>+{data.match.myPredictionSettlementCoins}</div>
             </div>
           </div>
         </CardContent>
@@ -918,7 +960,7 @@ function FinishedView({ data }: { data: MatchDetailData }) {
       <Card>
         <CardContent className='space-y-3 px-5 pb-5 pt-5 sm:px-6 sm:pb-6 sm:pt-6'>
           <div className='flex items-center justify-between gap-3'>
-            <div className='text-sm font-semibold text-slate-700'>공유 카드</div>
+            <div className='text-2xl font-black tracking-[-0.03em] text-slate-950'>공유 카드</div>
             <button
               type='button'
               className='rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-slate-300'
@@ -934,10 +976,10 @@ function FinishedView({ data }: { data: MatchDetailData }) {
               </span>
             </button>
           </div>
-          <div data-share-card='true' ref={shareCardRef} className='mx-auto w-full max-w-[392px] aspect-[4/5] overflow-hidden rounded-[22px] border border-slate-200 bg-[radial-gradient(circle_at_10%_10%,rgba(56,189,248,0.2),transparent_40%),radial-gradient(circle_at_90%_20%,rgba(59,130,246,0.2),transparent_35%),linear-gradient(165deg,#0f172a_0%,#111827_55%,#1e293b_100%)] p-5 text-white'>
+          <div data-share-card='true' ref={shareCardRef} className='mx-auto w-full max-w-[392px] aspect-[4/5] overflow-hidden rounded-[22px] border border-slate-200 bg-[#1C1C1F] p-5 text-white'>
             <div className='flex items-center justify-between gap-3'>
               <div className='inline-flex items-center gap-2'>
-                <span className='inline-flex h-7 w-7 items-center justify-center rounded-full bg-cyan-300 text-[11px] font-black text-sky-950'>GG</span>
+                <span className='inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#5383e8] text-xs font-black tracking-[-0.03em] text-white'>GG</span>
                 <span className='text-sm font-bold text-slate-100'>GG 레이팅</span>
               </div>
               <div className='text-right text-[11px] text-slate-300'>{formatDateTime(data.match.scheduledAt)}</div>
@@ -949,7 +991,7 @@ function FinishedView({ data }: { data: MatchDetailData }) {
               <div className='text-center text-4xl font-black tracking-[-0.03em]'>{data.match.score.replace(' : ', ' - ')}</div>
               <div className='text-center text-lg font-black'>{data.match.teamB}</div>
             </div>
-            <div className='mt-7 rounded-[14px] border border-white/20 bg-white/8 p-3.5'>
+            <div className='mt-7 rounded-[14px] border border-white/20 bg-[#353544] p-3.5'>
               <div className='space-y-5'>
                 {ROLE_ORDER.map((role) => {
                   const left = getPlayerByTeamAndRole(data.match.teamA, role);
@@ -1049,7 +1091,7 @@ function CommentInputBar({
         </Button>
       </div>
       <div className='mt-1 flex items-center justify-between gap-2 px-1'>
-        <div className='text-[11px] text-slate-500'>{parentId ? '답글' : '댓글'}을 남겨보세요</div>
+        <div className='text-[11px] text-slate-500'>{feedback ?? `${parentId ? '답글' : '댓글'}을 남겨보세요`}</div>
         <div className='flex items-center gap-2'>
           {onCancelReply ? (
             <button type='button' className='text-[11px] font-semibold text-slate-500 hover:text-slate-900' onClick={onCancelReply}>
@@ -1058,7 +1100,6 @@ function CommentInputBar({
           ) : null}
         </div>
       </div>
-      {feedback ? <div className='mt-1 px-1 text-[11px] text-slate-500'>{feedback}</div> : null}
     </div>
   );
 }
@@ -1066,12 +1107,14 @@ function CommentInputBar({
 function CommentActions({
   matchId,
   comment,
+  isMine,
   canRecommend,
   canReply,
   onReplyToggle,
 }: {
   matchId: string;
   comment: MatchComment;
+  isMine: boolean;
   canRecommend: boolean;
   canReply: boolean;
   onReplyToggle?: () => void;
@@ -1079,6 +1122,7 @@ function CommentActions({
   const router = useRouter();
   const { status } = useSession();
   const [likePending, setLikePending] = useState(false);
+  const [deletePending, setDeletePending] = useState(false);
 
   return (
     <div className='mt-1 flex items-center gap-2 text-[11px] opacity-0 transition-opacity duration-200 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto'>
@@ -1087,7 +1131,7 @@ function CommentActions({
           type='button'
           disabled={likePending}
           className={cn(
-            'rounded-full border px-2.5 py-1 font-semibold transition',
+            'allow-disabled-cursor rounded-full border px-2.5 py-1 font-semibold transition',
             comment.likedByMe ? 'border-sky-200 bg-sky-50 text-sky-700' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300',
           )}
           onClick={async () => {
@@ -1110,6 +1154,24 @@ function CommentActions({
       {canReply ? (
         <button type='button' className='rounded-full border border-slate-200 bg-white px-2.5 py-1 font-semibold text-slate-600 hover:border-slate-300 hover:text-slate-900' onClick={onReplyToggle}>
           답글{comment.replyCount > 0 ? ` ${comment.replyCount}` : ''}
+        </button>
+      ) : null}
+      {isMine ? (
+        <button
+          type='button'
+          disabled={deletePending}
+          className='allow-disabled-cursor rounded-full border border-slate-200 bg-white px-2.5 py-1 font-semibold text-slate-600 hover:border-slate-300 hover:text-slate-900'
+          onClick={async () => {
+            try {
+              setDeletePending(true);
+              await deleteJson(`/api/matches/${matchId}/comments/${comment.id}`);
+              startTransition(() => router.refresh());
+            } finally {
+              setDeletePending(false);
+            }
+          }}
+        >
+          삭제
         </button>
       ) : null}
     </div>
@@ -1136,7 +1198,8 @@ function CommentBubble({
       <Avatar className='mt-1 h-8 w-8 shrink-0 text-[11px] font-bold text-slate-700'>{getInitials(comment.user)}</Avatar>
       <div className='flex max-w-[64%] flex-col items-start sm:max-w-[56%]'>
         <div className='mb-1 flex w-full items-center gap-2 px-1 text-[11px] text-slate-500'>
-          <div className='truncate font-semibold text-slate-600'>{isMine ? '나' : comment.user}</div>
+          <div className='truncate font-semibold text-slate-600'>{comment.user}</div>
+          {isMine ? <span className='rounded-full bg-[#4A4A59] px-2 py-0.5 font-semibold text-[#F8F8F8]'>내 댓글</span> : null}
           <span className='text-slate-300'>·</span>
           <div className='truncate'>{comment.createdLabel}</div>
         </div>
@@ -1150,7 +1213,7 @@ function CommentBubble({
         </div>
         <div className='mt-1 flex w-full items-center justify-between px-1'>
           {canRecommend ? <div className='text-[11px] font-medium text-slate-500'>추천 {comment.likes}</div> : <span />}
-          <CommentActions matchId={matchId} comment={comment} canRecommend={canRecommend} canReply={canReply} onReplyToggle={onReplyToggle} />
+          <CommentActions matchId={matchId} comment={comment} isMine={isMine} canRecommend={canRecommend} canReply={canReply} onReplyToggle={onReplyToggle} />
         </div>
       </div>
     </div>
@@ -1263,19 +1326,7 @@ function CommentsSection({ data }: { data: MatchDetailData }) {
 }
 
 function BottomFixedCta({ state }: { state: DetailState }) {
-  if (state !== 'LIVE') {
-    return null;
-  }
-
-  return (
-    <div className='fixed inset-x-0 bottom-0 z-40 border-t border-slate-200/80 bg-white/95 px-4 py-3 backdrop-blur sm:px-6'>
-      <div className='mx-auto flex max-w-5xl items-center justify-end'>
-        <button type='button' disabled className='ui-action-secondary min-w-[160px] opacity-70'>
-          경기 진행 중
-        </button>
-      </div>
-    </div>
-  );
+  return null;
 }
 
 export function MatchDetailStateView({ data }: { data: MatchDetailData }) {
@@ -1294,3 +1345,4 @@ export function MatchDetailStateView({ data }: { data: MatchDetailData }) {
     </div>
   );
 }
+

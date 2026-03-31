@@ -1,14 +1,15 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { TopSiteNav } from "@/components/TopSiteNav";
 import { getCurrentUser } from "@/lib/authz";
-import { getMyPageData } from "@/lib/service";
-import { saveNicknameAction } from "./actions";
+import { getMyPageData, getScheduleHubData } from "@/lib/service";
 import { AccountActions } from "./AccountActions";
+import { BioEditor } from "./BioEditor";
 
 const PAGE_SIZE = 5;
 
-type TabKey = "profile" | "metrics" | "predictions" | "season" | "coins" | "history";
+type TabKey = "profile" | "metrics" | "predictions" | "season" | "coins" | "history" | "account";
 type HistoryType = "all" | "rating" | "comment";
 
 type HistoryItem = {
@@ -29,6 +30,7 @@ const TAB_LIST: Array<{ key: TabKey; label: string; description: string }> = [
   { key: "season", label: "시즌예측 내역", description: "장기 예측 참여 내역" },
   { key: "coins", label: "코인 내역", description: "적립/사용 내역" },
   { key: "history", label: "히스토리", description: "평점 + 댓글" },
+  { key: "account", label: "계정관리", description: "닉네임 변경, 회원탈퇴" },
 ];
 
 function readParam(value: string | string[] | undefined) {
@@ -78,6 +80,9 @@ function normalizeHistoryType(value: string | undefined): HistoryType {
 function toParamsObject(raw: Record<string, string | string[] | undefined>) {
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(raw)) {
+    if (key === "success" || key === "error" || key === "setup") {
+      continue;
+    }
     const normalized = readParam(value);
     if (!normalized) {
       continue;
@@ -98,6 +103,11 @@ function buildHref(base: URLSearchParams, patch: Record<string, string | null | 
   }
   const query = params.toString();
   return query ? `/me?${query}` : "/me";
+}
+
+function extractNumericValue(value: string) {
+  const matched = value.replace(/,/g, "").match(/-?\d+(?:\.\d+)?/);
+  return matched ? Number.parseFloat(matched[0]) : 0;
 }
 
 function Pagination({
@@ -144,9 +154,12 @@ export default async function MyPage({
 
   const rawParams = await searchParams;
   const urlParams = toParamsObject(rawParams);
-  const data = await getMyPageData(user.id);
+  const [data, hubData] = await Promise.all([
+    getMyPageData(user.id),
+    getScheduleHubData(user.id),
+  ]);
+  const welcomeName = data.profile.nickname?.trim() || "소환사";
 
-  const setupMode = readParam(rawParams.setup) === "1";
   const success = readParam(rawParams.success);
   const error = readParam(rawParams.error);
 
@@ -172,6 +185,34 @@ export default async function MyPage({
   const seasonPredictionSlice = paginate(filteredSeasonPredictions, seasonPredictionPage);
 
   const ledgerSlice = paginate(data.pointLedger, ledgerPage);
+  const keyPredictionMetrics = [
+    { label: "적중률", value: `${data.profile.predictionAccuracy}%` },
+    { label: "총 예측", value: `${data.profile.predictionStats.total}회` },
+    { label: "연속 적중", value: `${data.profile.predictionStats.streak}회` },
+  ];
+  const accuracyComparison = data.predictionComparison.find((item) => item.label === "적중률") ?? null;
+  const hasPredictionData = data.profile.predictionStats.total > 0;
+  const accuracyGraphData = hasPredictionData && accuracyComparison
+    ? {
+        title: accuracyComparison.label,
+        summary: accuracyComparison.summary,
+        delta: accuracyComparison.delta,
+        bars: [
+          { label: "내 기록", value: accuracyComparison.myValue, color: "#5383E8" },
+          { label: "참여자 평균", value: accuracyComparison.averageValue, color: "#7A7A92" },
+        ],
+        preview: false,
+      }
+    : {
+        title: "적중률",
+        summary: "예측에 참여하면 실제 적중률 비교가 여기에 표시됩니다.",
+        delta: "미리보기",
+        bars: [
+          { label: "내 기록", value: "58%", color: "#5383E8" },
+          { label: "참여자 평균", value: "46%", color: "#7A7A92" },
+        ],
+        preview: true,
+      };
 
   const mergedHistory = [
     ...data.ratings.map((rating): HistoryItem => ({
@@ -206,29 +247,29 @@ export default async function MyPage({
     });
 
   return (
-    <main className="app-shell px-4 py-8 sm:px-6">
-      <div className="mx-auto max-w-7xl space-y-6">
+    <div>
+      <TopSiteNav
+        active="match"
+        notifications={hubData.notifications}
+        unreadNotificationCount={hubData.unreadNotificationCount}
+      />
+    <main className="mypage-theme min-h-screen bg-[#1C1C1F] px-4 py-8 sm:px-6">
+      <div className="mx-auto max-w-5xl space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-
-              <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">마이페이지</h1>
-          </div>
+          <div />
           <div className="flex flex-wrap items-center gap-2">
-            <Link
-              href="/"
-              className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-            >
-              홈으로 돌아가기
-            </Link>
-            <Link
-              href="/notifications"
-              className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-            >
-              알림 보기
-            </Link>
-            <AccountActions hasNickname={Boolean(data.profile.hasNickname)} />
+            <AccountActions
+              hasNickname={Boolean(data.profile.hasNickname)}
+              showNickname={false}
+              showDelete={false}
+              showLogout={true}
+            />
           </div>
         </div>
+        <section className="rounded-2xl bg-[#31313C] px-5 py-4">
+          <p className="text-base font-medium text-[#FFFFFF]">환영합니다, {welcomeName}님!</p>
+          <p className="mt-1 text-sm text-[#D4DCFF]">오늘도 예측과 평점을 재미있게 즐겨보세요.</p>
+        </section>
 
         {success ? (
           <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
@@ -239,45 +280,6 @@ export default async function MyPage({
           <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
             {decodeURIComponent(error)}
           </div>
-        ) : null}
-
-        {setupMode || !data.profile.hasNickname ? (
-          <section className="rounded-[22px] border border-sky-100 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)] p-4 shadow-[0_10px_24px_rgba(15,23,42,0.06)] sm:p-5">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0">
-                <div className="mt-1 text-base font-black text-slate-950">
-                  {data.profile.hasNickname ? "닉네임 변경" : "닉네임 설정"}
-                </div>
-                <p className="mt-1 text-xs text-slate-500">2~16자 · 한글/영문/숫자/밑줄/하이픈</p>
-              </div>
-              <form action={saveNicknameAction} className="flex w-full gap-2 sm:max-w-[520px]">
-                <input
-                  type="text"
-                  name="nickname"
-                  required
-                  minLength={2}
-                  maxLength={16}
-                  defaultValue={data.profile.hasNickname ? data.profile.nickname : ""}
-                  placeholder="새 닉네임 입력"
-                  className="h-11 min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-950 outline-none transition focus:border-sky-400"
-                />
-                <button
-                  type="submit"
-                  className="inline-flex h-11 shrink-0 cursor-pointer items-center justify-center rounded-xl bg-sky-600 px-4 text-sm font-semibold text-white transition hover:bg-sky-700"
-                >
-                  저장
-                </button>
-                {setupMode ? (
-                  <Link
-                    href="/me"
-                    className="inline-flex h-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
-                  >
-                    닫기
-                  </Link>
-                ) : null}
-              </form>
-            </div>
-          </section>
         ) : null}
 
         <div className="grid gap-6 xl:grid-cols-[220px_minmax(0,1fr)]">
@@ -295,7 +297,6 @@ export default async function MyPage({
                     }
                   >
                     <div className={currentTab === tab.key ? "text-sm font-bold text-sky-800" : "text-sm font-semibold text-slate-800"}>{tab.label}</div>
-                    <div className="mt-0.5 text-xs text-slate-500">{tab.description}</div>
                   </Link>
                 ))}
               </div>
@@ -322,40 +323,45 @@ export default async function MyPage({
             {currentTab === "profile" ? (
               <div className="space-y-5">
                 <div>
-  
-                  <h2 className="mt-2 text-2xl font-black text-slate-950">프로필 핵심 요약</h2>
+                  <h2 className="mt-2 text-2xl font-black text-slate-950">프로필</h2>
                 </div>
 
                 <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-5 py-5">
-                  <div className="text-sm font-semibold text-sky-700">{data.profile.hasNickname ? "공개 프로필" : "닉네임 설정 필요"}</div>
-                  <div className="mt-2 text-3xl font-black text-slate-950">{data.profile.nickname}</div>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">{data.profile.bio ?? "아직 소개 문구가 없습니다."}</p>
+                  <div className="text-3xl font-black text-slate-950">{data.profile.nickname}</div>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    {data.profile.bio ?? "아직 소개문구가 없습니다. 나를 한 줄로 소개해 보세요."}
+                  </p>
+                </div>
+
+                <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-5 py-5">
+                  <div className="text-sm font-semibold text-slate-950">소개문구 작성하기</div>
+                  <BioEditor initialBio={data.profile.bio ?? ""} />
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                    <div className="text-xs text-slate-500">보유 코인</div>
-                    <div className="mt-1 text-2xl font-black text-slate-950">{data.profile.points.toLocaleString()}</div>
+                  <div className="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4">
+                    <div className="text-[11px] uppercase tracking-[0.12em] text-slate-500">보유 코인</div>
+                    <div className="mt-2 text-2xl font-black text-slate-950">{data.profile.points.toLocaleString()}</div>
                   </div>
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                    <div className="text-xs text-slate-500">레벨</div>
-                    <div className="mt-1 text-2xl font-black text-slate-950">Lv.{data.profile.level}</div>
+                  <div className="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4">
+                    <div className="text-[11px] uppercase tracking-[0.12em] text-slate-500">레벨</div>
+                    <div className="mt-2 text-2xl font-black text-slate-950">Lv.{data.profile.level}</div>
                   </div>
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                    <div className="text-xs text-slate-500">총 예측</div>
-                    <div className="mt-1 text-2xl font-black text-slate-950">{data.profile.predictionStats.total}</div>
+                  <div className="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4">
+                    <div className="text-[11px] uppercase tracking-[0.12em] text-slate-500">총 예측</div>
+                    <div className="mt-2 text-2xl font-black text-slate-950">{data.profile.predictionStats.total}</div>
                   </div>
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                    <div className="text-xs text-slate-500">적중률</div>
-                    <div className="mt-1 text-2xl font-black text-slate-950">{data.profile.predictionAccuracy}%</div>
+                  <div className="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4">
+                    <div className="text-[11px] uppercase tracking-[0.12em] text-slate-500">적중률</div>
+                    <div className="mt-2 text-2xl font-black text-slate-950">{data.profile.predictionAccuracy}%</div>
                   </div>
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                    <div className="text-xs text-slate-500">적중</div>
-                    <div className="mt-1 text-2xl font-black text-slate-950">{data.profile.predictionStats.hit}</div>
+                  <div className="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4">
+                    <div className="text-[11px] uppercase tracking-[0.12em] text-slate-500">적중</div>
+                    <div className="mt-2 text-2xl font-black text-slate-950">{data.profile.predictionStats.hit}</div>
                   </div>
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                    <div className="text-xs text-slate-500">연속 적중</div>
-                    <div className="mt-1 text-2xl font-black text-slate-950">{data.profile.predictionStats.streak}</div>
+                  <div className="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4">
+                    <div className="text-[11px] uppercase tracking-[0.12em] text-slate-500">연속 적중</div>
+                    <div className="mt-2 text-2xl font-black text-slate-950">{data.profile.predictionStats.streak}</div>
                   </div>
                 </div>
               </div>
@@ -364,47 +370,55 @@ export default async function MyPage({
             {currentTab === "metrics" ? (
               <div className="space-y-6">
                 <div>
-  
-                  <h2 className="mt-2 text-2xl font-black text-slate-950">내 예측 지표</h2>
+                  <p className="mt-2 text-sm text-slate-500">중요한 기록만 남기고, 평균과의 차이는 그래프로 정리했어요.</p>
                 </div>
 
-                <div className="grid gap-3 md:grid-cols-2">
-                  {data.predictionInsights.map((item) => (
-                    <div key={item.label} className="rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-4">
+                <div className="grid gap-3 md:grid-cols-3">
+                  {keyPredictionMetrics.map((item) => (
+                    <div key={item.label} className="rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-5">
                       <div className="text-sm text-slate-500">{item.label}</div>
-                      <div className="mt-2 text-2xl font-black text-slate-950">{item.value}</div>
-                      <div className="mt-2 text-sm leading-6 text-slate-600">{item.description}</div>
+                      <div className="mt-2 text-[30px] font-black leading-none text-slate-950">{item.value}</div>
                     </div>
                   ))}
                 </div>
 
                 <div>
-  
                   <h3 className="mt-2 text-xl font-black text-slate-950">내 예측 vs 참여자 평균</h3>
+                  <p className="mt-2 text-sm text-slate-500">내 기록과 평균을 같은 기준선에서 비교할 수 있어요.</p>
                 </div>
-                <div className="space-y-3">
-                  {data.predictionComparison.map((item) => (
-                    <div key={item.label} className="rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-4">
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                          <div className="font-semibold text-slate-950">{item.label}</div>
-                          <div className="mt-2 text-sm leading-6 text-slate-600">{item.summary}</div>
-                        </div>
-                        <div className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-sky-700">{item.delta}</div>
+                {accuracyGraphData ? (
+                  <div className="rounded-[22px] border border-slate-200 bg-slate-50 px-5 py-5">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <div className="font-semibold text-slate-950">{accuracyGraphData.title}</div>
+                        <div className="mt-1 text-sm leading-6 text-slate-600">{accuracyGraphData.summary}</div>
                       </div>
-                      <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                        <div className="rounded-2xl border border-slate-200 bg-white px-3 py-3">
-                          <div className="text-xs text-slate-500">내 기록</div>
-                          <div className="mt-1 font-bold text-slate-950">{item.myValue}</div>
-                        </div>
-                        <div className="rounded-2xl border border-slate-200 bg-white px-3 py-3">
-                          <div className="text-xs text-slate-500">참여자 평균</div>
-                          <div className="mt-1 font-bold text-slate-950">{item.averageValue}</div>
-                        </div>
-                      </div>
+                      <div className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-sky-700">{accuracyGraphData.delta}</div>
                     </div>
-                  ))}
-                </div>
+                    {accuracyGraphData.preview ? (
+                      <div className="mt-3 text-xs font-medium text-slate-500">예측 1회 이상 참여하면 실제 데이터로 자동 변경됩니다.</div>
+                    ) : null}
+                    <div className="mt-6 flex items-end justify-center gap-10 rounded-[20px] bg-[#3A3A47] px-4 py-6">
+                      {accuracyGraphData.bars.map((bar) => {
+                        const numericValue = Math.min(Math.max(extractNumericValue(bar.value), 0), 100);
+
+                        return (
+                          <div key={bar.label} className="flex w-24 flex-col items-center gap-3">
+                            <div className="text-lg font-black text-slate-950">{bar.value}</div>
+                            <div className="flex h-40 w-12 items-end overflow-hidden rounded-full bg-[#4A4A5A]">
+                              <div
+                                className="w-full rounded-full"
+                                style={{ height: `${Math.max(numericValue, numericValue > 0 ? 12 : 0)}%`, backgroundColor: bar.color }}
+                                aria-label={`${bar.label} ${bar.value}`}
+                              />
+                            </div>
+                            <div className="text-sm font-medium text-slate-500">{bar.label}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
               </div>
             ) : null}
 
@@ -562,6 +576,24 @@ export default async function MyPage({
               </div>
             ) : null}
 
+            {currentTab === "account" ? (
+              <div className="space-y-5">
+                <div>
+                  <h2 className="mt-2 text-xl font-black text-slate-950">계정관리</h2>
+                  <p className="mt-1 text-sm text-slate-500">닉네임 변경과 회원탈퇴를 이곳에서 진행할 수 있습니다.</p>
+                </div>
+                <div className="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4">
+                  <AccountActions
+                    hasNickname={Boolean(data.profile.hasNickname)}
+                    showLogout={false}
+                    showNickname={true}
+                    showDelete={true}
+                    currentNickname={data.profile.nickname ?? ""}
+                  />
+                </div>
+              </div>
+            ) : null}
+
             {currentTab === "history" ? (
               <div>
                 <div className="flex items-end justify-between gap-3">
@@ -642,5 +674,6 @@ export default async function MyPage({
         </div>
       </div>
     </main>
+    </div>
   );
 }

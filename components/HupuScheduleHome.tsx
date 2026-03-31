@@ -52,7 +52,7 @@ const LABELS = {
   team: "\uD300",
   record: "\uC2B9/\uD328",
   set: "\uC138\uD2B8",
-  leaderboardTitle: "\uC608\uCE21 \uB7AD\uD0B9",
+  leaderboardTitle: "\uCF54\uC778\uB7AD\uD0B9",
   nickname: "\uB2C9\uB124\uC784",
   hit: "\uC801\uC911",
   fail: "\uC2E4\uD328",
@@ -158,20 +158,34 @@ function getKickoffLabel(match: MatchData) {
 
 function getStatusTone(status: MatchData["status"] | MatchListItem["status"], liveLike = false) {
   if (status === "finished") {
-    return "bg-slate-100 text-slate-700";
+    return "bg-[#4A4A59] text-white";
   }
 
-  return liveLike ? "bg-amber-100 text-amber-800" : "bg-sky-100 text-sky-800";
+  return liveLike ? "bg-[#6a4b1f] text-white" : "bg-[#4A5978] text-white";
 }
 
 function getScheduleStatusTone(status: MatchData["status"] | MatchListItem["status"], liveLike = false) {
   if (status === "finished") {
-    return "border border-slate-200 bg-slate-100 text-slate-700";
+    return "border border-[#5b5b6c] bg-[#4A4A59] text-white";
   }
 
   return liveLike
-    ? "border border-slate-900 bg-slate-900 text-white"
-    : "border border-slate-300 bg-white text-slate-700";
+    ? "border border-[#6a4b1f] bg-[#6a4b1f] text-white"
+    : "border border-[#4C5D7A] bg-[#4C5D7A] text-white";
+}
+
+function LiveBadge({ compact = false }: { compact?: boolean }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full bg-transparent text-[#FF5A67]",
+        compact ? "gap-1.5 px-2.5 py-1 text-[11px] font-bold" : "gap-2 px-3 py-1.5 text-[12px] font-bold",
+      )}
+    >
+      <span className={cn("live-dot rounded-full bg-[#FF4D5E]", compact ? "h-2 w-2" : "h-2.5 w-2.5")} />
+      <span className="tracking-[0.08em]">LIVE</span>
+    </span>
+  );
 }
 
 function getPrimaryActionLabel(match: MatchData) {
@@ -188,20 +202,6 @@ function getPrimaryActionLabel(match: MatchData) {
 
 function getSecondaryActionLabel(match: MatchData) {
   return match.status === "finished" ? LABELS.setRatingsView : LABELS.reactionsView;
-}
-
-function getPastMatchLabel(match: MatchData) {
-  const diffMs = new Date(match.serverNow).getTime() - new Date(match.scheduledAt).getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays <= 1) {
-    return LABELS.yesterdayMatch;
-  }
-  if (diffDays <= 7) {
-    return LABELS.thisWeekMatch;
-  }
-
-  return LABELS.lastWeekMatch;
 }
 
 function formatMatchTime(value: string) {
@@ -229,23 +229,23 @@ function ActionPanel({ data }: { data: ScheduleHubData }) {
   const { standings, predictionLeaderboard } = data;
 
   return (
-    <aside className="space-y-4 xl:sticky xl:top-24 xl:pt-[78px]">
-      <section className="rounded-[24px] border border-slate-200/80 bg-white p-3 shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
-        <h3 className="text-lg font-black text-slate-950">{LABELS.standingsTitle}</h3>
-        <div className="mt-3 overflow-hidden rounded-2xl border border-slate-200">
-          <div className="grid grid-cols-[34px_1fr_70px] bg-slate-50 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+    <aside className="space-y-4 xl:sticky xl:top-24">
+      <section className="rounded-[24px] bg-[#31313C] p-3 text-white shadow-[0_12px_30px_rgba(2,6,23,0.28)]">
+        <h3 className="text-lg font-black text-white">{LABELS.standingsTitle}</h3>
+        <div className="mt-3 overflow-hidden rounded-2xl">
+          <div className="grid grid-cols-[34px_1fr_70px] bg-[#3A3A47] px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-white">
             <div>{LABELS.rank}</div>
             <div>{LABELS.team}</div>
             <div className="text-right">{LABELS.record}</div>
           </div>
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-[#474756]">
             {standings.map((team) => (
-              <div key={team.teamCode} className="grid grid-cols-[34px_1fr_70px] items-center px-3 py-2.5 text-sm text-slate-700">
-                <div className="font-black text-slate-950">{team.rank}</div>
+              <div key={team.teamCode} className="grid grid-cols-[34px_1fr_70px] items-center px-3 py-2.5 text-sm text-white">
+                <div className="font-black text-white">{team.rank}</div>
                 <div className="min-w-0">
-                  <div className="font-bold text-slate-950">{team.teamCode}</div>
+                  <div className="font-bold text-white">{team.teamCode}</div>
                 </div>
-                <div className="text-right font-semibold text-slate-700">
+                <div className="text-right font-semibold text-white">
                   {team.wins}/{team.losses}
                 </div>
               </div>
@@ -254,27 +254,26 @@ function ActionPanel({ data }: { data: ScheduleHubData }) {
         </div>
       </section>
 
-      <section className="rounded-[24px] border border-slate-200/80 bg-white p-3 shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
-        <h3 className="text-lg font-black text-slate-950">{LABELS.leaderboardTitle}</h3>
-        <div className="mt-3 overflow-hidden rounded-2xl border border-slate-200">
-          <div className="grid grid-cols-[34px_1fr_56px_52px] bg-slate-50 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+      <section className="rounded-[24px] bg-[#31313C] p-3 text-white shadow-[0_12px_30px_rgba(2,6,23,0.28)]">
+        <h3 className="text-lg font-black text-white">{LABELS.leaderboardTitle}</h3>
+        <div className="mt-3 overflow-hidden rounded-2xl">
+          <div className="grid grid-cols-[34px_1fr_56px] bg-[#3A3A47] px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-white">
             <div>{LABELS.rank}</div>
             <div>{LABELS.nickname}</div>
             <div className="text-right">{LABELS.coins}</div>
-            <div className="text-right">{LABELS.accuracy}</div>
           </div>
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-[#474756]">
             {predictionLeaderboard.map((user) => (
-              <div key={user.userId} className="grid grid-cols-[34px_1fr_56px_52px] items-center px-3 py-2.5 text-sm text-slate-700">
-                <div className="font-black text-slate-950">{user.rank}</div>
+              <div key={user.userId} className="grid grid-cols-[34px_1fr_56px] items-center px-3 py-2.5 text-sm text-white">
+                <div className="font-black text-white">{user.rank}</div>
                 <div className="min-w-0">
                   <PublicUserTrigger
                     summary={user.userSummary}
                     label={user.nickname}
-                    className="block truncate text-left font-bold text-slate-950"
+                    className="block max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-left font-bold text-white"
                     align="right"
                   />
-                  <div className="text-[11px] text-slate-500">
+                  <div className="truncate text-[11px] text-[#d6d6e5]">
                     {user.hit}
                     {LABELS.hit}
                     {" \u00B7 "}
@@ -282,8 +281,7 @@ function ActionPanel({ data }: { data: ScheduleHubData }) {
                     {LABELS.fail}
                   </div>
                 </div>
-                <div className="text-right font-semibold text-slate-700">{user.points}</div>
-                <div className="text-right font-semibold text-slate-700">{user.accuracy}%</div>
+                <div className="text-right font-semibold text-white">{user.points}</div>
               </div>
             ))}
           </div>
@@ -304,19 +302,19 @@ function ScheduleRow({ match, revealSpoiler }: { match: MatchListItem; revealSpo
   return (
     <Link
       href={`/matches/${match.id}`}
-      className="grid gap-3 border-b border-slate-100 px-5 py-4 transition hover:bg-slate-50 sm:grid-cols-[80px_minmax(0,1fr)] sm:items-stretch sm:px-6"
+      className="grid gap-3 border-b border-[#474756] px-5 py-4 transition hover:bg-[#3A3A47] sm:grid-cols-[80px_minmax(0,1fr)] sm:items-stretch sm:px-6"
     >
       <div className="flex flex-col justify-start pt-1">
-        <div className="text-[13px] font-bold leading-none tracking-[-0.02em] text-slate-950 sm:text-[14px]">{match.timeLabel}</div>
-        <div className="mt-2 text-[11px] font-medium leading-5 text-slate-500">{match.stage}</div>
+        <div className="text-[13px] font-bold leading-none tracking-[-0.02em] text-white sm:text-[14px]">{match.timeLabel}</div>
+        <div className="mt-2 text-[11px] font-medium leading-5 text-[#d6d6e5]">{match.stage}</div>
       </div>
-      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center rounded-[24px] border border-slate-200 bg-white px-4 py-4">
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center rounded-[24px] bg-[#31313C] px-4 py-4">
         <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 sm:gap-5">
-          <span className="shrink-0 text-[13px] font-semibold text-slate-500">{match.predictionRateA}%</span>
-          <span className="truncate text-center text-[19px] font-black leading-none tracking-[-0.03em] text-slate-950 sm:text-[21px]">{match.teamA}</span>
+          <span className="shrink-0 text-[13px] font-semibold text-[#d6d6e5]">{match.predictionRateA}%</span>
+          <span className="truncate text-center text-[19px] font-black leading-none tracking-[-0.03em] text-white sm:text-[21px]">{match.teamA}</span>
           <span
             className={cn(
-              "w-8 text-center text-[24px] font-black leading-none tracking-[-0.03em] text-slate-950 sm:w-9 sm:text-[26px]",
+              "w-8 text-center text-[24px] font-black leading-none tracking-[-0.03em] text-white sm:w-9 sm:text-[26px]",
               hideScore ? "blur-[6px] opacity-75 select-none" : "",
             )}
           >
@@ -324,21 +322,25 @@ function ScheduleRow({ match, revealSpoiler }: { match: MatchListItem; revealSpo
           </span>
         </div>
         <div className="px-4">
-          <span className={cn("inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold", getScheduleStatusTone(match.status, liveLike))}>
-            {statusLabel}
-          </span>
+          {liveLike ? (
+            <LiveBadge compact />
+          ) : (
+            <span className={cn("inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold", getScheduleStatusTone(match.status, liveLike))}>
+              {statusLabel}
+            </span>
+          )}
         </div>
         <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 sm:gap-5">
           <span
             className={cn(
-              "w-8 text-center text-[24px] font-black leading-none tracking-[-0.03em] text-slate-950 sm:w-9 sm:text-[26px]",
+              "w-8 text-center text-[24px] font-black leading-none tracking-[-0.03em] text-white sm:w-9 sm:text-[26px]",
               hideScore ? "blur-[6px] opacity-75 select-none" : "",
             )}
           >
             {rightScore}
           </span>
-          <span className="truncate text-center text-[19px] font-black leading-none tracking-[-0.03em] text-slate-950 sm:text-[21px]">{match.teamB}</span>
-          <span className="shrink-0 text-[13px] font-semibold text-slate-500">{match.predictionRateB}%</span>
+          <span className="truncate text-center text-[19px] font-black leading-none tracking-[-0.03em] text-white sm:text-[21px]">{match.teamB}</span>
+          <span className="shrink-0 text-[13px] font-semibold text-[#d6d6e5]">{match.predictionRateB}%</span>
         </div>
       </div>
     </Link>
@@ -360,77 +362,92 @@ function TodayMatchCard({ match, forcePredictCta = false }: { match: MatchData; 
   return (
     <Link
       href={`/matches/${match.id}`}
-      className="group block rounded-[30px] border border-sky-100 bg-white px-5 py-5 shadow-[0_16px_40px_rgba(14,165,233,0.10)] transition-[transform,border-color,box-shadow] hover:-translate-y-0.5 hover:border-sky-200 hover:shadow-[0_22px_54px_rgba(14,165,233,0.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200 focus-visible:ring-offset-2"
+      className="group block rounded-[30px] bg-[#31313C] px-5 py-5 text-white shadow-[0_16px_40px_rgba(2,6,23,0.28)] transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[0_22px_54px_rgba(2,6,23,0.34)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200 focus-visible:ring-offset-2"
     >
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="text-[13px] font-semibold tracking-[-0.02em] text-slate-400">{formatMatchTime(match.scheduledAt)}</div>
-          <div className="mt-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-sky-600">{match.stage}</div>
+          <div className="text-[13px] font-semibold tracking-[-0.02em] text-[#d6d6e5]">{formatMatchTime(match.scheduledAt)}</div>
+          <div className="mt-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white">{match.stage}</div>
         </div>
-        <div className={cn("shrink-0 rounded-full px-3 py-1.5 text-[11px] font-semibold", getStatusTone(match.status, liveLike))}>
-          {getKickoffLabel(match)}
-        </div>
+        {liveLike ? (
+          <LiveBadge />
+        ) : (
+          <div className={cn("shrink-0 rounded-full px-3 py-1.5 text-[11px] font-semibold", getStatusTone(match.status, liveLike))}>
+            {getKickoffLabel(match)}
+          </div>
+        )}
       </div>
 
       <div className="mt-8 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
         <div className="min-w-0 text-center">
-          <div className="truncate text-[28px] font-black leading-none tracking-[-0.045em] text-slate-950 sm:text-[34px]">{match.teamA}</div>
+          <div className="truncate text-[28px] font-black leading-none tracking-[-0.045em] text-white sm:text-[34px]">{match.teamA}</div>
         </div>
-        <div className="px-2 text-[24px] font-black tracking-[-0.04em] text-slate-300 sm:text-[28px]">VS</div>
+        <div className="px-2 text-[24px] font-black tracking-[-0.04em] text-white sm:text-[28px]">VS</div>
         <div className="min-w-0 text-center">
-          <div className="truncate text-[28px] font-black leading-none tracking-[-0.045em] text-slate-950 sm:text-[34px]">{match.teamB}</div>
+          <div className="truncate text-[28px] font-black leading-none tracking-[-0.045em] text-white sm:text-[34px]">{match.teamB}</div>
         </div>
       </div>
 
-        <div className="mt-6 rounded-[24px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] px-5 py-5">
+        <div className="mt-6 rounded-[24px] bg-[#31313C] px-5 py-5">
         <div className="flex items-center justify-between gap-3">
-          <span className="inline-flex rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-[11px] font-bold tracking-[-0.01em] text-sky-700">
+          <span className="inline-flex rounded-full border border-[#5b5b6c] bg-[#4A4A59] px-3 py-1 text-[11px] font-bold tracking-[-0.01em] text-white">
             {LABELS.fanPredictionCurrent}
           </span>
         </div>
         <div className="mt-4 flex items-center justify-between">
-          <div className="text-[30px] font-black tracking-[-0.04em] text-sky-600">{match.predictionSummary.teamA}%</div>
-          <div className="text-[30px] font-black tracking-[-0.04em] text-slate-950">{match.predictionSummary.teamB}%</div>
+          <div className="text-[30px] font-black tracking-[-0.04em] text-white">{match.predictionSummary.teamA}%</div>
+          <div className="text-[30px] font-black tracking-[-0.04em] text-white">{match.predictionSummary.teamB}%</div>
         </div>
-        <div className="mt-4 h-4 overflow-hidden rounded-full bg-slate-100">
+        <div className="relative mt-4 h-4 overflow-hidden rounded-full bg-[#2A2A34]">
           <div className="flex h-full">
-            <div className="h-full rounded-l-full bg-[linear-gradient(90deg,#0ea5e9_0%,#38bdf8_100%)]" style={{ width: `${match.predictionSummary.teamA}%` }} />
-            <div className="h-full rounded-r-full bg-[linear-gradient(90deg,#1e3a8a_0%,#0f172a_100%)]" style={{ width: `${match.predictionSummary.teamB}%` }} />
+            <div className="h-full bg-[#234D74]" style={{ width: `${match.predictionSummary.teamA}%` }} />
+            <div className="h-full bg-[#672C44]" style={{ width: `${match.predictionSummary.teamB}%` }} />
           </div>
+          {match.predictionSummary.teamA > 0 && match.predictionSummary.teamA < 100 ? (
+            <div
+              className="pointer-events-none absolute inset-y-0 w-4 -translate-x-1/2"
+              style={{
+                left: `${match.predictionSummary.teamA}%`,
+                background: "linear-gradient(90deg, #234D74 0%, #672C44 100%)",
+                filter: "blur(1.6px)",
+                opacity: 0.9,
+              }}
+            />
+          ) : null}
         </div>
-        <div className="mt-3 flex items-center justify-between text-sm text-slate-500">
+        <div className="mt-3 flex items-center justify-between text-sm text-[#d6d6e5]">
           <span>{LABELS.voteCount} {match.predictionSummary.totalVotes}</span>
           {match.status !== "finished" ? <span>{liveLike ? LABELS.inProgress : LABELS.scheduledMatch}</span> : null}
         </div>
-        <div className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-[22px] bg-sky-500 px-4 text-lg font-black text-white shadow-[0_12px_26px_rgba(14,165,233,0.22)] transition group-hover:bg-sky-600">
+        <div className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-[22px] bg-[#5383E8] px-4 text-lg font-normal text-white shadow-[0_12px_26px_rgba(83,131,232,0.24)] transition group-hover:bg-[#4171D6]">
           {forcePredictCta ? "승부예측하기" : getPrimaryActionLabel(match)}
         </div>
-        <div className="mt-4 rounded-2xl bg-white px-4 py-3">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+        <div className="mt-4 rounded-2xl bg-[#3A3A47] px-4 py-3">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#d6d6e5]">
             {isFinished ? LABELS.latestRatingComments : LABELS.latestMatchComments}
           </div>
           <div className="mt-2 space-y-1.5">
             {isFinished ? (
               ratingCommentPreview.length > 0 ? (
                 ratingCommentPreview.map((item) => (
-                  <div key={item.id} className="flex min-w-0 items-center gap-2 text-xs text-slate-600">
-                    <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
+                  <div key={item.id} className="flex min-w-0 items-center gap-2 text-xs text-white">
+                    <span className="shrink-0 rounded-full bg-[#4A4A59] px-2 py-0.5 text-[11px] font-semibold text-white">
                       {item.playerName} {item.score.toFixed(1)}
                     </span>
                     <span className="min-w-0 flex-1 truncate whitespace-nowrap">{item.text}</span>
                   </div>
                 ))
               ) : (
-                <div className="text-xs text-slate-500">{LABELS.noRatingComments}</div>
+                <div className="text-xs text-[#d6d6e5]">{LABELS.noRatingComments}</div>
               )
             ) : matchCommentPreview.length > 0 ? (
               matchCommentPreview.map((item) => (
-                <div key={item.id} className="flex min-w-0 items-center gap-2 text-xs text-slate-600">
+                <div key={item.id} className="flex min-w-0 items-center gap-2 text-xs text-white">
                   <span className="min-w-0 flex-1 truncate whitespace-nowrap">{item.text}</span>
                 </div>
               ))
             ) : (
-              <div className="text-xs text-slate-500">{LABELS.noMatchComments}</div>
+              <div className="text-xs text-[#d6d6e5]">{LABELS.noMatchComments}</div>
             )}
           </div>
         </div>
@@ -451,45 +468,44 @@ function PastMatchCard({ match, revealSpoiler }: { match: MatchData; revealSpoil
     <Link
       href={`/matches/${match.id}`}
       aria-label={`${match.teamA} vs ${match.teamB} 경기 상세 보기`}
-      className="block rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_12px_32px_rgba(15,23,42,0.06)] transition-[background,border-color,box-shadow] hover:border-sky-200 hover:bg-slate-50/70 hover:shadow-[0_16px_40px_rgba(15,23,42,0.10)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200 focus-visible:ring-offset-2"
+      className="block rounded-[28px] bg-[#31313C] p-5 text-white shadow-[0_12px_32px_rgba(2,6,23,0.28)] transition-[background,box-shadow] hover:bg-[#3A3A47] hover:shadow-[0_16px_40px_rgba(2,6,23,0.34)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200 focus-visible:ring-offset-2"
     >
-      <div className="flex items-center justify-between gap-3">
-        <div className="text-[12px] font-semibold uppercase tracking-[0.18em] text-rose-600">{getPastMatchLabel(match)}</div>
-        <div className="text-[12px] text-slate-500">{match.date}</div>
+      <div className="flex items-center justify-end">
+        <div className="text-[12px] text-[#d6d6e5]">{match.date}</div>
       </div>
       <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
-        <div className="truncate text-[20px] font-black text-slate-950 sm:text-[22px]">{match.teamA}</div>
-        <div className={cn("text-[20px] font-black tracking-[-0.03em] text-slate-950 transition sm:text-[24px]", revealSpoiler ? "" : "blur-[6px] opacity-75 select-none")}>
+        <div className="truncate text-[20px] font-black text-white sm:text-[22px]">{match.teamA}</div>
+        <div className={cn("text-[20px] font-black tracking-[-0.03em] text-white transition sm:text-[24px]", revealSpoiler ? "" : "blur-[6px] opacity-75 select-none")}>
           {scoreLabel}
         </div>
-        <div className="truncate text-right text-[17px] font-black text-slate-950 sm:text-[18px]">{match.teamB}</div>
+        <div className="truncate text-right text-[17px] font-black text-white sm:text-[18px]">{match.teamB}</div>
       </div>
       <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-center">
-          <div className="text-[11px] text-slate-500">평점 참여</div>
-          <div className="mt-1 font-bold text-slate-950">{match.totalRatings}</div>
+        <div className="rounded-2xl bg-[#3A3A47] px-3 py-3 text-center">
+          <div className="text-[11px] text-[#d6d6e5]">평점 참여</div>
+          <div className="mt-1 font-bold text-white">{match.totalRatings}</div>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-center">
-          <div className="text-[11px] text-slate-500">{LABELS.comments}</div>
-          <div className="mt-1 font-bold text-slate-950">{match.comments}</div>
+        <div className="rounded-2xl bg-[#3A3A47] px-3 py-3 text-center">
+          <div className="text-[11px] text-[#d6d6e5]">{LABELS.comments}</div>
+          <div className="mt-1 font-bold text-white">{match.comments}</div>
         </div>
       </div>
 
-      <div className="mt-4 rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
-        <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">최고 평점 선수</div>
+      <div className="mt-4 rounded-[24px] bg-[#3A3A47] px-4 py-4">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#d6d6e5]">최고 평점 선수</div>
         {topPlayer ? (
-          <div className={cn("mt-3 flex items-center justify-between gap-3 rounded-2xl bg-white px-3 py-2.5 transition", revealSpoiler ? "" : "blur-[6px] opacity-75 select-none")}>
+          <div className={cn("mt-3 flex items-center justify-between gap-3 rounded-2xl bg-[#31313C] px-3 py-2.5 transition", revealSpoiler ? "" : "blur-[6px] opacity-75 select-none")}>
             <div className="min-w-0">
-              <div className="truncate font-semibold text-slate-950">{topPlayer.name}</div>
-              <div className="text-[12px] text-slate-500">{topPlayer.team}</div>
+              <div className="truncate font-semibold text-white">{topPlayer.name}</div>
+              <div className="text-[12px] text-[#d6d6e5]">{topPlayer.team}</div>
             </div>
-            <div className="text-lg font-black text-slate-950">{topPlayer.rating.toFixed(1)}</div>
+            <div className="text-lg font-black text-white">{topPlayer.rating.toFixed(1)}</div>
           </div>
         ) : (
-          <div className="mt-3 rounded-2xl bg-white px-3 py-3 text-sm font-semibold text-slate-400">-</div>
+          <div className="mt-3 rounded-2xl bg-[#31313C] px-3 py-3 text-sm font-semibold text-white">-</div>
         )}
       </div>
-      <div className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-sky-500 px-4 text-base font-black text-white shadow-[0_10px_24px_rgba(14,165,233,0.2)] transition group-hover:bg-sky-600">
+      <div className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-[#5383E8] px-4 text-base font-normal text-white shadow-[0_10px_24px_rgba(83,131,232,0.22)] transition group-hover:bg-[#4171D6]">
         평점확인하기
       </div>
     </Link>
@@ -563,13 +579,12 @@ export default function HupuScheduleHome({
   const todaySectionTitle = hasTodayMatches ? "오늘의 경기" : "다가오는 경기";
   const isSchedulePage = mode === "schedule";
   const scheduleExplorerSection = (
-    <section id="schedule-explorer" className="mx-auto w-full max-w-5xl overflow-hidden rounded-[20px] border border-[#dfe3ea] bg-white shadow-[0_12px_28px_rgba(32,45,55,0.08)]">
-      <div className="border-b border-[#e6e9ee] bg-[linear-gradient(180deg,#f9fbff_0%,#f3f6fb_100%)] px-4 py-3 sm:px-5">
-        <div className="flex flex-col gap-3">
-          <div>
-            <h2 className="text-[22px] font-black tracking-[-0.035em] text-slate-950 sm:text-[24px]">경기일정</h2>
-          </div>
-
+    <>
+      <div className="mx-auto w-full max-w-5xl px-4 sm:px-5">
+        <h2 className="text-[30px] font-black tracking-[-0.04em] text-white">경기일정</h2>
+      </div>
+      <section id="schedule-explorer" className="mx-auto w-full max-w-5xl overflow-hidden rounded-[20px] bg-[#31313C] text-white shadow-[0_12px_28px_rgba(2,6,23,0.28)]">
+        <div className="bg-[#31313C] px-4 py-3 sm:px-5">
           <ScheduleFilterBar
             status={status}
             onStatusChange={(value) => setStatus(value)}
@@ -586,17 +601,38 @@ export default function HupuScheduleHome({
             weekOptions={selectedMonth?.weeks ?? []}
             selectedWeekId={selectedWeekId}
             onWeekChange={(value) => setSelectedWeekId(value)}
-            revealSpoilers={revealScheduleSpoilers}
-            onToggleSpoilers={() => setRevealScheduleSpoilers((current) => !current)}
           />
         </div>
+
+      <div className="flex justify-end px-4 py-2 sm:px-5">
+        <button
+          type="button"
+          onClick={() => setRevealScheduleSpoilers((current) => !current)}
+          aria-label="일정 스코어 스포일러 방지 토글"
+          className="inline-flex items-center gap-1.5 rounded-full bg-transparent px-1 py-0.5 text-[10px] font-semibold text-white"
+        >
+          <span>스포일러 방지</span>
+          <span
+            className={cn(
+              "relative h-4 w-8 rounded-full transition",
+              revealScheduleSpoilers ? "bg-slate-500/70" : "bg-sky-400",
+            )}
+          >
+            <span
+              className={cn(
+                "absolute top-0.5 h-3 w-3 rounded-full bg-white shadow transition",
+                revealScheduleSpoilers ? "left-0.5" : "left-[18px]",
+              )}
+            />
+          </span>
+        </button>
       </div>
 
-      <div className="divide-y divide-[#e6e9ee]">
+      <div className="divide-y divide-[#474756]">
         {selectedWeek && visibleWeekDates.length > 0 ? (
           visibleWeekDates.map((group) => (
             <div key={group.id}>
-              <div className="bg-[#f5f7fa] px-5 py-3 text-sm font-bold text-[#55677b] sm:px-6">{group.label}</div>
+              <div className="bg-[#3A3A47] px-5 py-3 text-sm font-bold text-white sm:px-6">{group.label}</div>
               <div>
                 {group.matches.map((match) => (
                   <ScheduleRow key={match.id} match={match} revealSpoiler={revealScheduleSpoilers} />
@@ -605,26 +641,34 @@ export default function HupuScheduleHome({
             </div>
           ))
         ) : (
-          <div className="px-6 py-14 text-center text-slate-500">{LABELS.noFilteredMatches}</div>
+          <div className="px-6 py-14 text-center text-[#d6d6e5]">{LABELS.noFilteredMatches}</div>
         )}
       </div>
-    </section>
+      </section>
+    </>
   );
 
   return (
-    <div className="app-shell">
+    <div className="min-h-screen bg-[#1C1C1F]">
         <SiteHeader
           notifications={initialData.notifications}
           unreadNotificationCount={initialData.unreadNotificationCount}
         />
-      <div className="border-y border-[#4171d6] bg-[#5383e8]">
+      <div className="border-b border-[#B95A31] bg-[#D96C3F]">
         <nav className="mx-auto flex max-w-5xl items-center gap-1 px-4 sm:px-6">
           <Link
             href="/"
             className={cn(
               "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
-              !isSchedulePage ? "text-white" : "text-[#dce8ff] hover:text-white",
+              "text-[#DDE9FF]",
             )}
+            style={{ color: "#DDE9FF" }}
+            onMouseEnter={(event) => {
+              event.currentTarget.style.color = "#A9C2F5";
+            }}
+            onMouseLeave={(event) => {
+              event.currentTarget.style.color = "#DDE9FF";
+            }}
           >
             홈
             {!isSchedulePage ? <span className="absolute inset-x-4 bottom-0 h-[2px] rounded-full bg-white" /> : null}
@@ -633,15 +677,29 @@ export default function HupuScheduleHome({
             href="/schedule"
             className={cn(
               "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
-              isSchedulePage ? "text-white" : "text-[#dce8ff] hover:text-white",
+              "text-[#DDE9FF]",
             )}
+            style={{ color: "#DDE9FF" }}
+            onMouseEnter={(event) => {
+              event.currentTarget.style.color = "#A9C2F5";
+            }}
+            onMouseLeave={(event) => {
+              event.currentTarget.style.color = "#DDE9FF";
+            }}
           >
             경기일정
             {isSchedulePage ? <span className="absolute inset-x-4 bottom-0 h-[2px] rounded-full bg-white" /> : null}
           </Link>
           <Link
             href="/ratings"
-            className="relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] text-[#dce8ff] transition hover:text-white"
+            className="relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] text-[#DDE9FF] transition"
+            style={{ color: "#DDE9FF" }}
+            onMouseEnter={(event) => {
+              event.currentTarget.style.color = "#A9C2F5";
+            }}
+            onMouseLeave={(event) => {
+              event.currentTarget.style.color = "#DDE9FF";
+            }}
           >
             평점순위
           </Link>
@@ -649,46 +707,55 @@ export default function HupuScheduleHome({
             href="/season-predictions"
             className={cn(
               "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
-              "text-[#dce8ff] hover:text-white",
+              "text-[#DDE9FF]",
             )}
+            style={{ color: "#DDE9FF" }}
+            onMouseEnter={(event) => {
+              event.currentTarget.style.color = "#A9C2F5";
+            }}
+            onMouseLeave={(event) => {
+              event.currentTarget.style.color = "#DDE9FF";
+            }}
           >
             시즌예측
           </Link>
           <Link
             href="/games/15-dollar-challenge"
-            className="relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] text-[#dce8ff] transition hover:text-white"
+            className="relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] text-[#DDE9FF] transition"
+            style={{ color: "#DDE9FF" }}
+            onMouseEnter={(event) => {
+              event.currentTarget.style.color = "#A9C2F5";
+            }}
+            onMouseLeave={(event) => {
+              event.currentTarget.style.color = "#DDE9FF";
+            }}
           >
             게임
           </Link>
         </nav>
       </div>
-      <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
+      <main className="w-full bg-[#1C1C1F] py-6">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6">
         {isSchedulePage ? (
           <div className="space-y-6">{scheduleExplorerSection}</div>
         ) : (
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_220px]">
           <div className="space-y-6">
             <section className="space-y-4">
-              <div className="max-w-[760px]">
-                <h1 className="max-w-[700px] text-balance text-[clamp(1.35rem,2.6vw,2.3rem)] font-black leading-[1.12] tracking-[-0.035em] text-slate-950">
-                  {LABELS.heroTitleLine1}
-                </h1>
-              </div>
-
-              <div id="today-matches" className="rounded-[20px] border border-[#dfe3ea] bg-white p-5 shadow-[0_12px_28px_rgba(32,45,55,0.08)] sm:p-6">
+              <div id="today-matches" className="rounded-[20px] bg-[#31313C] p-5 text-white shadow-[0_12px_28px_rgba(2,6,23,0.28)] sm:p-6">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                     <div>
-                      <h2 className="text-[28px] font-black tracking-[-0.045em] text-slate-950">{todaySectionTitle}</h2>
+                      <h2 className="text-[28px] font-black tracking-[-0.045em] text-white">{todaySectionTitle}</h2>
                     </div>
                   {todayPageCount > 1 ? (
                     <div className="flex flex-wrap items-center gap-2">
-                      <div className="rounded-full bg-sky-50 px-3 py-2 text-xs font-semibold text-sky-800">
+                      <div className="rounded-full bg-[#3A3A47] px-3 py-2 text-xs font-semibold text-white">
                         현재 {safeTodayPage + 1} / {todayPageCount}
                       </div>
                       <button
                         type="button"
                         onClick={() => setSelectedTodayPage((current) => (current - 1 + todayPageCount) % todayPageCount)}
-                        className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                        className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-[#5b5b6c] bg-[#3A3A47] px-4 text-sm font-semibold text-white transition hover:bg-[#4A4A59]"
                       >
                         이전 카드
                       </button>
@@ -710,7 +777,7 @@ export default function HupuScheduleHome({
                     ))}
                   </div>
                 ) : (
-                  <div className="mt-6 rounded-[28px] border border-dashed border-slate-200 bg-slate-50 px-5 py-12 text-center text-sm text-slate-500">
+                  <div className="mt-6 rounded-[28px] border border-dashed border-[#5b5b6c] bg-[#3A3A47] px-5 py-12 text-center text-sm text-white">
                     {LABELS.todayMatchEmpty}
                   </div>
                 )}
@@ -718,21 +785,21 @@ export default function HupuScheduleHome({
 
             </section>
 
-            <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_12px_30px_rgba(15,23,42,0.06)] sm:p-6">
+            <section className="rounded-[28px] bg-[#31313C] p-5 text-white shadow-[0_12px_30px_rgba(2,6,23,0.28)] sm:p-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <h2 className="text-[22px] font-black tracking-[-0.035em] text-slate-950 sm:text-[24px]">
+                  <h2 className="text-[22px] font-black tracking-[-0.035em] text-white sm:text-[24px]">
                     15달러 챌린지
                   </h2>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
-                    15달러 예산 안에서 TOP, JUNGLE, MID, ADC, SUPPORT를 각각 1명씩 골라 나만의 베스트 5를 완성해보세요.
+                  <p className="mt-2 text-sm leading-6 text-white">
+                    15달러 예산 안에서 나만의 베스트 팀을 완성해보세요.
                   </p>
                 </div>
                 <Link
                   href="/games/15-dollar-challenge"
-                  className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-slate-900 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
+                  className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-[#5383E8] px-4 text-sm font-semibold text-white transition hover:bg-[#4171D6]"
                 >
-                  지금 도전하기
+                  챌린지 하러가기
                 </Link>
               </div>
             </section>
@@ -767,29 +834,30 @@ export default function HupuScheduleHome({
               </section>
             ) : null}
 
-            {predictionTab === "match" ? <section id="recent-finished" className="space-y-4">
+            {predictionTab === "match" ? <section id="recent-finished" className="space-y-4 rounded-[18px] bg-[#31313C] p-5 shadow-[0_10px_24px_rgba(2,6,23,0.28)]">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <h2 className="text-[22px] font-black tracking-[-0.035em] text-slate-950 sm:text-[26px]">{LABELS.previousMatchTitle}</h2>
+                  <h2 className="text-[22px] font-black tracking-[-0.035em] text-white sm:text-[26px]">{LABELS.previousMatchTitle}</h2>
                 </div>
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
                     onClick={() => setRevealPastSpoilers((current) => !current)}
                     aria-label="스포일러 방지 토글"
-                    className="inline-flex items-center gap-3 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-[0_8px_18px_rgba(15,23,42,0.08)]"
+                    className="inline-flex items-center gap-2 rounded-full !border-0 bg-transparent px-2.5 py-1.5 text-xs font-semibold !shadow-none transition hover:bg-transparent"
+                    style={{ color: "#FFFFFF" }}
                   >
-                    <span>스포일러 방지</span>
+                    <span style={{ color: "#FFFFFF", fontSize: "0.8rem" }}>스포일러 방지</span>
                     <span
                       className={cn(
-                        "relative h-6 w-12 rounded-full transition",
+                        "relative h-5 w-10 rounded-full transition",
                         revealPastSpoilers ? "bg-slate-500/70" : "bg-sky-400",
                       )}
                     >
                       <span
                         className={cn(
-                          "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition",
-                          revealPastSpoilers ? "left-0.5" : "left-6",
+                          "absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition",
+                          revealPastSpoilers ? "left-0.5" : "left-[1.35rem]",
                         )}
                       />
                     </span>
@@ -804,35 +872,22 @@ export default function HupuScheduleHome({
             </section> : null}
 
             {predictionTab === "match" ? <section>
-              <div className="rounded-[18px] border border-[#dfe3ea] bg-white p-5 shadow-[0_10px_24px_rgba(32,45,55,0.08)]">
-                <h2 className="text-[22px] font-black tracking-[-0.035em] text-slate-950 sm:text-[24px]">실시간 평점 랭킹</h2>
-                <div className="mt-5 rounded-[24px] border border-slate-200 bg-slate-50/70 px-3 py-4 sm:px-4">
-                  <div className="grid grid-cols-3 items-end gap-2 sm:gap-3">
-                    {[
-                      initialData.playerLeaderboard.find((player) => player.rank === 2),
-                      initialData.playerLeaderboard.find((player) => player.rank === 1),
-                      initialData.playerLeaderboard.find((player) => player.rank === 3),
-                    ]
-                      .filter((player): player is (typeof initialData.playerLeaderboard)[number] => Boolean(player))
+              <div className="rounded-[18px] bg-[#31313C] p-5 text-white shadow-[0_10px_24px_rgba(2,6,23,0.28)]">
+                <h2 className="text-[22px] font-black tracking-[-0.035em] text-white sm:text-[24px]">실시간 평점 랭킹</h2>
+                <div className="mt-5 rounded-[24px] bg-[#3A3A47] px-3 py-4 sm:px-4">
+                  <div className="space-y-2">
+                    {initialData.playerLeaderboard
+                      .filter((player) => player.rank >= 1 && player.rank <= 3)
                       .map((player) => (
                         <Link
                           key={player.playerId}
                           href={`/player/${player.playerId}`}
-                          className={cn(
-                            "flex flex-col justify-between rounded-2xl border px-2 py-3 text-center transition hover:-translate-y-0.5 sm:px-3",
-                            player.rank === 1
-                              ? "h-[170px] border-amber-300 bg-[linear-gradient(180deg,#fff7d1_0%,#f5df93_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"
-                              : player.rank === 2
-                                ? "h-[142px] border-slate-300 bg-[linear-gradient(180deg,#f8fafc_0%,#dfe5ef_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"
-                                : "h-[130px] border-orange-300 bg-[linear-gradient(180deg,#ffe9d8_0%,#e9bf93_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]",
-                          )}
+                          className="grid grid-cols-[32px_minmax(0,1fr)_56px_52px] items-center rounded-xl bg-[#31313C] px-3 py-2 text-sm transition hover:bg-[#4A4A59]"
                         >
-                          <div className="text-lg font-black text-slate-950">{player.rank}</div>
-                          <div className="space-y-1">
-                            <div className="truncate text-[14px] font-black text-slate-950 sm:text-[15px]">{player.playerName}</div>
-                            <div className="text-[11px] font-semibold text-slate-600">{player.teamCode}</div>
-                          </div>
-                          <div className="text-xl font-black text-slate-950">{player.averageRating.toFixed(1)}</div>
+                          <div className="text-base font-black text-white">{player.rank}</div>
+                          <div className="min-w-0 truncate font-semibold text-white">{player.playerName}</div>
+                          <div className="text-right text-xs font-semibold text-white">{player.teamCode}</div>
+                          <div className="text-right text-base font-black text-white">{player.averageRating.toFixed(1)}</div>
                         </Link>
                       ))}
                   </div>
@@ -843,12 +898,12 @@ export default function HupuScheduleHome({
                         <Link
                           key={player.playerId}
                           href={`/player/${player.playerId}`}
-                          className="grid grid-cols-[32px_minmax(0,1fr)_56px_52px] items-center rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-sm transition hover:bg-slate-50"
+                          className="grid grid-cols-[32px_minmax(0,1fr)_56px_52px] items-center rounded-xl bg-[#31313C] px-3 py-2 text-sm transition hover:bg-[#4A4A59]"
                         >
-                          <div className="text-base font-black text-slate-700">{player.rank}</div>
-                          <div className="min-w-0 truncate font-semibold text-slate-900">{player.playerName}</div>
-                          <div className="text-right text-xs font-semibold text-slate-500">{player.teamCode}</div>
-                          <div className="text-right text-base font-black text-slate-900">{player.averageRating.toFixed(1)}</div>
+                          <div className="text-base font-black text-white">{player.rank}</div>
+                          <div className="min-w-0 truncate font-semibold text-white">{player.playerName}</div>
+                          <div className="text-right text-xs font-semibold text-white">{player.teamCode}</div>
+                          <div className="text-right text-base font-black text-white">{player.averageRating.toFixed(1)}</div>
                         </Link>
                       ))}
                   </div>
@@ -856,7 +911,7 @@ export default function HupuScheduleHome({
                 <div className="mt-4">
                   <Link
                     href="/ratings"
-                    className="inline-flex w-full items-center justify-center rounded-2xl bg-sky-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-sky-600"
+                    className="inline-flex w-full items-center justify-center rounded-2xl bg-[#5383E8] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#4171D6]"
                   >
                     평점 보러가기
                   </Link>
@@ -869,6 +924,7 @@ export default function HupuScheduleHome({
           <ActionPanel data={initialData} />
         </div>
         )}
+        </div>
       </main>
     </div>
   );

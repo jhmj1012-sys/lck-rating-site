@@ -222,7 +222,7 @@ export function BudgetChallengePage({
   }
 
   return (
-    <main className="app-shell px-4 py-8 sm:px-6">
+    <main className="min-h-screen bg-[#1C1C1F] px-4 py-8 sm:px-6">
       <div className="mx-auto max-w-5xl space-y-5">
         <section className="overflow-hidden rounded-[28px] border border-white/10 bg-[#161A20] shadow-[0_18px_44px_rgba(2,6,23,0.28)]">
           <div className="border-b border-white/10 bg-[linear-gradient(180deg,#3B82F6_0%,#2563EB_100%)] px-6 py-8 text-[#E6E8EB] sm:px-8">

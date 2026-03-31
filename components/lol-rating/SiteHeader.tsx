@@ -22,7 +22,6 @@ const HEADER_LABELS = {
   account: "내 계정",
   shop: "코인 상점",
   notifications: "알림",
-  viewAllNotifications: "알림 자세히 보기",
   signin: "로그인",
   checking: "확인 중",
   searchPlaceholder: "팀, 선수, 경기 키워드를 검색해 보세요",
@@ -43,7 +42,7 @@ function IconNavLink({
     <Link
       href={href}
       aria-label={label}
-      className="group relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#d7dce3] bg-white text-[#758592] transition hover:border-[#5383e8] hover:bg-[#f6f8ff] hover:text-[#2c4462]"
+      className="group relative inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#424254] text-white transition hover:bg-[#505063] hover:text-white"
     >
       {children}
       <span className="pointer-events-none absolute -bottom-8 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-[#d7dce3] bg-white px-2 py-1 text-[11px] font-medium text-[#55677b] shadow-[0_8px_20px_rgba(32,45,55,0.1)] lg:group-hover:block lg:group-focus-visible:block">
@@ -83,10 +82,10 @@ function AccountEntryButton({
     return (
       <Link
         href="/signin"
-        className="inline-flex h-10 items-center gap-1.5 rounded-full border border-[#4171d6] bg-[#5383e8] px-3.5 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(83,131,232,0.22)] transition hover:bg-[#4171d6]"
+        className="inline-flex h-10 items-center gap-1.5 rounded-full bg-[#424254] px-3.5 text-sm font-semibold !text-[#FFFFFF] shadow-[0_8px_20px_rgba(2,6,23,0.28)] transition hover:bg-[#505063] hover:!text-[#FFFFFF]"
       >
-        <UserIcon className="h-4 w-4" />
-        <span>로그인</span>
+        <UserIcon className="h-4 w-4 text-white" />
+        <span className="!text-[#FFFFFF]">로그인</span>
       </Link>
     );
   }
@@ -96,30 +95,33 @@ function AccountEntryButton({
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
-        className="inline-flex h-10 items-center gap-1.5 rounded-full border border-[#d7dce3] bg-white px-3.5 text-sm font-semibold text-[#2c4462] transition hover:border-[#5383e8] hover:bg-[#f6f8ff]"
+        className="inline-flex h-10 items-center gap-1.5 rounded-full bg-[#424254] px-3.5 text-sm font-semibold text-white transition hover:bg-[#505063]"
       >
-        <UserIcon className="h-4 w-4" />
-        <span className="max-w-[90px] truncate">{label}</span>
-        <span className="text-[10px] text-[#8a96a3]">▼</span>
+        <UserIcon className="h-4 w-4 text-white" />
+        <span className="max-w-[90px] truncate text-[#FFFFFF]">{label}</span>
+        <span className="text-[10px] text-white">▼</span>
       </button>
 
       {open ? (
-        <div className="absolute right-0 top-12 z-50 w-[220px] overflow-hidden rounded-2xl border border-[#d7dce3] bg-white shadow-[0_16px_36px_rgba(32,45,55,0.18)]">
-          <div className="border-b border-[#e6e9ee] px-4 py-3">
-            <div className="truncate text-sm font-semibold text-[#202d37]">{label}</div>
-            {email ? <div className="mt-0.5 truncate text-xs text-[#8a96a3]">{email}</div> : null}
+        <div className="absolute right-0 top-12 z-50 w-[220px] overflow-hidden rounded-2xl border border-[#474756] bg-[#31313C] shadow-[0_16px_36px_rgba(2,6,23,0.34)]">
+          <div className="border-b border-[#474756] px-4 py-3">
+            <div className="truncate text-sm font-semibold text-white">{label}</div>
+            {email ? <div className="mt-0.5 truncate text-xs text-[#d6d6e5]">{email}</div> : null}
           </div>
           <div className="p-2">
-            <Link href="/me" className="flex min-h-10 items-center rounded-xl px-3 text-[13px] font-medium text-[#55677b] transition hover:bg-[#f6f8ff] hover:text-[#2c4462]" onClick={() => setOpen(false)}>
+            <Link
+              href="/me"
+              className="flex min-h-10 items-center rounded-xl px-3 !text-[14px] !font-medium !text-[#FFFFFF] transition hover:bg-[#3A3A47]"
+              style={{ fontFamily: "Pretendard, Pretendard Variable, SUIT Variable, Noto Sans KR, Segoe UI, sans-serif" }}
+              onClick={() => setOpen(false)}
+            >
               마이페이지
-            </Link>
-            <Link href="/notifications" className="flex min-h-10 items-center rounded-xl px-3 text-[13px] font-medium text-[#55677b] transition hover:bg-[#f6f8ff] hover:text-[#2c4462]" onClick={() => setOpen(false)}>
-              알림
             </Link>
             <button
               type="button"
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="flex min-h-10 w-full items-center rounded-xl px-3 text-left text-[13px] font-medium text-[#55677b] transition hover:bg-[#f6f8ff] hover:text-[#2c4462]"
+              className="flex min-h-10 w-full items-center rounded-xl px-3 text-left !text-[14px] !font-medium !text-[#FFFFFF] transition hover:bg-[#3A3A47]"
+              style={{ fontFamily: "Pretendard, Pretendard Variable, SUIT Variable, Noto Sans KR, Segoe UI, sans-serif" }}
             >
               로그아웃
             </button>
@@ -138,16 +140,31 @@ function NotificationButton({
   unreadCount: number;
 }) {
   const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const onMouseDown = (event: MouseEvent) => {
+      if (!menuRef.current) {
+        return;
+      }
+      if (!menuRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", onMouseDown);
+    return () => document.removeEventListener("mousedown", onMouseDown);
+  }, []);
 
   return (
-    <div className="relative">
+    <div ref={menuRef} className="relative">
       <button
         type="button"
         aria-label={HEADER_LABELS.notifications}
         onClick={() => setOpen((value) => !value)}
-        className="group relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#d7dce3] bg-white text-[#758592] transition hover:border-[#5383e8] hover:bg-[#f6f8ff] hover:text-[#2c4462]"
+        className="group relative inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#424254] text-white transition hover:bg-[#505063] hover:text-white"
       >
-        <BellIcon className="h-4 w-4" />
+        <BellIcon className="h-4 w-4 text-white" />
         {unreadCount > 0 ? (
           <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[#5383e8] px-1 text-[11px] font-bold text-white">
             {unreadCount > 9 ? "9+" : unreadCount}
@@ -159,41 +176,35 @@ function NotificationButton({
       </button>
 
       {open ? (
-        <div className="absolute right-0 top-12 z-50 w-[320px] overflow-hidden rounded-2xl border border-[#d7dce3] bg-white shadow-[0_16px_36px_rgba(32,45,55,0.18)]">
-          <div className="border-b border-[#e6e9ee] px-4 py-3">
-            <div className="text-sm font-bold text-[#202d37]">{HEADER_LABELS.notifications}</div>
-            <div className="mt-1 text-xs text-[#8a96a3]">정산 결과와 코인 획득 내역을 바로 확인할 수 있습니다.</div>
+        <div className="absolute right-0 top-12 z-50 w-[320px] overflow-hidden rounded-2xl border border-[#474756] bg-[#31313C] shadow-[0_16px_36px_rgba(2,6,23,0.34)]">
+          <div className="border-b border-[#474756] px-4 py-3">
+            <div className="text-sm font-semibold text-[#FFFFFF]">{HEADER_LABELS.notifications}</div>
           </div>
           <div className="max-h-[360px] overflow-y-auto">
             {notifications.length === 0 ? (
-              <div className="px-4 py-6 text-sm text-[#8a96a3]">최근 알림이 없습니다.</div>
+              <div className="px-4 py-6 text-sm text-[#d6d6e5]">최근 알림이 없습니다.</div>
             ) : (
               notifications.map((notification) => (
                 <Link
                   key={notification.id}
-                  href={notification.relatedMatchId ? `/matches/${notification.relatedMatchId}` : "/notifications"}
-                  className="block border-b border-[#eef1f5] px-4 py-3 transition hover:bg-[#f8faff]"
+                  href={notification.relatedMatchId ? `/matches/${notification.relatedMatchId}` : "/"}
+                  className="block border-b border-[#474756] px-4 py-3 transition hover:bg-[#3A3A47]"
                   onClick={() => setOpen(false)}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <div className="truncate text-sm font-semibold text-[#202d37]">{notification.title}</div>
-                      <div className="mt-1 line-clamp-2 text-xs leading-5 text-[#55677b]">{notification.body}</div>
+                      <div className="truncate text-sm font-semibold text-[#FFFFFF]">{notification.title}</div>
+                      <div className="mt-1 line-clamp-2 text-xs leading-5 text-[#d6d6e5]">{notification.body}</div>
                     </div>
                     {notification.rewardCoins ? <div className="text-xs font-semibold text-[#5383e8]">+{notification.rewardCoins}</div> : null}
                   </div>
-                  <div className="mt-2 flex items-center justify-between gap-3 text-[11px] text-[#8a96a3]">
+                  <div className="mt-2 flex items-center justify-between gap-3 text-[11px] text-[#b6bfdc]">
                     <span>{notification.createdLabel}</span>
-                    {!notification.isRead ? <span className="font-semibold text-[#5383e8]">NEW</span> : null}
+                    {!notification.isRead ? <span className="font-semibold text-[#8EADEF]">NEW</span> : null}
                   </div>
                 </Link>
               ))
             )}
-          </div>
-          <div className="border-t border-[#e6e9ee] px-4 py-3">
-            <Link href="/notifications" className="text-sm font-semibold text-[#5383e8] hover:text-[#4171d6]" onClick={() => setOpen(false)}>
-              {HEADER_LABELS.viewAllNotifications}
-            </Link>
           </div>
         </div>
       ) : null}
@@ -357,17 +368,17 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
         onClick={() => navigateTo(item.href)}
         className={cn(
           "w-full rounded-xl px-3 py-2 text-left transition",
-          selected ? "bg-[rgba(83,131,232,0.15)]" : "hover:bg-[#f5f8ff]",
+          selected ? "bg-[rgba(83,131,232,0.22)]" : "hover:bg-[#3A3A47]",
         )}
       >
-        <div className="truncate text-sm font-semibold text-[#202d37]">{item.title}</div>
-        <div className="truncate text-xs text-[#64798e]">{item.subtitle}</div>
+        <div className="truncate text-sm font-semibold text-white">{item.title}</div>
+        <div className="truncate text-xs text-[#d6d6e5]">{item.subtitle}</div>
       </button>
     );
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[#d7dce3] bg-white/95 shadow-[0_6px_18px_rgba(32,45,55,0.08)] backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-transparent bg-[#1C1C1F] shadow-[0_6px_18px_rgba(32,45,55,0.08)] backdrop-blur-xl">
       <div className="mx-auto max-w-5xl px-4 py-2.5 sm:px-6">
         <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center justify-between gap-3">
@@ -376,21 +387,21 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
                 GG
               </div>
               <div className="min-w-0">
-                <div className="truncate text-[17px] font-bold tracking-[-0.03em] text-[#202d37]">{HEADER_LABELS.title}</div>
+                <div className="truncate text-[17px] font-bold tracking-[-0.03em] text-[#FFFFFF]">{HEADER_LABELS.title}</div>
               </div>
             </Link>
 
             <div className="flex items-center gap-2 lg:hidden">
               <NotificationButton notifications={notifications} unreadCount={unreadNotificationCount} />
               <IconNavLink href="/shop" label={HEADER_LABELS.shop}>
-                <ShopIcon className="h-4 w-4" />
+                <ShopIcon className="h-4 w-4 text-white" />
               </IconNavLink>
               <IconNavLink href="/teams" label={HEADER_LABELS.teams}>
-                <TeamIcon className="h-4 w-4" />
+                <TeamIcon className="h-4 w-4 text-white" />
               </IconNavLink>
               {isAdmin ? (
                 <IconNavLink href="/admin" label={HEADER_LABELS.admin}>
-                  <ShieldIcon className="h-4 w-4" />
+                  <ShieldIcon className="h-4 w-4 text-white" />
                 </IconNavLink>
               ) : null}
               <AccountEntryButton isLoggedIn={isLoggedIn} label={accountLabel} email={accountEmail} />
@@ -399,7 +410,7 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
 
           <div className="grid gap-2.5 lg:w-2/3 lg:min-w-0 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
             <div ref={searchWrapRef} className="relative">
-              <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a96a3]" />
+              <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#c8c8d6]" />
               <Input
                 value={searchInput}
                 onChange={(event) => {
@@ -413,16 +424,16 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
                 }}
                 onKeyDown={onSearchKeyDown}
                 placeholder={HEADER_LABELS.searchPlaceholder}
-                className="h-10 rounded-[18px] border-[#d7dce3] bg-[#f9fafc] pl-12 pr-4 text-[13px] text-[#44566c] placeholder:text-[#9aa4af] focus:border-[#5383e8] focus:bg-white focus:shadow-[0_0_0_3px_rgba(83,131,232,0.14)]"
+                className="h-10 rounded-[18px] !border-transparent !bg-[#424254] pl-12 pr-4 text-[13px] !text-[#FFFFFF] caret-[#FFFFFF] placeholder:text-[#9aa4af] focus:!border-transparent focus:!bg-[#424254] focus:shadow-[0_0_0_3px_rgba(83,131,232,0.14)]"
                 style={{ paddingLeft: "3rem" }}
               />
 
               {isSearchOpen && searchInput.trim() ? (
-                <div className="absolute left-0 right-0 top-12 z-50 rounded-2xl border border-[#d7dce3] bg-white p-2 shadow-[0_16px_36px_rgba(32,45,55,0.18)]">
+                <div className="absolute left-0 right-0 top-12 z-50 rounded-2xl border border-[#474756] bg-[#31313C] p-2 shadow-[0_16px_36px_rgba(2,6,23,0.34)]">
                   {isSearchLoading ? (
-                    <div className="px-3 py-3 text-sm text-[#8a96a3]">{HEADER_LABELS.searchLoading}</div>
+                    <div className="px-3 py-3 text-sm text-[#d6d6e5]">{HEADER_LABELS.searchLoading}</div>
                   ) : searchGroups.length === 0 ? (
-                    <div className="px-3 py-3 text-sm text-[#8a96a3]">{HEADER_LABELS.searchEmpty}</div>
+                    <div className="px-3 py-3 text-sm text-[#d6d6e5]">{HEADER_LABELS.searchEmpty}</div>
                   ) : (
                     <div className="space-y-1">
                       {(() => {
@@ -432,8 +443,8 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
                           rowIndex += group.items.length;
 
                           return (
-                            <div key={group.type} className="rounded-xl border border-[#e6e9ee] bg-[#fbfcfe] p-1">
-                              <div className="px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8a96a3]">{group.label}</div>
+                            <div key={group.type} className="rounded-xl border border-[#474756] bg-[#3A3A47] p-1">
+                              <div className="px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#d6d6e5]">{group.label}</div>
                               <div className="space-y-0.5">
                                 {group.items.map((item, offset) => renderSearchItem(item, start + offset))}
                               </div>
@@ -450,14 +461,14 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
             <div className="hidden items-center gap-2 lg:flex">
               <NotificationButton notifications={notifications} unreadCount={unreadNotificationCount} />
               <IconNavLink href="/shop" label={HEADER_LABELS.shop}>
-                <ShopIcon className="h-4 w-4" />
+              <ShopIcon className="h-4 w-4 text-white" />
               </IconNavLink>
               <IconNavLink href="/teams" label={HEADER_LABELS.teams}>
-                <TeamIcon className="h-4 w-4" />
+              <TeamIcon className="h-4 w-4 text-white" />
               </IconNavLink>
               {isAdmin ? (
                 <IconNavLink href="/admin" label={HEADER_LABELS.admin}>
-                  <ShieldIcon className="h-4 w-4" />
+                <ShieldIcon className="h-4 w-4 text-white" />
                 </IconNavLink>
               ) : null}
               <AccountEntryButton isLoggedIn={isLoggedIn} label={accountLabel} email={accountEmail} />

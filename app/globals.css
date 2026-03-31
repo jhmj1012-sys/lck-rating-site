@@ -1,3 +1,4 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
 @import "tailwindcss";
 
 :root {
@@ -25,7 +26,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: "Pretendard Variable", "SUIT Variable", "Noto Sans KR", "Segoe UI", sans-serif;
+  --font-sans: "Pretendard", "Pretendard Variable", "SUIT Variable", "Noto Sans KR", "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", "Consolas", monospace;
 }
 
@@ -220,4 +221,164 @@ button.allow-disabled-cursor:disabled {
   padding: 18px;
   color: #6b7c90;
   font-size: 0.92rem;
+}
+
+.mypage-theme .bg-white {
+  background-color: #31313c !important;
+}
+
+.mypage-theme .bg-slate-50 {
+  background-color: #3a3a47 !important;
+}
+
+.mypage-theme .bg-slate-100,
+.mypage-theme .bg-slate-200 {
+  background-color: #4a4a59 !important;
+}
+
+.mypage-theme .border-slate-100,
+.mypage-theme .border-slate-200,
+.mypage-theme .border-slate-950,
+.mypage-theme .border-dashed {
+  border-color: #474756 !important;
+}
+
+.mypage-theme .border,
+.mypage-theme .border-slate-100,
+.mypage-theme .border-slate-200,
+.mypage-theme .border-slate-950,
+.mypage-theme .border-dashed {
+  border-width: 0 !important;
+  border-style: none !important;
+}
+
+.mypage-theme .text-slate-950,
+.mypage-theme .text-slate-900,
+.mypage-theme .text-slate-800 {
+  color: #ffffff !important;
+}
+
+.mypage-theme .text-slate-700 {
+  color: #eef3ff !important;
+}
+
+.mypage-theme .text-slate-600,
+.mypage-theme .text-slate-500 {
+  color: #d4dcff !important;
+}
+
+.mypage-theme .bg-sky-50 {
+  background-color: #5383e8 !important;
+}
+
+.mypage-theme .text-sky-800,
+.mypage-theme .text-sky-700 {
+  color: #ffffff !important;
+}
+
+.match-detail-theme .bg-white,
+.match-detail-theme [class*="bg-white/95"],
+.match-detail-theme [class*="bg-white/90"],
+.match-detail-theme [class*="bg-white/85"] {
+  background-color: #31313c !important;
+}
+
+.match-detail-theme,
+.match-detail-theme.app-shell {
+  background: #1c1c1f !important;
+}
+
+.match-detail-theme .bg-slate-50,
+.match-detail-theme [class*="bg-slate-50/70"],
+.match-detail-theme [class*="bg-white/8"] {
+  background-color: #3a3a47 !important;
+}
+
+.match-detail-theme .bg-slate-100,
+.match-detail-theme .bg-slate-200,
+.match-detail-theme [class*="bg-sky-50"] {
+  background-color: #4a4a59 !important;
+}
+
+.match-detail-theme .border,
+.match-detail-theme .border-slate-100,
+.match-detail-theme .border-slate-200,
+.match-detail-theme .border-slate-300,
+.match-detail-theme .border-dashed,
+.match-detail-theme [class*="border-slate-"],
+.match-detail-theme [class*="border-white/20"],
+.match-detail-theme [class*="border-t"] {
+  border-width: 0 !important;
+  border-style: none !important;
+}
+
+.match-detail-theme .text-slate-950,
+.match-detail-theme .text-slate-900,
+.match-detail-theme .text-slate-800,
+.match-detail-theme .text-slate-700 {
+  color: #ffffff !important;
+}
+
+.match-detail-theme .text-slate-600,
+.match-detail-theme .text-slate-500 {
+  color: #d4dcff !important;
+}
+
+.match-detail-theme .text-sky-700,
+.match-detail-theme .text-sky-800 {
+  color: #ffffff !important;
+}
+
+.match-detail-theme .ui-card,
+.match-detail-theme .ui-input,
+.match-detail-theme .ui-textarea,
+.match-detail-theme .ui-select,
+.match-detail-theme textarea,
+.match-detail-theme input,
+.match-detail-theme select {
+  background-color: #31313c !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+}
+
+.match-detail-theme .ui-input::placeholder,
+.match-detail-theme .ui-textarea::placeholder,
+.match-detail-theme textarea::placeholder,
+.match-detail-theme input::placeholder {
+  color: #c5d0f6 !important;
+}
+
+.match-detail-theme .ui-action-secondary {
+  background-color: #424254 !important;
+  color: #f8f8f8 !important;
+  border-color: transparent !important;
+}
+
+.match-detail-theme .ui-action-primary {
+  box-shadow: none !important;
+}
+
+.match-detail-theme .shadow-\[0_8px_24px_rgba\(15\,23\,42\,0\.08\)\],
+.match-detail-theme .shadow-\[0_0_0_1px_rgba\(56\,189\,248\,0\.12\)\] {
+  box-shadow: none !important;
+}
+
+.live-dot {
+  box-shadow: 0 0 0 rgba(255, 77, 94, 0.45);
+  animation: livePulse 1.6s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 77, 94, 0.42);
+  }
+
+  50% {
+    opacity: 0.45;
+    transform: scale(0.88);
+    box-shadow: 0 0 0 6px rgba(255, 77, 94, 0);
+  }
 }

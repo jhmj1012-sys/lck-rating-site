@@ -15,7 +15,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" className="h-full antialiased">
-      <body className="min-h-full">
+      <body className="min-h-full" suppressHydrationWarning>
         <AuthSessionProvider>{children}</AuthSessionProvider>
       </body>
     </html>

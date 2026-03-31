@@ -696,7 +696,7 @@ function createSeasonPredictionQuestions(): StoredSeasonPredictionQuestion[] {
     {
       id: "season_question_2",
       title: "2026 월즈 우승 지역은?",
-      description: "LoL 7개 지역 중 월즈 우승 지역을 예측해 주세요.",
+      description: "LoL 6개 지역 중 월즈 우승 지역을 예측해 주세요.",
       category: "WORLDS",
       predictionType: "single",
       season: "2026 WORLDS",
@@ -717,7 +717,7 @@ function createSeasonPredictionQuestions(): StoredSeasonPredictionQuestion[] {
     {
       id: "season_question_3",
       title: "2026 MSI 우승 지역은?",
-      description: "LoL 7개 지역 중 MSI 우승 지역을 예측해 주세요.",
+      description: "LoL 6개 지역 중 MSI 우승 지역을 예측해 주세요.",
       category: "MSI",
       predictionType: "single",
       season: "2026 MSI",

@@ -1,9 +1,10 @@
-import Link from "next/link";
-import { getServerSession } from "next-auth";
+﻿import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/auth";
+import { BackNavButton } from "@/components/BackNavButton";
+import { TopSiteNav } from "@/components/TopSiteNav";
 import { SeasonPredictionEntryForm } from "@/components/lol-rating/SeasonPredictionEntryForm";
-import { getSeasonPredictionDetailData } from "@/lib/service";
+import { getScheduleHubData, getSeasonPredictionDetailData } from "@/lib/service";
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("ko-KR", {
@@ -15,6 +16,14 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
+function getStatusLabel(status: string) {
+  if (status === "open") return "진행중";
+  if (status === "locked") return "마감";
+  if (status === "resolved") return "종료";
+  if (status === "canceled") return "취소";
+  return status;
+}
+
 export default async function SeasonPredictionDetailPage({
   params,
 }: {
@@ -22,50 +31,74 @@ export default async function SeasonPredictionDetailPage({
 }) {
   const session = await getServerSession(authOptions);
   const { questionId } = await params;
-  const detail = await getSeasonPredictionDetailData(questionId, session?.user?.id ?? null);
+
+  const [detail, hubData] = await Promise.all([
+    getSeasonPredictionDetailData(questionId, session?.user?.id ?? null),
+    getScheduleHubData(session?.user?.id ?? null),
+  ]);
 
   return (
-    <main className="app-shell px-4 py-8 sm:px-6">
-      <div className="mx-auto max-w-5xl space-y-6">
-        <div className="flex flex-wrap gap-3">
-          <Link href="/season-predictions" className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700">
-            시즌예측 목록으로
-          </Link>
-          <Link href="/" className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700">
-            홈으로
-          </Link>
+    <div>
+      <TopSiteNav
+        active="season"
+        notifications={hubData.notifications}
+        unreadNotificationCount={hubData.unreadNotificationCount}
+      />
+
+      <main className="min-h-screen bg-[#1C1C1F] px-4 py-8 sm:px-6">
+        <div className="mx-auto max-w-5xl space-y-6">
+          <div className="flex justify-end">
+            <BackNavButton
+              fallbackHref="/season-predictions"
+              className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-[#424254] px-4 text-sm font-medium !text-[#FFFFFF]"
+            >
+              돌아가기
+            </BackNavButton>
+          </div>
+
+          <section className="rounded-[30px] bg-[#31313C] p-6 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="rounded-full bg-[#4A4A59] px-3 py-1 text-xs font-semibold text-[#FFFFFF]">{detail.category}</div>
+              <div className="rounded-full bg-[#4A4A59] px-3 py-1 text-xs font-semibold text-[#FFFFFF]">{getStatusLabel(detail.status)}</div>
+            </div>
+            <h1 className="mt-4 text-3xl font-black text-[#FFFFFF]">{detail.title}</h1>
+            <p className="mt-3 text-sm leading-7 text-[#D4DCFF]">{detail.description}</p>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl bg-[#3A3A47] px-4 py-3 text-sm text-[#FFFFFF]">
+                <div className="text-xs text-[#D4DCFF]">시즌</div>
+                <div className="mt-1 font-semibold text-[#FFFFFF]">{detail.season}</div>
+              </div>
+              <div className="rounded-2xl bg-[#3A3A47] px-4 py-3 text-sm text-[#FFFFFF]">
+                <div className="text-xs text-[#D4DCFF]">마감 시각</div>
+                <div className="mt-1 font-semibold text-[#FFFFFF]">{formatDate(detail.closeAt)}</div>
+              </div>
+              <div className="rounded-2xl bg-[#3A3A47] px-4 py-3 text-sm text-[#FFFFFF]">
+                <div className="text-xs text-[#D4DCFF]">참여자</div>
+                <div className="mt-1 font-semibold text-[#FFFFFF]">{detail.totalEntries}명</div>
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-2xl bg-[#3A3A47] px-4 py-3 text-sm text-[#D4DCFF]">
+              {detail.canSubmit
+                ? `마감까지 ${detail.countdownLabel}`
+                : detail.status === "resolved"
+                  ? "결과가 확정되었습니다."
+                  : "마감된 질문입니다."}
+            </div>
+
+            {detail.myEntry ? (
+              <div className="mt-4 rounded-2xl bg-[#3A3A47] px-4 py-3 text-sm text-[#FFFFFF]">
+                현재 내 선택: {detail.myEntry.selectedOptionLabel}
+              </div>
+            ) : null}
+
+            <div className="mt-4 border-t border-[#474756] pt-4">
+              <SeasonPredictionEntryForm detail={detail} showMyEntry={false} />
+            </div>
+          </section>
         </div>
-
-        <section className="rounded-[30px] border border-slate-200 bg-white p-6 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">{detail.category}</div>
-            <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{detail.status}</div>
-          </div>
-          <h1 className="mt-4 text-3xl font-black text-slate-950">{detail.title}</h1>
-          <p className="mt-3 text-sm leading-7 text-slate-600">{detail.description}</p>
-          <div className="mt-5 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-              <div className="text-xs text-slate-500">시즌</div>
-              <div className="mt-1 font-semibold text-slate-950">{detail.season}</div>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-              <div className="text-xs text-slate-500">마감 시각</div>
-              <div className="mt-1 font-semibold text-slate-950">{formatDate(detail.closeAt)}</div>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-              <div className="text-xs text-slate-500">참여자 수</div>
-              <div className="mt-1 font-semibold text-slate-950">{detail.totalEntries}명</div>
-            </div>
-          </div>
-          <div className="mt-4 rounded-2xl border border-sky-100 bg-sky-50 px-4 py-3 text-sm text-sky-800">
-            {detail.canSubmit ? `마감까지 ${detail.countdownLabel}` : detail.status === "resolved" ? "결과가 확정되었습니다." : "마감된 질문입니다."}
-          </div>
-        </section>
-
-        <section className="rounded-[30px] border border-slate-200 bg-white p-6 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
-          <SeasonPredictionEntryForm detail={detail} />
-        </section>
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }

@@ -25,57 +25,92 @@ export function TopSiteNav({
         notifications={notifications}
         unreadNotificationCount={unreadNotificationCount}
       />
-      <div className="border-y border-[#3B82F6]/45 bg-[#2563EB]">
+      <div className="border-b border-[#B95A31] bg-[#D96C3F]">
         <nav className={cn("mx-auto flex items-center gap-1 px-4 sm:px-6", maxWidthClass)}>
           <Link
             href="/"
             className={cn(
               "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
-              active === "match" ? "text-[#E6E8EB]" : "text-[#C7D7F3] hover:text-[#E6E8EB]",
+              "text-[#DDE9FF]",
             )}
+            style={{ color: "#DDE9FF" }}
+            onMouseEnter={(event) => {
+              event.currentTarget.style.color = "#A9C2F5";
+            }}
+            onMouseLeave={(event) => {
+              event.currentTarget.style.color = "#DDE9FF";
+            }}
           >
             홈
-            {active === "match" ? <span className="absolute inset-x-4 bottom-0 h-[2px] rounded-full bg-[#3B82F6]" /> : null}
+            {active === "match" ? <span className="absolute inset-x-4 bottom-0 h-[2px] rounded-full bg-white" /> : null}
           </Link>
           <Link
             href="/schedule"
             className={cn(
               "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
-              active === "schedule" ? "text-[#E6E8EB]" : "text-[#C7D7F3] hover:text-[#E6E8EB]",
+              "text-[#DDE9FF]",
             )}
+            style={{ color: "#DDE9FF" }}
+            onMouseEnter={(event) => {
+              event.currentTarget.style.color = "#A9C2F5";
+            }}
+            onMouseLeave={(event) => {
+              event.currentTarget.style.color = "#DDE9FF";
+            }}
           >
             경기일정
-            {active === "schedule" ? <span className="absolute inset-x-4 bottom-0 h-[2px] rounded-full bg-[#3B82F6]" /> : null}
+            {active === "schedule" ? <span className="absolute inset-x-4 bottom-0 h-[2px] rounded-full bg-white" /> : null}
           </Link>
           <Link
             href="/ratings"
             className={cn(
               "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
-              active === "ratings" ? "text-[#E6E8EB]" : "text-[#C7D7F3] hover:text-[#E6E8EB]",
+              "text-[#DDE9FF]",
             )}
+            style={{ color: "#DDE9FF" }}
+            onMouseEnter={(event) => {
+              event.currentTarget.style.color = "#A9C2F5";
+            }}
+            onMouseLeave={(event) => {
+              event.currentTarget.style.color = "#DDE9FF";
+            }}
           >
             평점순위
-            {active === "ratings" ? <span className="absolute inset-x-4 bottom-0 h-[2px] rounded-full bg-[#3B82F6]" /> : null}
+            {active === "ratings" ? <span className="absolute inset-x-4 bottom-0 h-[2px] rounded-full bg-white" /> : null}
           </Link>
           <Link
             href="/season-predictions"
             className={cn(
               "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
-              active === "season" ? "text-[#E6E8EB]" : "text-[#C7D7F3] hover:text-[#E6E8EB]",
+              "text-[#DDE9FF]",
             )}
+            style={{ color: "#DDE9FF" }}
+            onMouseEnter={(event) => {
+              event.currentTarget.style.color = "#A9C2F5";
+            }}
+            onMouseLeave={(event) => {
+              event.currentTarget.style.color = "#DDE9FF";
+            }}
           >
             시즌예측
-            {active === "season" ? <span className="absolute inset-x-4 bottom-0 h-[2px] rounded-full bg-[#3B82F6]" /> : null}
+            {active === "season" ? <span className="absolute inset-x-4 bottom-0 h-[2px] rounded-full bg-white" /> : null}
           </Link>
           <Link
             href="/games/15-dollar-challenge"
             className={cn(
               "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
-              active === "games" ? "text-[#E6E8EB]" : "text-[#C7D7F3] hover:text-[#E6E8EB]",
+              "text-[#DDE9FF]",
             )}
+            style={{ color: "#DDE9FF" }}
+            onMouseEnter={(event) => {
+              event.currentTarget.style.color = "#A9C2F5";
+            }}
+            onMouseLeave={(event) => {
+              event.currentTarget.style.color = "#DDE9FF";
+            }}
           >
             게임
-            {active === "games" ? <span className="absolute inset-x-4 bottom-0 h-[2px] rounded-full bg-[#3B82F6]" /> : null}
+            {active === "games" ? <span className="absolute inset-x-4 bottom-0 h-[2px] rounded-full bg-white" /> : null}
           </Link>
         </nav>
       </div>

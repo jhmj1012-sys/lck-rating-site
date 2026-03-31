@@ -25,7 +25,7 @@ const SEEDED_USER_COPY: Record<string, { name: string; nickname: string; bio: st
   user_seed_iota: { name: "오세훈", nickname: "탑차이봄", bio: "탑 구도 하나로 게임 분위기 바뀐다고 생각합니다." },
   user_seed_kappa: { name: "서지우", nickname: "미드주도권", bio: "미드 주도권 넘어가는 순간을 유심히 봅니다." },
   user_seed_lambda: { name: "장현우", nickname: "바텀웨이브", bio: "바텀 라인 관리와 템포 차이 보는 걸 좋아해요." },
-  user_seed_mu: { name: "조은호", nickname: "교전복기중", bio: "끝난 한타 다시 복기하면서 보는 스타일입니다." },
+  user_seed_mu: { name: "조은호", nickname: "교전복기중_닉네임아주길게늘려서레이아웃테스트중입니다12345", bio: "끝난 한타 다시 복기하면서 보는 스타일입니다." },
   user_seed_nu: { name: "임수빈", nickname: "시야중요함", bio: "시야랑 포지션이 결국 경기 갈린다고 봅니다." },
   user_seed_xi: { name: "황지호", nickname: "용타이머외움", bio: "오브젝트 시간 계산해두고 경기 보는 편입니다." },
   user_seed_omicron: { name: "구태윤", nickname: "후반한타파", bio: "후반 조합 가치 높게 보는 편입니다." },
@@ -277,6 +277,19 @@ function withDefaults(store: Partial<StoreShape>): StoreShape {
         ],
     teamRosterEntries: store.teamRosterEntries ?? seed.teamRosterEntries,
     matches: (needsScheduleRefresh ? seed.matches : (store.matches ?? seed.matches)).map((match) => {
+      if (match.id === "match_21") {
+        return {
+          ...match,
+          status: "scheduled",
+          scheduledAt: "2026-04-15T17:00:00+09:00",
+          scoreA: null,
+          scoreB: null,
+          predictionLocked: true,
+          predictionLockedAt: "2026-04-15T16:50:00+09:00",
+          predictionSettledAt: null,
+        };
+      }
+
       if (match.id === "match_23") {
         const seededMatch = seed.matches.find((item) => item.id === match.id);
         return {
@@ -336,15 +349,22 @@ function withDefaults(store: Partial<StoreShape>): StoreShape {
         wasUnderdogPick: normalizedPrediction.wasUnderdogPick ?? (isFinishedMatch ? false : null),
       };
     }),
-    seasonPredictionQuestions: (store.seasonPredictionQuestions ?? seed.seasonPredictionQuestions).map((question) => ({
-      ...question,
-      lockedAt: "lockedAt" in question ? question.lockedAt ?? null : null,
-      resolvedAt: "resolvedAt" in question ? question.resolvedAt ?? null : null,
-      resultOptionId: "resultOptionId" in question ? question.resultOptionId ?? null : null,
-      resultValue: "resultValue" in question ? question.resultValue ?? null : null,
-      baseRewardAmount: "baseRewardAmount" in question ? question.baseRewardAmount ?? null : null,
-      lockedDistribution: "lockedDistribution" in question ? question.lockedDistribution ?? null : null,
-    })),
+    seasonPredictionQuestions: (store.seasonPredictionQuestions ?? seed.seasonPredictionQuestions).map((question) => {
+      const seededQuestion = seed.seasonPredictionQuestions.find((item) => item.id === question.id);
+      return {
+        ...question,
+        title: seededQuestion?.title ?? question.title,
+        description: seededQuestion?.description ?? question.description,
+        category: seededQuestion?.category ?? question.category,
+        season: seededQuestion?.season ?? question.season,
+        lockedAt: "lockedAt" in question ? question.lockedAt ?? null : null,
+        resolvedAt: "resolvedAt" in question ? question.resolvedAt ?? null : null,
+        resultOptionId: "resultOptionId" in question ? question.resultOptionId ?? null : null,
+        resultValue: "resultValue" in question ? question.resultValue ?? null : null,
+        baseRewardAmount: "baseRewardAmount" in question ? question.baseRewardAmount ?? null : null,
+        lockedDistribution: "lockedDistribution" in question ? question.lockedDistribution ?? null : null,
+      };
+    }),
     seasonPredictionOptions:
       (store.seasonPredictionOptions ?? seed.seasonPredictionOptions) as StoreShape["seasonPredictionOptions"],
     seasonPredictionEntries: (

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/auth";
+import { TopSiteNav } from "@/components/TopSiteNav";
 import { SetRatingPanel, SetRatingsBoard } from "@/components/lol-rating/DetailPanels";
 import { getSetDetailData } from "@/lib/service";
 
@@ -20,8 +21,9 @@ export default async function MatchSetDetailPage({
   }
 
   return (
-    <main className="app-shell px-4 py-8 sm:px-6">
-      <div className="mx-auto max-w-7xl space-y-6">
+    <main className="match-detail-theme app-shell min-h-screen bg-[#1C1C1F] pb-8">
+      <TopSiteNav active="match" notifications={[]} unreadNotificationCount={0} maxWidthClass="max-w-7xl" />
+      <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6">
         <div className="flex flex-wrap gap-3">
           <Link href="/" className="ui-action-secondary min-h-10">
             일정으로

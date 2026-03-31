@@ -1830,7 +1830,7 @@ function buildSeasonPredictionCard(
       };
     })
     .sort((a, b) => b.percent - a.percent || a.label.localeCompare(b.label, "en"))
-    .slice(0, 2);
+    .slice(0, 3);
 
   const categoryUpper = question.category.toUpperCase();
   const logoKey: "lck" | "msi" | "worlds" =
@@ -1899,9 +1899,16 @@ function buildSeasonPredictionDetail(
   const resultOption = question.resultOptionId ? options.find((option) => option.id === question.resultOptionId) ?? null : null;
   const diffMs = new Date(question.closeAt).getTime() - DEMO_NOW_MS;
   const totalMinutes = Math.max(0, Math.floor(diffMs / 60000));
+  const days = Math.floor(totalMinutes / (60 * 24));
+  const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+  const minutes = totalMinutes % 60;
   const countdownLabel =
     getSeasonQuestionStatus(question) === "open"
-      ? `${Math.floor(totalMinutes / 60)}시간 ${totalMinutes % 60}분 남음`
+      ? days > 0
+        ? `${days}일 ${hours}시간 남음`
+        : hours > 0
+          ? `${hours}시간 ${minutes}분 남음`
+          : `${Math.max(1, minutes)}분 남음`
       : "마감됨";
 
   return {
@@ -3362,6 +3369,66 @@ export async function setCommentHidden(commentId: string, hidden: boolean) {
     }
 
     comment.hidden = hidden;
+  });
+}
+
+export async function deleteCommentByOwner(input: { viewerId: string; matchId: string; commentId: string }) {
+  return mutateStore(async (store) => {
+    const comment = store.comments.find(
+      (item) => item.id === input.commentId && item.matchId === input.matchId && !item.hidden,
+    );
+
+    if (!comment) {
+      throw new Error("댓글을 찾을 수 없습니다.");
+    }
+
+    if (comment.userId !== input.viewerId) {
+      throw new Error("내 댓글만 삭제할 수 있습니다.");
+    }
+
+    comment.hidden = true;
+  });
+}
+
+export async function deleteUserAccount(userId: string) {
+  return mutateStore(async (store) => {
+    const user = store.users.find((item) => item.id === userId);
+    if (!user) {
+      throw new Error("사용자를 찾을 수 없습니다.");
+    }
+
+    const deletedCommentIdSet = new Set(
+      store.comments
+        .filter((comment) => comment.userId === userId)
+        .map((comment) => comment.id),
+    );
+
+    store.users = store.users.filter((item) => item.id !== userId);
+    store.predictions = store.predictions.filter((item) => item.userId !== userId);
+    store.seasonPredictionEntries = store.seasonPredictionEntries.filter((item) => item.userId !== userId);
+    store.playerRatings = store.playerRatings.filter((item) => item.userId !== userId);
+    store.setPlayerRatings = store.setPlayerRatings.filter((item) => item.userId !== userId);
+    store.pointLedger = store.pointLedger.filter((item) => item.userId !== userId);
+    store.notifications = store.notifications.filter((item) => item.userId !== userId);
+    store.userInventory = store.userInventory.filter((item) => item.userId !== userId);
+
+    // Remove user's comments and replies targeting deleted comments.
+    store.comments = store.comments.filter((comment) => {
+      if (comment.userId === userId) {
+        return false;
+      }
+      if (comment.parentId && deletedCommentIdSet.has(comment.parentId)) {
+        return false;
+      }
+      return true;
+    });
+
+    // Remove deleted user from recommendation lists.
+    for (const comment of store.comments) {
+      if (comment.recommendUserIds.includes(userId)) {
+        comment.recommendUserIds = comment.recommendUserIds.filter((id) => id !== userId);
+      }
+    }
   });
 }
 
