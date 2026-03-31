@@ -20,6 +20,7 @@ export function SaveRosterImageButton({
 
     setSaving(true);
     setErrorMessage(null);
+
     try {
       const dataUrl = await toPng(targetRef.current, {
         cacheBust: true,
@@ -43,11 +44,11 @@ export function SaveRosterImageButton({
         type="button"
         onClick={handleSave}
         disabled={disabled || saving}
-        className="inline-flex min-h-11 items-center justify-center rounded-xl bg-slate-900 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+        className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#3B82F6]/50 bg-[#3B82F6] px-4 text-sm font-semibold text-[#E6E8EB] transition hover:bg-[#2563EB] disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-[#1C2128] disabled:text-[#6B7280]"
       >
-        {saving ? "저장 중..." : "이미지로 저장"}
+        {saving ? "저장 중..." : "이미지 저장"}
       </button>
-      {errorMessage ? <p className="mt-2 text-xs text-rose-600">{errorMessage}</p> : null}
+      {errorMessage ? <p className="mt-2 text-xs text-[#AAB0B6]">{errorMessage}</p> : null}
     </div>
   );
 }

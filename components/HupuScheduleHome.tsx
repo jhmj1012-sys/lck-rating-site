@@ -563,8 +563,8 @@ export default function HupuScheduleHome({
   const todaySectionTitle = hasTodayMatches ? "오늘의 경기" : "다가오는 경기";
   const isSchedulePage = mode === "schedule";
   const scheduleExplorerSection = (
-    <section id="schedule-explorer" className="mx-auto w-full max-w-5xl overflow-hidden rounded-[30px] border border-slate-200/80 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.08)]">
-      <div className="border-b border-slate-200 bg-[linear-gradient(180deg,#f8fafc_0%,#f1f5f9_100%)] px-4 py-3 sm:px-5">
+    <section id="schedule-explorer" className="mx-auto w-full max-w-5xl overflow-hidden rounded-[20px] border border-[#dfe3ea] bg-white shadow-[0_12px_28px_rgba(32,45,55,0.08)]">
+      <div className="border-b border-[#e6e9ee] bg-[linear-gradient(180deg,#f9fbff_0%,#f3f6fb_100%)] px-4 py-3 sm:px-5">
         <div className="flex flex-col gap-3">
           <div>
             <h2 className="text-[22px] font-black tracking-[-0.035em] text-slate-950 sm:text-[24px]">경기일정</h2>
@@ -592,11 +592,11 @@ export default function HupuScheduleHome({
         </div>
       </div>
 
-      <div className="divide-y divide-slate-200">
+      <div className="divide-y divide-[#e6e9ee]">
         {selectedWeek && visibleWeekDates.length > 0 ? (
           visibleWeekDates.map((group) => (
             <div key={group.id}>
-              <div className="bg-slate-100 px-5 py-3 text-sm font-bold text-slate-700 sm:px-6">{group.label}</div>
+              <div className="bg-[#f5f7fa] px-5 py-3 text-sm font-bold text-[#55677b] sm:px-6">{group.label}</div>
               <div>
                 {group.matches.map((match) => (
                   <ScheduleRow key={match.id} match={match} revealSpoiler={revealScheduleSpoilers} />
@@ -617,31 +617,31 @@ export default function HupuScheduleHome({
           notifications={initialData.notifications}
           unreadNotificationCount={initialData.unreadNotificationCount}
         />
-      <div className="border-y border-slate-200/80 bg-[linear-gradient(180deg,#f8fbff_0%,#eef5fc_100%)]">
+      <div className="border-y border-[#4171d6] bg-[#5383e8]">
         <nav className="mx-auto flex max-w-5xl items-center gap-1 px-4 sm:px-6">
           <Link
             href="/"
             className={cn(
               "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
-              !isSchedulePage ? "text-sky-700" : "text-slate-600 hover:text-slate-900",
+              !isSchedulePage ? "text-white" : "text-[#dce8ff] hover:text-white",
             )}
           >
             홈
-            {!isSchedulePage ? <span className="absolute inset-x-4 bottom-0 h-[3px] rounded-full bg-sky-500" /> : null}
+            {!isSchedulePage ? <span className="absolute inset-x-4 bottom-0 h-[2px] rounded-full bg-white" /> : null}
           </Link>
           <Link
             href="/schedule"
             className={cn(
               "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
-              isSchedulePage ? "text-sky-700" : "text-slate-600 hover:text-slate-900",
+              isSchedulePage ? "text-white" : "text-[#dce8ff] hover:text-white",
             )}
           >
             경기일정
-            {isSchedulePage ? <span className="absolute inset-x-4 bottom-0 h-[3px] rounded-full bg-sky-500" /> : null}
+            {isSchedulePage ? <span className="absolute inset-x-4 bottom-0 h-[2px] rounded-full bg-white" /> : null}
           </Link>
           <Link
             href="/ratings"
-            className="relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] text-slate-600 transition hover:text-slate-900"
+            className="relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] text-[#dce8ff] transition hover:text-white"
           >
             평점순위
           </Link>
@@ -649,14 +649,14 @@ export default function HupuScheduleHome({
             href="/season-predictions"
             className={cn(
               "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
-              "text-slate-600 hover:text-slate-900",
+              "text-[#dce8ff] hover:text-white",
             )}
           >
             시즌예측
           </Link>
           <Link
             href="/games/15-dollar-challenge"
-            className="relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] text-slate-600 transition hover:text-slate-900"
+            className="relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] text-[#dce8ff] transition hover:text-white"
           >
             게임
           </Link>
@@ -675,7 +675,7 @@ export default function HupuScheduleHome({
                 </h1>
               </div>
 
-              <div id="today-matches" className="rounded-[34px] border border-sky-100 bg-white/85 p-5 shadow-[0_16px_44px_rgba(14,165,233,0.10)] sm:p-6">
+              <div id="today-matches" className="rounded-[20px] border border-[#dfe3ea] bg-white p-5 shadow-[0_12px_28px_rgba(32,45,55,0.08)] sm:p-6">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                     <div>
                       <h2 className="text-[28px] font-black tracking-[-0.045em] text-slate-950">{todaySectionTitle}</h2>
@@ -761,7 +761,7 @@ export default function HupuScheduleHome({
             ) : null}
 
             {predictionTab === "betting" ? (
-              <section className="rounded-[30px] border border-slate-200 bg-white p-6 shadow-[0_12px_32px_rgba(15,23,42,0.06)]">
+              <section className="rounded-[18px] border border-[#dfe3ea] bg-white p-6 shadow-[0_10px_24px_rgba(32,45,55,0.08)]">
                 <h2 className="text-[22px] font-black text-slate-950">배팅 기능 준비 중</h2>
                 <p className="mt-3 text-sm leading-6 text-slate-600">시즌예측과 경기예측 흐름을 먼저 안정화한 뒤 다음 단계에서 확장합니다.</p>
               </section>
@@ -804,7 +804,7 @@ export default function HupuScheduleHome({
             </section> : null}
 
             {predictionTab === "match" ? <section>
-              <div className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-[0_12px_32px_rgba(15,23,42,0.06)]">
+              <div className="rounded-[18px] border border-[#dfe3ea] bg-white p-5 shadow-[0_10px_24px_rgba(32,45,55,0.08)]">
                 <h2 className="text-[22px] font-black tracking-[-0.035em] text-slate-950 sm:text-[24px]">실시간 평점 랭킹</h2>
                 <div className="mt-5 rounded-[24px] border border-slate-200 bg-slate-50/70 px-3 py-4 sm:px-4">
                   <div className="grid grid-cols-3 items-end gap-2 sm:gap-3">

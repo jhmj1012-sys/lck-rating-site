@@ -3,7 +3,7 @@ export const CHALLENGE_POSITIONS = ["TOP", "JUNGLE", "MID", "ADC", "SUPPORT"] as
 export type ChallengePosition = (typeof CHALLENGE_POSITIONS)[number];
 export type ChallengeMode = "position-lock";
 
-export type SelectionFailureReason = "예산 부족" | "동일 포지션 중복 불가";
+export type SelectionFailureReason = "예산 초과";
 
 export interface ChallengeSlotRule {
   position: ChallengePosition;
@@ -45,4 +45,24 @@ export interface ChallengeResultSummary {
 export interface SelectionAvailability {
   canSelect: boolean;
   reason?: SelectionFailureReason;
+}
+
+export interface BudgetChallengePostSlot {
+  position: ChallengePosition;
+  playerId: string;
+  playerName: string;
+  team: string;
+  price: number;
+}
+
+export interface BudgetChallengePost {
+  id: string;
+  title: string;
+  body: string;
+  authorId: string;
+  authorNickname: string;
+  createdAt: string;
+  encodedSelection: string;
+  usedBudget: number;
+  slots: BudgetChallengePostSlot[];
 }

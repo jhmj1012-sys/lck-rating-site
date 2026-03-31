@@ -43,10 +43,10 @@ function IconNavLink({
     <Link
       href={href}
       aria-label={label}
-      className="ui-icon-button group relative"
+      className="group relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#d7dce3] bg-white text-[#758592] transition hover:border-[#5383e8] hover:bg-[#f6f8ff] hover:text-[#2c4462]"
     >
       {children}
-      <span className="pointer-events-none absolute -bottom-8 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[11px] font-medium text-white lg:group-hover:block lg:group-focus-visible:block">
+      <span className="pointer-events-none absolute -bottom-8 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-[#d7dce3] bg-white px-2 py-1 text-[11px] font-medium text-[#55677b] shadow-[0_8px_20px_rgba(32,45,55,0.1)] lg:group-hover:block lg:group-focus-visible:block">
         {label}
       </span>
     </Link>
@@ -83,7 +83,7 @@ function AccountEntryButton({
     return (
       <Link
         href="/signin"
-        className="inline-flex h-10 items-center gap-1.5 rounded-full bg-sky-500 px-3.5 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(14,165,233,0.24)] transition hover:bg-sky-600"
+        className="inline-flex h-10 items-center gap-1.5 rounded-full border border-[#4171d6] bg-[#5383e8] px-3.5 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(83,131,232,0.22)] transition hover:bg-[#4171d6]"
       >
         <UserIcon className="h-4 w-4" />
         <span>로그인</span>
@@ -96,30 +96,30 @@ function AccountEntryButton({
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
-        className="inline-flex h-10 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+        className="inline-flex h-10 items-center gap-1.5 rounded-full border border-[#d7dce3] bg-white px-3.5 text-sm font-semibold text-[#2c4462] transition hover:border-[#5383e8] hover:bg-[#f6f8ff]"
       >
         <UserIcon className="h-4 w-4" />
         <span className="max-w-[90px] truncate">{label}</span>
-        <span className="text-[10px] text-slate-400">▼</span>
+        <span className="text-[10px] text-[#8a96a3]">▼</span>
       </button>
 
       {open ? (
-        <div className="absolute right-0 top-12 z-50 w-[220px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_16px_36px_rgba(15,23,42,0.14)]">
-          <div className="border-b border-slate-100 px-4 py-3">
-            <div className="truncate text-sm font-semibold text-slate-950">{label}</div>
-            {email ? <div className="mt-0.5 truncate text-xs text-slate-500">{email}</div> : null}
+        <div className="absolute right-0 top-12 z-50 w-[220px] overflow-hidden rounded-2xl border border-[#d7dce3] bg-white shadow-[0_16px_36px_rgba(32,45,55,0.18)]">
+          <div className="border-b border-[#e6e9ee] px-4 py-3">
+            <div className="truncate text-sm font-semibold text-[#202d37]">{label}</div>
+            {email ? <div className="mt-0.5 truncate text-xs text-[#8a96a3]">{email}</div> : null}
           </div>
           <div className="p-2">
-            <Link href="/me" className="flex min-h-10 items-center rounded-xl px-3 text-[13px] font-medium text-slate-700 transition hover:bg-slate-50" onClick={() => setOpen(false)}>
+            <Link href="/me" className="flex min-h-10 items-center rounded-xl px-3 text-[13px] font-medium text-[#55677b] transition hover:bg-[#f6f8ff] hover:text-[#2c4462]" onClick={() => setOpen(false)}>
               마이페이지
             </Link>
-            <Link href="/notifications" className="flex min-h-10 items-center rounded-xl px-3 text-[13px] font-medium text-slate-700 transition hover:bg-slate-50" onClick={() => setOpen(false)}>
+            <Link href="/notifications" className="flex min-h-10 items-center rounded-xl px-3 text-[13px] font-medium text-[#55677b] transition hover:bg-[#f6f8ff] hover:text-[#2c4462]" onClick={() => setOpen(false)}>
               알림
             </Link>
             <button
               type="button"
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="flex min-h-10 w-full items-center rounded-xl px-3 text-left text-[13px] font-medium text-rose-600 transition hover:bg-rose-50"
+              className="flex min-h-10 w-full items-center rounded-xl px-3 text-left text-[13px] font-medium text-[#55677b] transition hover:bg-[#f6f8ff] hover:text-[#2c4462]"
             >
               로그아웃
             </button>
@@ -145,53 +145,53 @@ function NotificationButton({
         type="button"
         aria-label={HEADER_LABELS.notifications}
         onClick={() => setOpen((value) => !value)}
-        className="ui-icon-button group relative"
+        className="group relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#d7dce3] bg-white text-[#758592] transition hover:border-[#5383e8] hover:bg-[#f6f8ff] hover:text-[#2c4462]"
       >
         <BellIcon className="h-4 w-4" />
         {unreadCount > 0 ? (
-          <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[11px] font-bold text-white">
+          <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[#5383e8] px-1 text-[11px] font-bold text-white">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         ) : null}
-        <span className="pointer-events-none absolute -bottom-8 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[11px] font-medium text-white lg:group-hover:block lg:group-focus-visible:block">
+        <span className="pointer-events-none absolute -bottom-8 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-[#d7dce3] bg-white px-2 py-1 text-[11px] font-medium text-[#55677b] shadow-[0_8px_20px_rgba(32,45,55,0.1)] lg:group-hover:block lg:group-focus-visible:block">
           {HEADER_LABELS.notifications}
         </span>
       </button>
 
       {open ? (
-        <div className="ui-card absolute right-0 top-12 z-50 w-[320px] overflow-hidden">
-          <div className="border-b border-slate-100 px-4 py-3">
-            <div className="text-sm font-bold text-slate-950">{HEADER_LABELS.notifications}</div>
-            <div className="mt-1 text-xs text-slate-500">정산 결과와 코인 획득 내역을 바로 확인할 수 있습니다.</div>
+        <div className="absolute right-0 top-12 z-50 w-[320px] overflow-hidden rounded-2xl border border-[#d7dce3] bg-white shadow-[0_16px_36px_rgba(32,45,55,0.18)]">
+          <div className="border-b border-[#e6e9ee] px-4 py-3">
+            <div className="text-sm font-bold text-[#202d37]">{HEADER_LABELS.notifications}</div>
+            <div className="mt-1 text-xs text-[#8a96a3]">정산 결과와 코인 획득 내역을 바로 확인할 수 있습니다.</div>
           </div>
           <div className="max-h-[360px] overflow-y-auto">
             {notifications.length === 0 ? (
-              <div className="px-4 py-6 text-sm text-slate-500">최근 알림이 없습니다.</div>
+              <div className="px-4 py-6 text-sm text-[#8a96a3]">최근 알림이 없습니다.</div>
             ) : (
               notifications.map((notification) => (
                 <Link
                   key={notification.id}
                   href={notification.relatedMatchId ? `/matches/${notification.relatedMatchId}` : "/notifications"}
-                  className="block border-b border-slate-100 px-4 py-3 transition hover:bg-slate-50"
+                  className="block border-b border-[#eef1f5] px-4 py-3 transition hover:bg-[#f8faff]"
                   onClick={() => setOpen(false)}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <div className="truncate text-sm font-semibold text-slate-950">{notification.title}</div>
-                      <div className="mt-1 line-clamp-2 text-xs leading-5 text-slate-600">{notification.body}</div>
+                      <div className="truncate text-sm font-semibold text-[#202d37]">{notification.title}</div>
+                      <div className="mt-1 line-clamp-2 text-xs leading-5 text-[#55677b]">{notification.body}</div>
                     </div>
-                    {notification.rewardCoins ? <div className="text-xs font-semibold text-emerald-600">+{notification.rewardCoins}</div> : null}
+                    {notification.rewardCoins ? <div className="text-xs font-semibold text-[#5383e8]">+{notification.rewardCoins}</div> : null}
                   </div>
-                  <div className="mt-2 flex items-center justify-between gap-3 text-[11px] text-slate-500">
+                  <div className="mt-2 flex items-center justify-between gap-3 text-[11px] text-[#8a96a3]">
                     <span>{notification.createdLabel}</span>
-                    {!notification.isRead ? <span className="font-semibold text-sky-600">NEW</span> : null}
+                    {!notification.isRead ? <span className="font-semibold text-[#5383e8]">NEW</span> : null}
                   </div>
                 </Link>
               ))
             )}
           </div>
-          <div className="border-t border-slate-100 px-4 py-3">
-            <Link href="/notifications" className="text-sm font-semibold text-sky-700" onClick={() => setOpen(false)}>
+          <div className="border-t border-[#e6e9ee] px-4 py-3">
+            <Link href="/notifications" className="text-sm font-semibold text-[#5383e8] hover:text-[#4171d6]" onClick={() => setOpen(false)}>
               {HEADER_LABELS.viewAllNotifications}
             </Link>
           </div>
@@ -357,26 +357,26 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
         onClick={() => navigateTo(item.href)}
         className={cn(
           "w-full rounded-xl px-3 py-2 text-left transition",
-          selected ? "bg-sky-50" : "hover:bg-slate-50",
+          selected ? "bg-[rgba(83,131,232,0.15)]" : "hover:bg-[#f5f8ff]",
         )}
       >
-        <div className="truncate text-sm font-semibold text-slate-900">{item.title}</div>
-        <div className="truncate text-xs text-slate-500">{item.subtitle}</div>
+        <div className="truncate text-sm font-semibold text-[#202d37]">{item.title}</div>
+        <div className="truncate text-xs text-[#64798e]">{item.subtitle}</div>
       </button>
     );
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/88 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-[#d7dce3] bg-white/95 shadow-[0_6px_18px_rgba(32,45,55,0.08)] backdrop-blur-xl">
       <div className="mx-auto max-w-5xl px-4 py-2.5 sm:px-6">
         <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center justify-between gap-3">
             <Link href="/" className="flex min-w-0 items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-300 via-cyan-300 to-emerald-300 text-xs font-black tracking-[-0.03em] text-slate-950 shadow-[0_10px_24px_rgba(56,189,248,0.24)]">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#5383e8] text-xs font-black tracking-[-0.03em] text-white shadow-[0_10px_24px_rgba(83,131,232,0.24)]">
                 GG
               </div>
               <div className="min-w-0">
-                <div className="truncate text-[17px] font-bold tracking-[-0.03em] text-slate-950">{HEADER_LABELS.title}</div>
+                <div className="truncate text-[17px] font-bold tracking-[-0.03em] text-[#202d37]">{HEADER_LABELS.title}</div>
               </div>
             </Link>
 
@@ -399,7 +399,7 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
 
           <div className="grid gap-2.5 lg:w-2/3 lg:min-w-0 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
             <div ref={searchWrapRef} className="relative">
-              <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a96a3]" />
               <Input
                 value={searchInput}
                 onChange={(event) => {
@@ -413,16 +413,16 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
                 }}
                 onKeyDown={onSearchKeyDown}
                 placeholder={HEADER_LABELS.searchPlaceholder}
-                className="h-10 rounded-[18px] border-slate-200/90 bg-slate-50 pl-12 pr-4 text-[13px] focus:bg-white"
+                className="h-10 rounded-[18px] border-[#d7dce3] bg-[#f9fafc] pl-12 pr-4 text-[13px] text-[#44566c] placeholder:text-[#9aa4af] focus:border-[#5383e8] focus:bg-white focus:shadow-[0_0_0_3px_rgba(83,131,232,0.14)]"
                 style={{ paddingLeft: "3rem" }}
               />
 
               {isSearchOpen && searchInput.trim() ? (
-                <div className="absolute left-0 right-0 top-12 z-50 rounded-2xl border border-slate-200 bg-white p-2 shadow-[0_16px_36px_rgba(15,23,42,0.14)]">
+                <div className="absolute left-0 right-0 top-12 z-50 rounded-2xl border border-[#d7dce3] bg-white p-2 shadow-[0_16px_36px_rgba(32,45,55,0.18)]">
                   {isSearchLoading ? (
-                    <div className="px-3 py-3 text-sm text-slate-500">{HEADER_LABELS.searchLoading}</div>
+                    <div className="px-3 py-3 text-sm text-[#8a96a3]">{HEADER_LABELS.searchLoading}</div>
                   ) : searchGroups.length === 0 ? (
-                    <div className="px-3 py-3 text-sm text-slate-500">{HEADER_LABELS.searchEmpty}</div>
+                    <div className="px-3 py-3 text-sm text-[#8a96a3]">{HEADER_LABELS.searchEmpty}</div>
                   ) : (
                     <div className="space-y-1">
                       {(() => {
@@ -432,8 +432,8 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
                           rowIndex += group.items.length;
 
                           return (
-                            <div key={group.type} className="rounded-xl border border-slate-100 bg-white/70 p-1">
-                              <div className="px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">{group.label}</div>
+                            <div key={group.type} className="rounded-xl border border-[#e6e9ee] bg-[#fbfcfe] p-1">
+                              <div className="px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8a96a3]">{group.label}</div>
                               <div className="space-y-0.5">
                                 {group.items.map((item, offset) => renderSearchItem(item, start + offset))}
                               </div>

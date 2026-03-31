@@ -41,7 +41,11 @@ export function calculateUsedBudget(selection: ChallengeSelection, playersById: 
   }, 0);
 }
 
-export function createChallengeSummary(config: ChallengeConfig, selection: ChallengeSelection, playersById: Map<string, ChallengePlayer>): ChallengeResultSummary {
+export function createChallengeSummary(
+  config: ChallengeConfig,
+  selection: ChallengeSelection,
+  playersById: Map<string, ChallengePlayer>,
+): ChallengeResultSummary {
   const usedBudget = calculateUsedBudget(selection, playersById);
   const requiredCount = config.slots.reduce((sum, slot) => sum + slot.requiredCount, 0);
   const selectedCount = Object.values(selection).filter(Boolean).length;
@@ -76,7 +80,7 @@ export function canSelectPlayer({
   const projectedBudget = usedBudget - (currentPlayer?.price ?? 0) + player.price;
 
   if (projectedBudget > config.budget) {
-    return { canSelect: false, reason: "예산 부족" };
+    return { canSelect: false, reason: "예산 초과" };
   }
 
   return { canSelect: true };
