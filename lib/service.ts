@@ -2193,6 +2193,46 @@ function buildSetDetail(store: StoreShape, set: StoredMatchSet, viewerId: string
 }
 
 async function readStoreWithPredictionLifecycle() {
+  const store = await readStore();
+  const now = getNowMs();
+  const hasPendingPredictionChanges = store.matches.some((match) => {
+    const shouldLock = !match.predictionLockedAt && now >= getPredictionDeadlineAt(match.scheduledAt).getTime();
+    const shouldSettle = match.status === "finished" && !match.predictionSettledAt;
+    return shouldLock || shouldSettle;
+  });
+  const hasPendingSeasonQuestionChanges = store.seasonPredictionQuestions.some((question) => {
+    const status = getSeasonQuestionStatus(question);
+    if (status === "locked" && !question.lockedDistribution) {
+      return true;
+    }
+
+    if (status === "resolved") {
+      if (!question.lockedDistribution || !question.lockedAt) {
+        return true;
+      }
+
+      const entries = getSeasonQuestionEntries(store, question.id);
+      return entries.some(
+        (entry) =>
+          entry.status !== "resolved" ||
+          entry.hitStatus === "pending" ||
+          entry.lockedAt === null ||
+          entry.snapshot === null,
+      );
+    }
+
+    if (status === "canceled") {
+      const entries = getSeasonQuestionEntries(store, question.id);
+      return entries.some((entry) => entry.status !== "canceled" || entry.hitStatus !== "canceled");
+    }
+
+    return false;
+  });
+
+  if (!hasPendingPredictionChanges && !hasPendingSeasonQuestionChanges) {
+    return store;
+  }
+
   return mutateStore(async (store) => {
     ensurePredictionLifecycle(store);
     ensureSeasonPredictionLifecycle(store);
