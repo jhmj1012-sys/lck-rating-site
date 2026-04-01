@@ -2,14 +2,72 @@
 
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import type { StoreShape } from "@/lib/domain";
 import { createSeedStore } from "@/lib/seed";
 
-const dataDirectory = path.join(process.cwd(), "data");
+const dataDirectory =
+  process.env.DATA_DIRECTORY ??
+  (process.env.VERCEL ? path.join("/tmp", "lol-pro-rating-data") : path.join(process.cwd(), "data"));
 const storePath = path.join(dataDirectory, "service-store.json");
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY;
+const supabaseStoreTable = process.env.SUPABASE_SERVICE_STORE_TABLE ?? "service_store";
+const supabaseStoreRowId = Number.parseInt(process.env.SUPABASE_SERVICE_STORE_ROW_ID ?? "1", 10);
 
 let mutationQueue = Promise.resolve();
+let supabaseAdminClient: SupabaseClient | null = null;
+
+type ServiceStoreRow = {
+  id: number;
+  data: Partial<StoreShape> | null;
+  created_at: string;
+  updated_at: string;
+};
+
+type StoreCollectionKey = Exclude<keyof StoreShape, "nextIds">;
+
+type CollectionConfig = {
+  key: StoreCollectionKey;
+  table: string;
+};
+
+type RelationalStoreRow<T> = {
+  id: string;
+  payload: T;
+  updated_at?: string;
+};
+
+type ServiceMetaRow = {
+  key: string;
+  value: StoreShape["nextIds"] | null;
+  updated_at?: string;
+};
+
+const supabaseStoreMode = process.env.SUPABASE_STORE_MODE ?? "json";
+const supabaseServiceMetaTable = process.env.SUPABASE_SERVICE_META_TABLE ?? "service_meta";
+const storeCollectionConfigs: CollectionConfig[] = [
+  { key: "users", table: "users" },
+  { key: "teams", table: "teams" },
+  { key: "players", table: "players" },
+  { key: "teamRosterEntries", table: "team_roster_entries" },
+  { key: "matches", table: "matches" },
+  { key: "matchParticipants", table: "match_participants" },
+  { key: "matchSets", table: "match_sets" },
+  { key: "setParticipants", table: "set_participants" },
+  { key: "predictions", table: "predictions" },
+  { key: "seasonPredictionQuestions", table: "season_prediction_questions" },
+  { key: "seasonPredictionOptions", table: "season_prediction_options" },
+  { key: "seasonPredictionEntries", table: "season_prediction_entries" },
+  { key: "playerRatings", table: "player_ratings" },
+  { key: "setPlayerRatings", table: "set_player_ratings" },
+  { key: "comments", table: "comments" },
+  { key: "pointLedger", table: "point_ledger" },
+  { key: "notifications", table: "notifications" },
+  { key: "profileStoreItems", table: "profile_store_items" },
+  { key: "userInventory", table: "user_inventory" },
+];
 
 const SEEDED_USER_COPY: Record<string, { name: string; nickname: string; bio: string }> = {
   user_seed_analyst: { name: "이민준", nickname: "밴픽보는중", bio: "밴픽이랑 오브젝트 타이밍 위주로 봅니다." },
@@ -395,7 +453,40 @@ function withDefaults(store: Partial<StoreShape>): StoreShape {
   return normalized;
 }
 
-async function ensureStore(): Promise<StoreShape> {
+function hasSupabaseStoreConfig() {
+  return Boolean(supabaseUrl && supabaseSecretKey);
+}
+
+function getSupabaseAdminClient() {
+  if (!supabaseUrl || !supabaseSecretKey) {
+    throw new Error("Supabase environment variables are not configured.");
+  }
+
+  if (!supabaseAdminClient) {
+    supabaseAdminClient = createClient(supabaseUrl, supabaseSecretKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
+  }
+
+  return supabaseAdminClient;
+}
+
+function getSupabaseStoreMode() {
+  return supabaseStoreMode === "relational" ? "relational" : "json";
+}
+
+function chunkArray<T>(items: T[], size: number) {
+  const chunks: T[][] = [];
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+  return chunks;
+}
+
+async function ensureLocalStore(): Promise<StoreShape> {
   try {
     const content = await readFile(storePath, "utf8");
     return withDefaults(JSON.parse(content) as Partial<StoreShape>);
@@ -407,9 +498,198 @@ async function ensureStore(): Promise<StoreShape> {
   }
 }
 
-async function saveStore(store: StoreShape) {
+async function saveLocalStore(store: StoreShape) {
   await mkdir(dataDirectory, { recursive: true });
   await writeFile(storePath, JSON.stringify(store, null, 2), "utf8");
+}
+
+async function ensureSupabaseJsonStore(): Promise<StoreShape> {
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from(supabaseStoreTable)
+    .select("id, data, created_at, updated_at")
+    .eq("id", supabaseStoreRowId)
+    .maybeSingle<ServiceStoreRow>();
+
+  if (error) {
+    throw new Error(`Failed to read Supabase service store: ${error.message}`);
+  }
+
+  if (!data) {
+    const seed = createSeedStore();
+    await saveSupabaseJsonStore(seed);
+    return seed;
+  }
+
+  return withDefaults((data.data ?? {}) as Partial<StoreShape>);
+}
+
+async function saveSupabaseJsonStore(store: StoreShape) {
+  const supabase = getSupabaseAdminClient();
+  const { error } = await supabase.from(supabaseStoreTable).upsert({
+    id: supabaseStoreRowId,
+    data: store,
+    updated_at: new Date().toISOString(),
+  });
+
+  if (error) {
+    throw new Error(`Failed to write Supabase service store: ${error.message}`);
+  }
+}
+
+async function readRelationalCollection<K extends StoreCollectionKey>(
+  config: CollectionConfig & { key: K },
+): Promise<StoreShape[K]> {
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from(config.table)
+    .select("id, payload")
+    .order("id", { ascending: true })
+    .returns<RelationalStoreRow<StoreShape[K][number]>[]>();
+
+  if (error) {
+    throw new Error(`Failed to read Supabase table "${config.table}": ${error.message}`);
+  }
+
+  return (data ?? []).map((row) => row.payload) as StoreShape[K];
+}
+
+async function readSupabaseNextIds(): Promise<StoreShape["nextIds"]> {
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from(supabaseServiceMetaTable)
+    .select("key, value")
+    .eq("key", "nextIds")
+    .maybeSingle<ServiceMetaRow>();
+
+  if (error) {
+    throw new Error(`Failed to read Supabase table "${supabaseServiceMetaTable}": ${error.message}`);
+  }
+
+  return (data?.value ?? {}) as StoreShape["nextIds"];
+}
+
+async function ensureSupabaseRelationalStore(): Promise<StoreShape> {
+  const partialStore = {} as Partial<StoreShape>;
+  const collectionResults = await Promise.all(
+    storeCollectionConfigs.map(async (config) => {
+      const rows = await readRelationalCollection(config as CollectionConfig & { key: StoreCollectionKey });
+      return { key: config.key, rows };
+    }),
+  );
+
+  for (const result of collectionResults) {
+    (partialStore as Record<string, unknown[]>)[result.key] = result.rows as unknown[];
+  }
+
+  partialStore.nextIds = await readSupabaseNextIds();
+
+  const isEmptyStore = storeCollectionConfigs.every((config) => (partialStore[config.key] ?? []).length === 0);
+  if (isEmptyStore && Object.keys(partialStore.nextIds ?? {}).length === 0) {
+    const seed = createSeedStore();
+    await saveSupabaseRelationalStore(seed);
+    return seed;
+  }
+
+  return withDefaults(partialStore);
+}
+
+async function replaceSupabaseCollectionRows<K extends StoreCollectionKey>(
+  config: CollectionConfig & { key: K },
+  rows: Array<{ id: string }>,
+) {
+  const supabase = getSupabaseAdminClient();
+  const desiredIds = new Set(rows.map((row) => row.id));
+  const { data: existingRows, error: existingRowsError } = await supabase
+    .from(config.table)
+    .select("id")
+    .returns<Array<Pick<RelationalStoreRow<StoreShape[K][number]>, "id">>>();
+
+  if (existingRowsError) {
+    throw new Error(`Failed to read Supabase table "${config.table}": ${existingRowsError.message}`);
+  }
+
+  const staleIds = (existingRows ?? [])
+    .map((row) => row.id)
+    .filter((id) => !desiredIds.has(id));
+
+  for (const batch of chunkArray(rows, 500)) {
+    if (batch.length === 0) {
+      continue;
+    }
+
+    const { error } = await supabase.from(config.table).upsert(
+      batch.map((row) => ({
+        id: row.id,
+        payload: row,
+        updated_at: new Date().toISOString(),
+      })),
+      { onConflict: "id" },
+    );
+
+    if (error) {
+      throw new Error(`Failed to write Supabase table "${config.table}": ${error.message}`);
+    }
+  }
+
+  for (const batch of chunkArray(staleIds, 500)) {
+    if (batch.length === 0) {
+      continue;
+    }
+
+    const { error } = await supabase.from(config.table).delete().in("id", batch);
+
+    if (error) {
+      throw new Error(`Failed to prune Supabase table "${config.table}": ${error.message}`);
+    }
+  }
+}
+
+async function saveSupabaseRelationalStore(store: StoreShape) {
+  await Promise.all(
+    storeCollectionConfigs.map((config) =>
+      replaceSupabaseCollectionRows(
+        config as CollectionConfig & { key: StoreCollectionKey },
+        store[config.key] as Array<{ id: string }>,
+      ),
+    ),
+  );
+
+  const supabase = getSupabaseAdminClient();
+  const { error } = await supabase.from(supabaseServiceMetaTable).upsert(
+    {
+      key: "nextIds",
+      value: store.nextIds,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "key" },
+  );
+
+  if (error) {
+    throw new Error(`Failed to write Supabase table "${supabaseServiceMetaTable}": ${error.message}`);
+  }
+}
+
+async function ensureStore(): Promise<StoreShape> {
+  if (hasSupabaseStoreConfig()) {
+    return getSupabaseStoreMode() === "relational" ? ensureSupabaseRelationalStore() : ensureSupabaseJsonStore();
+  }
+
+  return ensureLocalStore();
+}
+
+async function saveStore(store: StoreShape) {
+  if (hasSupabaseStoreConfig()) {
+    if (getSupabaseStoreMode() === "relational") {
+      await saveSupabaseRelationalStore(store);
+      return;
+    }
+
+    await saveSupabaseJsonStore(store);
+    return;
+  }
+
+  await saveLocalStore(store);
 }
 
 export async function readStore() {
