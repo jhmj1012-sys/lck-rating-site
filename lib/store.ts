@@ -47,6 +47,7 @@ type ServiceMetaRow = {
 
 const supabaseStoreMode = process.env.SUPABASE_STORE_MODE ?? "json";
 const supabaseServiceMetaTable = process.env.SUPABASE_SERVICE_META_TABLE ?? "service_meta";
+const storeCacheTtlMs = Number.parseInt(process.env.STORE_CACHE_TTL_MS ?? "5000", 10);
 const storeCollectionConfigs: CollectionConfig[] = [
   { key: "users", table: "users" },
   { key: "teams", table: "teams" },
@@ -68,6 +69,10 @@ const storeCollectionConfigs: CollectionConfig[] = [
   { key: "profileStoreItems", table: "profile_store_items" },
   { key: "userInventory", table: "user_inventory" },
 ];
+
+let cachedStoreSnapshot: StoreShape | null = null;
+let cachedStoreExpiresAt = 0;
+let pendingStoreRead: Promise<StoreShape> | null = null;
 
 const SEEDED_USER_COPY: Record<string, { name: string; nickname: string; bio: string }> = {
   user_seed_analyst: { name: "이민준", nickname: "밴픽보는중", bio: "밴픽이랑 오브젝트 타이밍 위주로 봅니다." },
@@ -500,6 +505,21 @@ function chunkArray<T>(items: T[], size: number) {
   return chunks;
 }
 
+function cloneStore(store: StoreShape) {
+  return structuredClone(store);
+}
+
+function primeStoreCache(store: StoreShape) {
+  cachedStoreSnapshot = cloneStore(store);
+  cachedStoreExpiresAt = Date.now() + Math.max(0, storeCacheTtlMs);
+}
+
+function clearStoreCache() {
+  cachedStoreSnapshot = null;
+  cachedStoreExpiresAt = 0;
+  pendingStoreRead = null;
+}
+
 async function ensureLocalStore(): Promise<StoreShape> {
   try {
     const content = await readFile(storePath, "utf8");
@@ -691,11 +711,29 @@ async function ensureStore(): Promise<StoreShape> {
     );
   }
 
-  if (hasSupabaseStoreConfig()) {
-    return getSupabaseStoreMode() === "relational" ? ensureSupabaseRelationalStore() : ensureSupabaseJsonStore();
+  if (cachedStoreSnapshot && cachedStoreExpiresAt > Date.now()) {
+    return cloneStore(cachedStoreSnapshot);
   }
 
-  return ensureLocalStore();
+  if (pendingStoreRead) {
+    return cloneStore(await pendingStoreRead);
+  }
+
+  pendingStoreRead = (async () => {
+    if (hasSupabaseStoreConfig()) {
+      return getSupabaseStoreMode() === "relational" ? ensureSupabaseRelationalStore() : ensureSupabaseJsonStore();
+    }
+
+    return ensureLocalStore();
+  })();
+
+  try {
+    const store = await pendingStoreRead;
+    primeStoreCache(store);
+    return cloneStore(store);
+  } finally {
+    pendingStoreRead = null;
+  }
 }
 
 async function saveStore(store: StoreShape) {
@@ -708,14 +746,17 @@ async function saveStore(store: StoreShape) {
   if (hasSupabaseStoreConfig()) {
     if (getSupabaseStoreMode() === "relational") {
       await saveSupabaseRelationalStore(store);
+      primeStoreCache(store);
       return;
     }
 
     await saveSupabaseJsonStore(store);
+    primeStoreCache(store);
     return;
   }
 
   await saveLocalStore(store);
+  primeStoreCache(store);
 }
 
 export async function readStore() {

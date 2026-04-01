@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 import { AuthSessionProvider } from "@/components/AuthSessionProvider";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -11,9 +12,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="ko" className="h-full antialiased">
       <body className="min-h-full" suppressHydrationWarning>
@@ -23,6 +24,8 @@ export default function RootLayout({
             <SiteFooter />
           </div>
         </AuthSessionProvider>
+
+        <SpeedInsights />
       </body>
     </html>
   );
