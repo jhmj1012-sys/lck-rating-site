@@ -25,20 +25,20 @@ export function TopSiteNav({
         notifications={notifications}
         unreadNotificationCount={unreadNotificationCount}
       />
-      <div className="border-b border-[#B95A31] bg-[#D96C3F]">
+      <div className="border-b border-[#6D28D9] bg-[#8B5CF6]">
         <nav className={cn("mx-auto flex items-center gap-1 px-4 sm:px-6", maxWidthClass)}>
           <Link
             href="/"
             className={cn(
               "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
-              "text-[#DDE9FF]",
+              "text-[#F5F3FF]",
             )}
-            style={{ color: "#DDE9FF" }}
+            style={{ color: "#F5F3FF" }}
             onMouseEnter={(event) => {
-              event.currentTarget.style.color = "#A9C2F5";
+              event.currentTarget.style.color = "#E9D5FF";
             }}
             onMouseLeave={(event) => {
-              event.currentTarget.style.color = "#DDE9FF";
+              event.currentTarget.style.color = "#F5F3FF";
             }}
           >
             홈
@@ -48,14 +48,14 @@ export function TopSiteNav({
             href="/schedule"
             className={cn(
               "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
-              "text-[#DDE9FF]",
+              "text-[#F5F3FF]",
             )}
-            style={{ color: "#DDE9FF" }}
+            style={{ color: "#F5F3FF" }}
             onMouseEnter={(event) => {
-              event.currentTarget.style.color = "#A9C2F5";
+              event.currentTarget.style.color = "#E9D5FF";
             }}
             onMouseLeave={(event) => {
-              event.currentTarget.style.color = "#DDE9FF";
+              event.currentTarget.style.color = "#F5F3FF";
             }}
           >
             경기일정
@@ -65,14 +65,14 @@ export function TopSiteNav({
             href="/ratings"
             className={cn(
               "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
-              "text-[#DDE9FF]",
+              "text-[#F5F3FF]",
             )}
-            style={{ color: "#DDE9FF" }}
+            style={{ color: "#F5F3FF" }}
             onMouseEnter={(event) => {
-              event.currentTarget.style.color = "#A9C2F5";
+              event.currentTarget.style.color = "#E9D5FF";
             }}
             onMouseLeave={(event) => {
-              event.currentTarget.style.color = "#DDE9FF";
+              event.currentTarget.style.color = "#F5F3FF";
             }}
           >
             평점순위
@@ -82,14 +82,14 @@ export function TopSiteNav({
             href="/season-predictions"
             className={cn(
               "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
-              "text-[#DDE9FF]",
+              "text-[#F5F3FF]",
             )}
-            style={{ color: "#DDE9FF" }}
+            style={{ color: "#F5F3FF" }}
             onMouseEnter={(event) => {
-              event.currentTarget.style.color = "#A9C2F5";
+              event.currentTarget.style.color = "#E9D5FF";
             }}
             onMouseLeave={(event) => {
-              event.currentTarget.style.color = "#DDE9FF";
+              event.currentTarget.style.color = "#F5F3FF";
             }}
           >
             시즌예측
@@ -99,14 +99,14 @@ export function TopSiteNav({
             href="/games/15-dollar-challenge"
             className={cn(
               "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
-              "text-[#DDE9FF]",
+              "text-[#F5F3FF]",
             )}
-            style={{ color: "#DDE9FF" }}
+            style={{ color: "#F5F3FF" }}
             onMouseEnter={(event) => {
-              event.currentTarget.style.color = "#A9C2F5";
+              event.currentTarget.style.color = "#E9D5FF";
             }}
             onMouseLeave={(event) => {
-              event.currentTarget.style.color = "#DDE9FF";
+              event.currentTarget.style.color = "#F5F3FF";
             }}
           >
             게임

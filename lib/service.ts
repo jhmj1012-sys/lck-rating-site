@@ -76,8 +76,6 @@ import type {
 const relativeTime = new Intl.RelativeTimeFormat("ko", { numeric: "auto" });
 const roleOrder: Record<PlayerRole, number> = { TOP: 0, JGL: 1, MID: 2, ADC: 3, SUP: 4 };
 const scheduleWeekdayOrder = [4, 5, 6, 0, 1, 2, 3] as const;
-const DEMO_NOW_ISO = "2026-04-15T18:00:00+09:00";
-const DEMO_NOW_MS = new Date(DEMO_NOW_ISO).getTime();
 const COINS = {
   predictionSubmit: 10,
   predictionHit: 5,
@@ -85,6 +83,14 @@ const COINS = {
   legacyRatingSubmit: 8,
   setRatingPerPlayer: 2,
 } as const;
+
+function getNowMs() {
+  return Date.now();
+}
+
+function getNowIso() {
+  return new Date().toISOString();
+}
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
@@ -165,7 +171,7 @@ function getPredictionLifecycleState(match: StoredMatch) {
   if (match.predictionSettledAt) {
     return "settled" as const;
   }
-  if (match.predictionLocked || DEMO_NOW_MS >= getPredictionDeadlineAt(match.scheduledAt).getTime()) {
+  if (match.predictionLocked || getNowMs() >= getPredictionDeadlineAt(match.scheduledAt).getTime()) {
     return "locked" as const;
   }
   return "open" as const;
@@ -211,7 +217,7 @@ function getSeasonQuestionStatus(question: StoredSeasonPredictionQuestion): Seas
   if (question.resultOptionId || question.resultValue || question.resolvedAt) {
     return "resolved";
   }
-  if (DEMO_NOW_MS >= new Date(question.closeAt).getTime()) {
+  if (getNowMs() >= new Date(question.closeAt).getTime()) {
     return "locked";
   }
   return "open";
@@ -437,7 +443,7 @@ function settlePredictionForMatch(store: StoreShape, match: StoredMatch) {
 function ensurePredictionLifecycle(store: StoreShape) {
   for (const match of store.matches) {
     const deadlineMs = getPredictionDeadlineAt(match.scheduledAt).getTime();
-    const shouldLock = !match.predictionLockedAt && DEMO_NOW_MS >= deadlineMs;
+    const shouldLock = !match.predictionLockedAt && getNowMs() >= deadlineMs;
     if (shouldLock) {
       match.predictionLocked = true;
       match.predictionLockedAt = new Date(deadlineMs).toISOString();
@@ -457,12 +463,12 @@ function getPredictionDeadlineAt(scheduledAt: string) {
 }
 
 function isPredictionLocked(match: StoredMatch) {
-  return match.predictionLocked || match.status === "finished" || DEMO_NOW_MS >= getPredictionDeadlineAt(match.scheduledAt).getTime();
+  return match.predictionLocked || match.status === "finished" || getNowMs() >= getPredictionDeadlineAt(match.scheduledAt).getTime();
 }
 
 function formatRelativeLabel(value: string) {
   const target = new Date(value).getTime();
-  const minutes = Math.round((target - DEMO_NOW_MS) / 60000);
+  const minutes = Math.round((target - getNowMs()) / 60000);
   if (Math.abs(minutes) < 60) {
     return relativeTime.format(minutes, "minute");
   }
@@ -582,7 +588,7 @@ function getMatchSearchStatusLabel(match: StoredMatch) {
   if (match.status === "finished") {
     return "종료";
   }
-  return new Date(match.scheduledAt).getTime() <= DEMO_NOW_MS ? "진행중" : "예정";
+  return new Date(match.scheduledAt).getTime() <= getNowMs() ? "진행중" : "예정";
 }
 
 function getSearchScore(haystack: string, rawQuery: string, tokens: string[]) {
@@ -1160,7 +1166,7 @@ function buildMatchView(store: StoreShape, match: StoredMatch, viewerId: string 
     patch: match.patch,
     status: match.status,
     date: formatDateLabel(match.scheduledAt),
-    serverNow: new Date(DEMO_NOW_MS).toISOString(),
+    serverNow: getNowIso(),
     scheduledAt: match.scheduledAt,
     predictionDeadlineAt: getPredictionDeadlineAt(match.scheduledAt).toISOString(),
     teamA: teamA.code,
@@ -1496,18 +1502,18 @@ function buildPredictionInsights(store: StoreShape, viewerId: string): {
   return { insights, comparison, styleLabel };
 }
 
-function isSameDemoDay(value: string) {
+function isSameCurrentDay(value: string) {
   const target = new Date(value);
-  const demoDate = new Date(DEMO_NOW_MS);
+  const currentDate = new Date(getNowMs());
   return (
-    target.getFullYear() === demoDate.getFullYear() &&
-    target.getMonth() === demoDate.getMonth() &&
-    target.getDate() === demoDate.getDate()
+    target.getFullYear() === currentDate.getFullYear() &&
+    target.getMonth() === currentDate.getMonth() &&
+    target.getDate() === currentDate.getDate()
   );
 }
 
 function buildHeroStats(store: StoreShape): HomeHeroStats {
-  const todayMatches = store.matches.filter((match) => isSameDemoDay(match.scheduledAt)).length;
+  const todayMatches = store.matches.filter((match) => isSameCurrentDay(match.scheduledAt)).length;
   const totalRatings = store.playerRatings.length + store.setPlayerRatings.length;
   const totalComments = store.comments.filter((comment) => !comment.hidden).length;
 
@@ -1522,7 +1528,7 @@ function buildHeroStats(store: StoreShape): HomeHeroStats {
 
 function buildFeaturedMatch(store: StoreShape, viewerId: string | null) {
   const candidates = store.matches
-    .filter((match) => isSameDemoDay(match.scheduledAt))
+    .filter((match) => isSameCurrentDay(match.scheduledAt))
     .slice()
     .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
   const preferred =
@@ -1530,7 +1536,7 @@ function buildFeaturedMatch(store: StoreShape, viewerId: string | null) {
     candidates.find((match) => match.status === "finished") ??
     store.matches
       .slice()
-      .sort((a, b) => Math.abs(new Date(a.scheduledAt).getTime() - DEMO_NOW_MS) - Math.abs(new Date(b.scheduledAt).getTime() - DEMO_NOW_MS))[0] ??
+      .sort((a, b) => Math.abs(new Date(a.scheduledAt).getTime() - getNowMs()) - Math.abs(new Date(b.scheduledAt).getTime() - getNowMs()))[0] ??
     null;
 
   return preferred ? buildMatchView(store, preferred, viewerId) : null;
@@ -1538,7 +1544,7 @@ function buildFeaturedMatch(store: StoreShape, viewerId: string | null) {
 
 function buildTodayMatches(store: StoreShape, viewerId: string | null): MatchData[] {
   const todayMatches = store.matches
-    .filter((match) => isSameDemoDay(match.scheduledAt))
+    .filter((match) => isSameCurrentDay(match.scheduledAt))
     .slice()
     .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
 
@@ -1547,7 +1553,7 @@ function buildTodayMatches(store: StoreShape, viewerId: string | null): MatchDat
   }
 
   const upcomingMatches = store.matches
-    .filter((match) => new Date(match.scheduledAt).getTime() > DEMO_NOW_MS)
+    .filter((match) => new Date(match.scheduledAt).getTime() > getNowMs())
     .slice()
     .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
 
@@ -1570,7 +1576,7 @@ function buildTodayMatches(store: StoreShape, viewerId: string | null): MatchDat
 
 function buildRecentFinishedMatches(store: StoreShape, viewerId: string | null): MatchData[] {
   return store.matches
-    .filter((match) => match.status === "finished" && new Date(match.scheduledAt).getTime() <= DEMO_NOW_MS)
+    .filter((match) => match.status === "finished" && new Date(match.scheduledAt).getTime() <= getNowMs())
     .slice()
     .sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime())
     .slice(0, 3)
@@ -1897,7 +1903,7 @@ function buildSeasonPredictionDetail(
   const myEntry = viewerId ? entries.find((entry) => entry.userId === viewerId) ?? null : null;
   const myOption = myEntry ? options.find((option) => option.id === myEntry.selectedOptionId) ?? null : null;
   const resultOption = question.resultOptionId ? options.find((option) => option.id === question.resultOptionId) ?? null : null;
-  const diffMs = new Date(question.closeAt).getTime() - DEMO_NOW_MS;
+  const diffMs = new Date(question.closeAt).getTime() - getNowMs();
   const totalMinutes = Math.max(0, Math.floor(diffMs / 60000));
   const days = Math.floor(totalMinutes / (60 * 24));
   const hours = Math.floor((totalMinutes % (60 * 24)) / 60);

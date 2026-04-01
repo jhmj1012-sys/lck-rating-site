@@ -16,7 +16,7 @@ type SiteHeaderProps = {
 };
 
 const HEADER_LABELS = {
-  title: "GG 레이팅",
+  title: "LOL PRO RATING",
   teams: "팀 로스터",
   admin: "관리자",
   account: "내 계정",
@@ -45,7 +45,7 @@ function IconNavLink({
       className="group relative inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#424254] text-white transition hover:bg-[#505063] hover:text-white"
     >
       {children}
-      <span className="pointer-events-none absolute -bottom-8 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-[#d7dce3] bg-white px-2 py-1 text-[11px] font-medium text-[#55677b] shadow-[0_8px_20px_rgba(32,45,55,0.1)] lg:group-hover:block lg:group-focus-visible:block">
+      <span className="ui-header-tooltip pointer-events-none absolute -bottom-8 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-[#d7dce3] bg-white px-2 py-1 text-[11px] font-medium text-[#55677b] shadow-[0_8px_20px_rgba(32,45,55,0.1)] lg:group-hover:block lg:group-focus-visible:block">
         {label}
       </span>
     </Link>
@@ -166,11 +166,11 @@ function NotificationButton({
       >
         <BellIcon className="h-4 w-4 text-white" />
         {unreadCount > 0 ? (
-          <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[#5383e8] px-1 text-[11px] font-bold text-white">
+          <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[#8B5CF6] px-1 text-[11px] font-bold text-white">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         ) : null}
-        <span className="pointer-events-none absolute -bottom-8 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-[#d7dce3] bg-white px-2 py-1 text-[11px] font-medium text-[#55677b] shadow-[0_8px_20px_rgba(32,45,55,0.1)] lg:group-hover:block lg:group-focus-visible:block">
+        <span className="ui-header-tooltip pointer-events-none absolute -bottom-8 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-[#d7dce3] bg-white px-2 py-1 text-[11px] font-medium text-[#55677b] shadow-[0_8px_20px_rgba(32,45,55,0.1)] lg:group-hover:block lg:group-focus-visible:block">
           {HEADER_LABELS.notifications}
         </span>
       </button>
@@ -196,7 +196,7 @@ function NotificationButton({
                       <div className="truncate text-sm font-semibold text-[#FFFFFF]">{notification.title}</div>
                       <div className="mt-1 line-clamp-2 text-xs leading-5 text-[#d6d6e5]">{notification.body}</div>
                     </div>
-                    {notification.rewardCoins ? <div className="text-xs font-semibold text-[#5383e8]">+{notification.rewardCoins}</div> : null}
+                    {notification.rewardCoins ? <div className="text-xs font-semibold text-[#8B5CF6]">+{notification.rewardCoins}</div> : null}
                   </div>
                   <div className="mt-2 flex items-center justify-between gap-3 text-[11px] text-[#b6bfdc]">
                     <span>{notification.createdLabel}</span>
@@ -368,7 +368,7 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
         onClick={() => navigateTo(item.href)}
         className={cn(
           "w-full rounded-xl px-3 py-2 text-left transition",
-          selected ? "bg-[rgba(83,131,232,0.22)]" : "hover:bg-[#3A3A47]",
+          selected ? "bg-[rgba(139,92,246,0.22)]" : "hover:bg-[#3A3A47]",
         )}
       >
         <div className="truncate text-sm font-semibold text-white">{item.title}</div>
@@ -383,11 +383,13 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
         <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center justify-between gap-3">
             <Link href="/" className="flex min-w-0 items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#5383e8] text-xs font-black tracking-[-0.03em] text-white shadow-[0_10px_24px_rgba(83,131,232,0.24)]">
-                GG
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#8B5CF6] text-xs font-black tracking-[-0.03em] text-white shadow-[0_10px_24px_rgba(139,92,246,0.24)]">
+                LPR
               </div>
               <div className="min-w-0">
-                <div className="truncate text-[17px] font-bold tracking-[-0.03em] text-[#FFFFFF]">{HEADER_LABELS.title}</div>
+                <div className="truncate text-[17px] font-bold tracking-[-0.03em] text-[#FFFFFF]">
+                  <span className="text-[#8B5CF6]">L</span>OL <span className="text-[#8B5CF6]">P</span>RO <span className="text-[#8B5CF6]">R</span>ATING
+                </div>
               </div>
             </Link>
 
@@ -424,7 +426,7 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
                 }}
                 onKeyDown={onSearchKeyDown}
                 placeholder={HEADER_LABELS.searchPlaceholder}
-                className="h-10 rounded-[18px] !border-transparent !bg-[#424254] pl-12 pr-4 text-[13px] !text-[#FFFFFF] caret-[#FFFFFF] placeholder:text-[#9aa4af] focus:!border-transparent focus:!bg-[#424254] focus:shadow-[0_0_0_3px_rgba(83,131,232,0.14)]"
+                className="h-10 rounded-[18px] !border-transparent !bg-[#424254] pl-12 pr-4 text-[13px] !text-[#FFFFFF] caret-[#FFFFFF] placeholder:text-[#9aa4af] focus:!border-transparent focus:!bg-[#424254] focus:shadow-[0_0_0_3px_rgba(139,92,246,0.14)]"
                 style={{ paddingLeft: "3rem" }}
               />
 

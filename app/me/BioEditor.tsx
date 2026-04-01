@@ -55,7 +55,7 @@ export function BioEditor({ initialBio }: { initialBio: string }) {
           type="button"
           onClick={handleSave}
           disabled={isSaving}
-          className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#5383E8] px-4 text-sm font-semibold text-white transition hover:bg-[#4171D6] disabled:cursor-not-allowed disabled:opacity-70"
+          className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#8B5CF6] px-4 text-sm font-semibold text-white transition hover:bg-[#7C3AED] disabled:cursor-not-allowed disabled:opacity-70"
         >
           {isSaving ? "저장중..." : "소개문구 저장"}
         </button>

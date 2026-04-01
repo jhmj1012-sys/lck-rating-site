@@ -109,7 +109,7 @@ export default async function TeamsPage({
                     href={`/teams?team=${team.teamCode}`}
                     className={
                       active
-                        ? "rounded-xl bg-[#5383E8] px-3 py-2 text-center text-sm font-medium !text-[#F8F8F8] visited:!text-[#F8F8F8]"
+                        ? "rounded-xl bg-[#8B5CF6] px-3 py-2 text-center text-sm font-medium !text-[#F8F8F8] visited:!text-[#F8F8F8]"
                         : "rounded-xl bg-[#424254] px-3 py-2 text-center text-sm font-medium !text-[#F8F8F8] visited:!text-[#F8F8F8] hover:bg-[#4D4D61]"
                     }
                   >

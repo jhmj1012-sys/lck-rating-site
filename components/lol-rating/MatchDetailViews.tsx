@@ -315,7 +315,7 @@ function PredictionGamePanel({ match }: { match: MatchData }) {
     <section id='prediction-panel' className='space-y-4'>
       <div className='rounded-[22px] border border-slate-200 bg-white p-4'>
         <div className='mb-3 flex items-center justify-between'>
-          <div className='text-sm font-bold text-slate-950'>승부예측 배틀</div>
+          <div className='text-2xl font-black tracking-[-0.03em] text-slate-950'>승부예측</div>
           <div className='text-xs text-slate-500'>총 {match.predictionSummary.totalVotes.toLocaleString()}명 참여</div>
         </div>
 
@@ -979,8 +979,8 @@ function FinishedView({ data }: { data: MatchDetailData }) {
           <div data-share-card='true' ref={shareCardRef} className='mx-auto w-full max-w-[392px] aspect-[4/5] overflow-hidden rounded-[22px] border border-slate-200 bg-[#1C1C1F] p-5 text-white'>
             <div className='flex items-center justify-between gap-3'>
               <div className='inline-flex items-center gap-2'>
-                <span className='inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#5383e8] text-xs font-black tracking-[-0.03em] text-white'>GG</span>
-                <span className='text-sm font-bold text-slate-100'>GG 레이팅</span>
+                <span className='inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#8B5CF6] text-xs font-black tracking-[-0.03em] text-white'>LPR</span>
+                <span className='text-sm font-bold text-slate-100'>LOL PRO RATING</span>
               </div>
               <div className='text-right text-[11px] text-slate-300'>{formatDateTime(data.match.scheduledAt)}</div>
             </div>

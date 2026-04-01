@@ -35,7 +35,7 @@ export function SignInCard() {
             await signIn("google", { callbackUrl });
             setPending(false);
           }}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#5383E8] px-4 py-3 text-sm font-medium !text-[#FFFFFF] transition hover:bg-[#6C98EE] hover:!text-[#FFFFFF] disabled:cursor-not-allowed disabled:opacity-70"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#8B5CF6] px-4 py-3 text-sm font-medium !text-[#FFFFFF] transition hover:bg-[#7C3AED] hover:!text-[#FFFFFF] disabled:cursor-not-allowed disabled:opacity-70"
         >
           {pending ? (
             "이동 중..."

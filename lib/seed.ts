@@ -27,8 +27,6 @@ type SeedRoster = Record<string, SeedRosterPlayer[]>;
 const OFFICIAL_ROSTER_SOURCE = "https://lolesports.com/ko-KR/news/2026-r1-roster";
 const OFFICIAL_ROSTER_UPDATED_AT = "2026-03-26T09:00:00+09:00";
 const OFFICIAL_SCHEDULE_UPDATED_AT = "2026-03-27T10:00:00+09:00";
-const DEMO_NOW_ISO = "2026-04-15T18:00:00+09:00";
-const DEMO_NOW_MS = new Date(DEMO_NOW_ISO).getTime();
 const rosterByTeam: SeedRoster = {
   T1: [
     { name: "Doran", role: "TOP" },
@@ -352,22 +350,18 @@ function getNormalizedStage(matchId: string) {
 
 function createMatches(): StoredMatch[] {
   return seedMatches.map((match) => {
-    const scheduledAt = match.id === "match_23" ? "2026-04-16T11:30:00+09:00" : match.scheduledAt;
-    const isFinished = match.id === "match_24" ? false : new Date(scheduledAt).getTime() < DEMO_NOW_MS;
-    const generated = createGeneratedResult(match.id);
-
     return {
       id: match.id,
       league: "LCK 2026",
       stage: getNormalizedStage(match.id),
       patch: match.patch,
-      status: isFinished ? "finished" : match.status,
-      scheduledAt,
+      status: match.status,
+      scheduledAt: match.scheduledAt,
       teamAId: getTeamId(match.teamA),
       teamBId: getTeamId(match.teamB),
-      scoreA: isFinished ? generated.scoreA : match.scoreA,
-      scoreB: isFinished ? generated.scoreB : match.scoreB,
-      predictionLocked: isFinished,
+      scoreA: match.scoreA,
+      scoreB: match.scoreB,
+      predictionLocked: false,
       predictionLockedAt: null,
       lockedDistribution: null,
       lockedOdds: null,
@@ -430,135 +424,20 @@ function createSetParticipants(matchSets: StoredMatchSet[], matchParticipants: S
   );
 }
 
-const seedUserProfiles = [
-  { suffix: "analyst", name: "이민준", nickname: "밴픽보는중", bio: "밴픽이랑 오브젝트 타이밍 위주로 봅니다.", role: "user" as const },
-  { suffix: "editor", name: "박서연", nickname: "세트요약러", bio: "세트 흐름이랑 선수 영향력 정리하는 편입니다.", role: "admin" as const },
-  { suffix: "alpha", name: "김도윤", nickname: "정글각재는중", bio: "초반 정글 동선이 제일 중요하다고 봐요.", role: "user" as const },
-  { suffix: "beta", name: "최지훈", nickname: "라인전집착러", bio: "라인전 디테일 보는 맛으로 경기 챙깁니다.", role: "user" as const },
-  { suffix: "gamma", name: "정하늘", nickname: "한타메모장", bio: "한타 구도랑 콜 타이밍 보는 걸 좋아합니다.", role: "user" as const },
-  { suffix: "delta", name: "윤서진", nickname: "패치민감함", bio: "패치 바뀌면 팀별 적응 속도부터 체크합니다.", role: "user" as const },
-  { suffix: "epsilon", name: "한예준", nickname: "정배충아님", bio: "그래도 정배 쪽이 더 안정적일 때가 많다고 봅니다.", role: "user" as const },
-  { suffix: "zeta", name: "강민석", nickname: "역배맛집찾기", bio: "역배 터질 만한 경기 찾는 재미로 봅니다.", role: "user" as const },
-  { suffix: "eta", name: "신유진", nickname: "교전기록계", bio: "초중반 교전 타이밍 메모 자주 남깁니다.", role: "user" as const },
-  { suffix: "theta", name: "송재원", nickname: "밴픽수첩", bio: "상성 구도랑 조합 완성도 위주로 보는 편이에요.", role: "user" as const },
-  { suffix: "iota", name: "오세훈", nickname: "탑차이봄", bio: "탑 구도 하나로 게임 분위기 바뀐다고 생각합니다.", role: "user" as const },
-  { suffix: "kappa", name: "서지우", nickname: "미드주도권", bio: "미드 주도권 넘어가는 순간을 유심히 봅니다.", role: "user" as const },
-  { suffix: "lambda", name: "장현우", nickname: "바텀웨이브", bio: "바텀 라인 관리와 템포 차이 보는 걸 좋아해요.", role: "user" as const },
-  { suffix: "mu", name: "조은호", nickname: "교전복기중", bio: "끝난 한타 다시 복기하면서 보는 스타일입니다.", role: "user" as const },
-  { suffix: "nu", name: "임수빈", nickname: "시야중요함", bio: "시야랑 포지션이 결국 경기 갈린다고 봅니다.", role: "user" as const },
-  { suffix: "xi", name: "황지호", nickname: "용타이머외움", bio: "오브젝트 시간 계산해두고 경기 보는 편입니다.", role: "user" as const },
-  { suffix: "omicron", name: "구태윤", nickname: "후반한타파", bio: "후반 조합 가치 높게 보는 편입니다.", role: "user" as const },
-  { suffix: "pi", name: "안서후", nickname: "굴리는맛", bio: "스노우볼 굴리는 팀들 보는 맛이 있습니다.", role: "user" as const },
-] as const;
-
 function createUsers(): StoredUser[] {
-  return seedUserProfiles.map((profile) => ({
-    id: `user_seed_${profile.suffix}`,
-    email: `${profile.suffix}@example.com`,
-    name: profile.name,
-    nickname: profile.nickname,
-    nicknameOnboardingSeen: false,
-    nicknameUpdatedAt: DEMO_NOW_ISO,
-    bio: profile.bio,
-    image: null,
-    role: profile.role,
-    selectedProfileTheme: null,
-    createdAt: DEMO_NOW_ISO,
-    updatedAt: DEMO_NOW_ISO,
-  }));
+  return [];
 }
 
 function createPredictions(users: StoredUser[], matches: StoredMatch[]): StoredPrediction[] {
-  const predictions: StoredPrediction[] = [];
-  let index = 1;
-
-  for (const match of matches) {
-    if (match.teamAId === getTeamId("TBD") || match.teamBId === getTeamId("TBD")) {
-      continue;
-    }
-
-    for (const user of users) {
-      const chance = hashToUnit(`${user.id}:${match.id}:enter`);
-      if (chance < 0.42) {
-        continue;
-      }
-
-      const pick = hashToUnit(`${user.id}:${match.id}:pick`) >= 0.5 ? match.teamAId : match.teamBId;
-      const scheduledMs = new Date(match.scheduledAt).getTime();
-      const beforeHours = 4 + Math.floor(hashToUnit(`${user.id}:${match.id}:hours`) * 72);
-      const createdMs = Math.min(scheduledMs - beforeHours * 60 * 60 * 1000, DEMO_NOW_MS - 10 * 60 * 1000);
-      const createdAt = new Date(createdMs).toISOString();
-
-      predictions.push({
-        id: `prediction_${index}`,
-        userId: user.id,
-        matchId: match.id,
-        teamId: pick,
-        createdAt,
-        updatedAt: createdAt,
-        joinedRewardGrantedAt: createdAt,
-        settledAt: null,
-        settlementResult: null,
-        settlementCoins: 0,
-        appliedOddsPercent: null,
-        wasUnderdogPick: null,
-      });
-      index += 1;
-    }
-  }
-
-  return predictions;
+  void users;
+  void matches;
+  return [];
 }
 
 function createComments(users: StoredUser[], matches: StoredMatch[]): StoredComment[] {
-  const templates = [
-    "오늘은 밴픽부터 생각보다 팽팽하네.",
-    "라인전보단 첫 용 타이밍에서 갈릴 듯.",
-    "이 경기는 미드 주도권 잡는 쪽이 편해 보인다.",
-    "바텀 변수 꽤 커서 끝까지 봐야 할 느낌.",
-    "정배 같긴 한데 생각보다 쉽게 안 끝날 듯.",
-    "탑 구도 은근 중요해서 초반부터 재밌겠다.",
-    "한타 붙기 시작하면 분위기 확 바뀔 수도 있겠네.",
-    "시야 싸움에서 먼저 밀리는 팀이 힘들어 보임.",
-    "이번 판은 오브젝트 운영이 핵심 같다.",
-    "세트 가면 갈수록 체급보다 집중력이 중요해 보이네.",
-  ] as const;
-
-  const comments: StoredComment[] = [];
-  let index = 1;
-  const activeMatches = matches.filter((match) => match.teamAId !== getTeamId("TBD") && match.teamBId !== getTeamId("TBD"));
-
-  for (const match of activeMatches) {
-    const baseCount = match.status === "finished" ? 3 : 1;
-    const extra = Math.floor(hashToUnit(`${match.id}:commentCount`) * (match.status === "finished" ? 6 : 3));
-    const total = baseCount + extra;
-
-    for (let i = 0; i < total; i += 1) {
-      const user = users[Math.floor(hashToUnit(`${match.id}:user:${i}`) * users.length)] ?? users[0];
-      const text = templates[Math.floor(hashToUnit(`${match.id}:text:${i}`) * templates.length)] ?? templates[0];
-      const scheduledMs = new Date(match.scheduledAt).getTime();
-      const offsetMinutes = match.status === "finished"
-        ? 20 + Math.floor(hashToUnit(`${match.id}:offset:${i}`) * 420)
-        : -180 + Math.floor(hashToUnit(`${match.id}:offset:${i}`) * 140);
-      const createdMs = Math.min(scheduledMs + offsetMinutes * 60 * 1000, DEMO_NOW_MS - 5 * 60 * 1000);
-      const createdAt = new Date(createdMs).toISOString();
-
-      comments.push({
-        id: `comment_${index}`,
-        userId: user.id,
-        matchId: match.id,
-        text,
-        parentId: null,
-        recommendUserIds: [],
-        hidden: false,
-        createdAt,
-        updatedAt: createdAt,
-      });
-      index += 1;
-    }
-  }
-
-  return comments;
+  void users;
+  void matches;
+  return [];
 }
 
 function createSetPlayerRatings(
@@ -566,104 +445,18 @@ function createSetPlayerRatings(
   matchSets: StoredMatchSet[],
   setParticipants: StoredSetParticipant[],
 ): StoredSetPlayerRating[] {
-  const ratings: StoredSetPlayerRating[] = [];
-  let index = 1;
-
-  for (const set of matchSets) {
-    if (set.winnerTeamId === null) {
-      continue;
-    }
-
-    const participants = setParticipants.filter((participant) => participant.matchSetId === set.id);
-    const raters = users.filter((user) => hashToUnit(`${set.id}:${user.id}:rate`) >= 0.62).slice(0, 4);
-
-    for (const user of raters) {
-      for (const participant of participants) {
-        const wonSet = participant.teamId === set.winnerTeamId;
-        const baseScore = wonSet ? 6.8 : 5.8;
-        const variance = hashToUnit(`${set.id}:${user.id}:${participant.playerId}:score`) * 2.2;
-        const score = Number(Math.min(9.8, Math.max(4.2, baseScore + variance)).toFixed(1));
-        const createdAt = new Date(
-          Math.min(
-            new Date(set.updatedAt).getTime() + (index % 7) * 60 * 1000,
-            DEMO_NOW_MS - 60 * 1000,
-          ),
-        ).toISOString();
-
-        ratings.push({
-          id: `set_rating_${index}`,
-          userId: user.id,
-          matchSetId: set.id,
-          playerId: participant.playerId,
-          score,
-          comment: wonSet ? "한타에서 존재감이 확실했어요." : "실수만 조금 줄였으면 더 좋았을 듯.",
-          createdAt,
-          updatedAt: createdAt,
-        });
-        index += 1;
-      }
-    }
-  }
-
-  return ratings;
+  void users;
+  void matchSets;
+  void setParticipants;
+  return [];
 }
 
 function createPointLedger(): StoredPointLedgerEntry[] {
-  const now = new Date().toISOString();
-  return [
-    {
-      id: "ledger_1",
-      userId: "user_seed_analyst",
-      type: "earn",
-      amount: 380,
-      reason: "占시듸옙 활占쏙옙 占쏙옙占쏙옙트 占싱곤옙",
-      referenceType: "migration",
-      referenceId: "user_seed_analyst",
-      createdAt: now,
-      balanceAfter: 380,
-    },
-    {
-      id: "ledger_2",
-      userId: "user_seed_editor",
-      type: "earn",
-      amount: 420,
-      reason: "占시듸옙 활占쏙옙 占쏙옙占쏙옙트 占싱곤옙",
-      referenceType: "migration",
-      referenceId: "user_seed_editor",
-      createdAt: now,
-      balanceAfter: 420,
-    },
-    {
-      id: "ledger_4",
-      userId: "user_seed_analyst",
-      type: "spend",
-      amount: 220,
-      reason: "Sky Draft 占쌓몌옙 占쏙옙占쏙옙",
-      referenceType: "store_purchase",
-      referenceId: "store_theme_sky",
-      createdAt: now,
-      balanceAfter: 40,
-    },
-    {
-      id: "ledger_6",
-      userId: "user_seed_editor",
-      type: "spend",
-      amount: 220,
-      reason: "Crimson Stage 占쌓몌옙 占쏙옙占쏙옙",
-      referenceType: "store_purchase",
-      referenceId: "store_theme_crimson",
-      createdAt: now,
-      balanceAfter: 20,
-    },
-  ];
+  return [];
 }
 
 function createInventory(): StoredUserInventoryItem[] {
-  const now = DEMO_NOW_ISO;
-  return [
-    { id: "inventory_1", userId: "user_seed_analyst", storeItemId: "store_theme_sky", equipped: true, acquiredAt: now },
-    { id: "inventory_2", userId: "user_seed_editor", storeItemId: "store_theme_crimson", equipped: true, acquiredAt: now },
-  ];
+  return [];
 }
 
 function createNotifications(): StoredNotification[] {
@@ -690,8 +483,8 @@ function createSeasonPredictionQuestions(): StoredSeasonPredictionQuestion[] {
       rewardMode: "parimutuel",
       baseRewardAmount: null,
       lockedDistribution: null,
-      createdAt: DEMO_NOW_ISO,
-      updatedAt: DEMO_NOW_ISO,
+      createdAt: OFFICIAL_SCHEDULE_UPDATED_AT,
+      updatedAt: OFFICIAL_SCHEDULE_UPDATED_AT,
     },
     {
       id: "season_question_2",
@@ -711,8 +504,8 @@ function createSeasonPredictionQuestions(): StoredSeasonPredictionQuestion[] {
       rewardMode: "parimutuel",
       baseRewardAmount: null,
       lockedDistribution: null,
-      createdAt: DEMO_NOW_ISO,
-      updatedAt: DEMO_NOW_ISO,
+      createdAt: OFFICIAL_SCHEDULE_UPDATED_AT,
+      updatedAt: OFFICIAL_SCHEDULE_UPDATED_AT,
     },
     {
       id: "season_question_3",
@@ -732,8 +525,8 @@ function createSeasonPredictionQuestions(): StoredSeasonPredictionQuestion[] {
       rewardMode: "parimutuel",
       baseRewardAmount: null,
       lockedDistribution: null,
-      createdAt: DEMO_NOW_ISO,
-      updatedAt: DEMO_NOW_ISO,
+      createdAt: OFFICIAL_SCHEDULE_UPDATED_AT,
+      updatedAt: OFFICIAL_SCHEDULE_UPDATED_AT,
     },
   ];
 }
@@ -775,39 +568,10 @@ function createSeasonPredictionEntries(
   questions: StoredSeasonPredictionQuestion[],
   options: StoredSeasonPredictionOption[],
 ): StoredSeasonPredictionEntry[] {
-  const entries: StoredSeasonPredictionEntry[] = [];
-  let index = 1;
-
-  for (const question of questions) {
-    const questionOptions = options.filter((option) => option.questionId === question.id);
-    for (const user of users) {
-      if (hashToUnit(`${question.id}:${user.id}:join`) < 0.35) {
-        continue;
-      }
-      const selected = questionOptions[Math.floor(hashToUnit(`${question.id}:${user.id}:pick`) * questionOptions.length)];
-      if (!selected) {
-        continue;
-      }
-      const submittedAt = new Date(Math.min(new Date(question.openAt).getTime() + index * 3600000, DEMO_NOW_MS - 600000)).toISOString();
-      entries.push({
-        id: `season_entry_${index}`,
-        userId: user.id,
-        questionId: question.id,
-        selectedOptionId: selected.id,
-        submittedAt,
-        updatedAt: submittedAt,
-        lockedAt: null,
-        snapshot: null,
-        status: "open",
-        hitStatus: "pending",
-        rewardGranted: false,
-        rewardAmount: null,
-      });
-      index += 1;
-    }
-  }
-
-  return entries;
+  void users;
+  void questions;
+  void options;
+  return [];
 }
 
 export function createSeedStore(): StoreShape {

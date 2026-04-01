@@ -109,7 +109,7 @@ export function PlayerRankingBoard({ data }: { data: PlayerRankingPageData }) {
                       className={cn(
                         "inline-flex items-center gap-1 rounded-md bg-[#31313C] px-2.5 py-1 text-xs font-semibold transition",
                         position === item
-                          ? "bg-[#5383E8] text-white"
+                          ? "bg-[#8B5CF6] text-white"
                           : "text-[#d6d6e5] hover:bg-[#3A3A47] hover:text-white",
                       )}
                     >

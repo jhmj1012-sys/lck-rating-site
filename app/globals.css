@@ -12,9 +12,9 @@
   --card-muted: #f3f5f8;
   --line: #e6e9ee;
   --line-strong: #d7dce3;
-  --accent: #5383e8;
-  --accent-strong: #4171d6;
-  --accent-soft: rgba(83, 131, 232, 0.14);
+  --accent: #8b5cf6;
+  --accent-strong: #7c3aed;
+  --accent-soft: rgba(139, 92, 246, 0.14);
   --success-soft: rgba(0, 182, 120, 0.14);
   --danger-soft: rgba(236, 74, 101, 0.14);
   --radius-lg: 14px;
@@ -77,13 +77,13 @@ button.allow-disabled-cursor:disabled {
 }
 
 ::selection {
-  background: rgba(83, 131, 232, 0.24);
+  background: rgba(139, 92, 246, 0.24);
   color: var(--foreground);
 }
 
 .app-shell {
   min-height: 100vh;
-  background: radial-gradient(circle at top right, rgba(83, 131, 232, 0.1), transparent 28%),
+  background: radial-gradient(circle at top right, rgba(139, 92, 246, 0.1), transparent 28%),
     linear-gradient(180deg, var(--background) 0%, var(--background-strong) 100%);
 }
 
@@ -112,14 +112,14 @@ button.allow-disabled-cursor:disabled {
   align-items: center;
   justify-content: center;
   border-radius: 12px;
-  border: 1px solid rgba(65, 113, 214, 0.75);
+  border: 1px solid rgba(124, 58, 237, 0.75);
   background: var(--accent);
   padding: 0 18px;
   color: #fff;
   font-size: 0.92rem;
   font-weight: 700;
   transition: background-color 140ms ease, box-shadow 140ms ease;
-  box-shadow: 0 8px 18px rgba(83, 131, 232, 0.24);
+  box-shadow: 0 8px 18px rgba(139, 92, 246, 0.24);
 }
 
 .ui-action-primary:hover {
@@ -197,8 +197,8 @@ button.allow-disabled-cursor:disabled {
 .ui-input:focus,
 .ui-textarea:focus,
 .ui-select:focus {
-  border-color: #85aef3;
-  box-shadow: 0 0 0 3px rgba(83, 131, 232, 0.15);
+  border-color: #a78bfa;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
 }
 
 .ui-pill {
@@ -268,7 +268,7 @@ button.allow-disabled-cursor:disabled {
 }
 
 .mypage-theme .bg-sky-50 {
-  background-color: #5383e8 !important;
+  background-color: #8b5cf6 !important;
 }
 
 .mypage-theme .text-sky-800,
@@ -356,6 +356,12 @@ button.allow-disabled-cursor:disabled {
 
 .match-detail-theme .ui-action-primary {
   box-shadow: none !important;
+}
+
+.match-detail-theme .ui-header-tooltip {
+  border: 1px solid #d7dce3 !important;
+  background: #ffffff !important;
+  color: #55677b !important;
 }
 
 .match-detail-theme .shadow-\[0_8px_24px_rgba\(15\,23\,42\,0\.08\)\],

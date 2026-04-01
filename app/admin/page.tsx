@@ -56,7 +56,7 @@ export default async function AdminPage({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.24em] text-sky-700">Admin</p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">GG ?덉씠???댁쁺 ?⑤꼸</h1>
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">LOL PRO RATING 운영 화면</h1>
             <p className="mt-2 text-sm text-slate-600">寃쎄린 ?앹꽦遺???명듃 寃곌낵, ?명듃 濡쒖뒪?? ?명듃蹂??됱젏 ?낅젰源뚯? ???먮쫫?쇰줈 ?댁쁺?⑸땲??</p>
           </div>
           <Link href="/" className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700">

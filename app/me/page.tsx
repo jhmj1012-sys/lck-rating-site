@@ -198,7 +198,7 @@ export default async function MyPage({
         summary: accuracyComparison.summary,
         delta: accuracyComparison.delta,
         bars: [
-          { label: "내 기록", value: accuracyComparison.myValue, color: "#5383E8" },
+          { label: "내 기록", value: accuracyComparison.myValue, color: "#8B5CF6" },
           { label: "참여자 평균", value: accuracyComparison.averageValue, color: "#7A7A92" },
         ],
         preview: false,
@@ -208,7 +208,7 @@ export default async function MyPage({
         summary: "예측에 참여하면 실제 적중률 비교가 여기에 표시됩니다.",
         delta: "미리보기",
         bars: [
-          { label: "내 기록", value: "58%", color: "#5383E8" },
+          { label: "내 기록", value: "58%", color: "#8B5CF6" },
           { label: "참여자 평균", value: "46%", color: "#7A7A92" },
         ],
         preview: true,
@@ -292,11 +292,11 @@ export default async function MyPage({
                     href={tabHref(tab.key)}
                     className={
                       currentTab === tab.key
-                        ? "block rounded-2xl border border-sky-200 bg-sky-50 px-3 py-2.5"
-                        : "block rounded-2xl border border-transparent px-3 py-2.5 transition hover:border-slate-200 hover:bg-slate-50"
+                        ? "group block rounded-2xl border border-[#7C3AED] bg-[#8B5CF6] px-3 py-2.5"
+                        : "group block rounded-2xl border border-transparent px-3 py-2.5 transition hover:border-[#6D28D9] hover:bg-[#6D28D9]"
                     }
                   >
-                    <div className={currentTab === tab.key ? "text-sm font-bold text-sky-800" : "text-sm font-semibold text-slate-800"}>{tab.label}</div>
+                    <div className={currentTab === tab.key ? "text-sm font-bold text-white" : "text-sm font-semibold text-slate-800 group-hover:text-white"}>{tab.label}</div>
                   </Link>
                 ))}
               </div>
@@ -309,7 +309,7 @@ export default async function MyPage({
                   href={tabHref(tab.key)}
                   className={
                     currentTab === tab.key
-                      ? "shrink-0 rounded-full border border-slate-950 bg-slate-950 px-4 py-2 text-sm font-semibold !text-white"
+                      ? "shrink-0 rounded-full border border-[#7C3AED] bg-[#8B5CF6] px-4 py-2 text-sm font-semibold !text-white"
                       : "shrink-0 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700"
                   }
                 >

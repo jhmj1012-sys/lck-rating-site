@@ -419,7 +419,7 @@ function TodayMatchCard({ match, forcePredictCta = false }: { match: MatchData; 
           <span>{LABELS.voteCount} {match.predictionSummary.totalVotes}</span>
           {match.status !== "finished" ? <span>{liveLike ? LABELS.inProgress : LABELS.scheduledMatch}</span> : null}
         </div>
-        <div className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-[22px] bg-[#5383E8] px-4 text-lg font-normal text-white shadow-[0_12px_26px_rgba(83,131,232,0.24)] transition group-hover:bg-[#4171D6]">
+        <div className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-[22px] bg-[#8B5CF6] px-4 text-lg font-normal text-white shadow-[0_12px_26px_rgba(139,92,246,0.24)] transition group-hover:bg-[#7C3AED]">
           {forcePredictCta ? "승부예측하기" : getPrimaryActionLabel(match)}
         </div>
         <div className="mt-4 rounded-2xl bg-[#3A3A47] px-4 py-3">
@@ -505,7 +505,7 @@ function PastMatchCard({ match, revealSpoiler }: { match: MatchData; revealSpoil
           <div className="mt-3 rounded-2xl bg-[#31313C] px-3 py-3 text-sm font-semibold text-white">-</div>
         )}
       </div>
-      <div className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-[#5383E8] px-4 text-base font-normal text-white shadow-[0_10px_24px_rgba(83,131,232,0.22)] transition group-hover:bg-[#4171D6]">
+      <div className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-[#8B5CF6] px-4 text-base font-normal text-white shadow-[0_10px_24px_rgba(139,92,246,0.22)] transition group-hover:bg-[#7C3AED]">
         평점확인하기
       </div>
     </Link>
@@ -654,20 +654,20 @@ export default function HupuScheduleHome({
           notifications={initialData.notifications}
           unreadNotificationCount={initialData.unreadNotificationCount}
         />
-      <div className="border-b border-[#B95A31] bg-[#D96C3F]">
+      <div className="border-b border-[#6D28D9] bg-[#8B5CF6]">
         <nav className="mx-auto flex max-w-5xl items-center gap-1 px-4 sm:px-6">
           <Link
             href="/"
             className={cn(
               "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
-              "text-[#DDE9FF]",
+              "text-[#F5F3FF]",
             )}
-            style={{ color: "#DDE9FF" }}
+            style={{ color: "#F5F3FF" }}
             onMouseEnter={(event) => {
-              event.currentTarget.style.color = "#A9C2F5";
+              event.currentTarget.style.color = "#E9D5FF";
             }}
             onMouseLeave={(event) => {
-              event.currentTarget.style.color = "#DDE9FF";
+              event.currentTarget.style.color = "#F5F3FF";
             }}
           >
             홈
@@ -677,14 +677,14 @@ export default function HupuScheduleHome({
             href="/schedule"
             className={cn(
               "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
-              "text-[#DDE9FF]",
+              "text-[#F5F3FF]",
             )}
-            style={{ color: "#DDE9FF" }}
+            style={{ color: "#F5F3FF" }}
             onMouseEnter={(event) => {
-              event.currentTarget.style.color = "#A9C2F5";
+              event.currentTarget.style.color = "#E9D5FF";
             }}
             onMouseLeave={(event) => {
-              event.currentTarget.style.color = "#DDE9FF";
+              event.currentTarget.style.color = "#F5F3FF";
             }}
           >
             경기일정
@@ -692,13 +692,13 @@ export default function HupuScheduleHome({
           </Link>
           <Link
             href="/ratings"
-            className="relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] text-[#DDE9FF] transition"
-            style={{ color: "#DDE9FF" }}
+            className="relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] text-[#F5F3FF] transition"
+            style={{ color: "#F5F3FF" }}
             onMouseEnter={(event) => {
-              event.currentTarget.style.color = "#A9C2F5";
+              event.currentTarget.style.color = "#E9D5FF";
             }}
             onMouseLeave={(event) => {
-              event.currentTarget.style.color = "#DDE9FF";
+              event.currentTarget.style.color = "#F5F3FF";
             }}
           >
             평점순위
@@ -707,27 +707,27 @@ export default function HupuScheduleHome({
             href="/season-predictions"
             className={cn(
               "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
-              "text-[#DDE9FF]",
+              "text-[#F5F3FF]",
             )}
-            style={{ color: "#DDE9FF" }}
+            style={{ color: "#F5F3FF" }}
             onMouseEnter={(event) => {
-              event.currentTarget.style.color = "#A9C2F5";
+              event.currentTarget.style.color = "#E9D5FF";
             }}
             onMouseLeave={(event) => {
-              event.currentTarget.style.color = "#DDE9FF";
+              event.currentTarget.style.color = "#F5F3FF";
             }}
           >
             시즌예측
           </Link>
           <Link
             href="/games/15-dollar-challenge"
-            className="relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] text-[#DDE9FF] transition"
-            style={{ color: "#DDE9FF" }}
+            className="relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] text-[#F5F3FF] transition"
+            style={{ color: "#F5F3FF" }}
             onMouseEnter={(event) => {
-              event.currentTarget.style.color = "#A9C2F5";
+              event.currentTarget.style.color = "#E9D5FF";
             }}
             onMouseLeave={(event) => {
-              event.currentTarget.style.color = "#DDE9FF";
+              event.currentTarget.style.color = "#F5F3FF";
             }}
           >
             게임
@@ -762,7 +762,7 @@ export default function HupuScheduleHome({
                       <button
                         type="button"
                         onClick={() => setSelectedTodayPage((current) => (current + 1) % todayPageCount)}
-                        className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-sky-500 px-4 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(14,165,233,0.18)] transition hover:bg-sky-600"
+                        className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-[#8B5CF6] px-4 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(139,92,246,0.18)] transition hover:bg-[#7C3AED]"
                       >
                         다음 카드
                       </button>
@@ -797,7 +797,7 @@ export default function HupuScheduleHome({
                 </div>
                 <Link
                   href="/games/15-dollar-challenge"
-                  className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-[#5383E8] px-4 text-sm font-semibold text-white transition hover:bg-[#4171D6]"
+                  className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-[#8B5CF6] px-4 text-sm font-semibold text-white transition hover:bg-[#7C3AED]"
                 >
                   챌린지 하러가기
                 </Link>
@@ -911,7 +911,7 @@ export default function HupuScheduleHome({
                 <div className="mt-4">
                   <Link
                     href="/ratings"
-                    className="inline-flex w-full items-center justify-center rounded-2xl bg-[#5383E8] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#4171D6]"
+                    className="inline-flex w-full items-center justify-center rounded-2xl bg-[#8B5CF6] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#7C3AED]"
                   >
                     평점 보러가기
                   </Link>

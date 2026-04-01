@@ -63,7 +63,7 @@ export function SeasonPredictionEntryForm({
               key={option.id}
               className={
                 isMine
-                  ? "rounded-[20px] border border-[#5383E8] bg-[#4A4A59] px-4 py-3"
+                  ? "rounded-[20px] border border-[#8B5CF6] bg-[#4A4A59] px-4 py-3"
                   : "rounded-[20px] bg-[#3A3A47] px-4 py-3"
               }
             >
@@ -101,7 +101,7 @@ export function SeasonPredictionEntryForm({
                   }}
                   className={
                     isMine
-                      ? "inline-flex min-h-10 items-center justify-center rounded-xl bg-[#5383E8] px-3 text-sm font-semibold !text-[#FFFFFF]"
+                      ? "inline-flex min-h-10 items-center justify-center rounded-xl bg-[#8B5CF6] px-3 text-sm font-semibold !text-[#FFFFFF]"
                       : "inline-flex min-h-10 items-center justify-center rounded-xl bg-[#424254] px-3 text-sm font-semibold !text-[#FFFFFF] disabled:cursor-not-allowed disabled:opacity-60"
                   }
                 >

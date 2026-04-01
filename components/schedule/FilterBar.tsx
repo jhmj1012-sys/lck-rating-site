@@ -89,7 +89,7 @@ export function ScheduleFilterBar({
                 className={cn(
                   "rounded-md px-3 py-1 text-xs font-semibold transition",
                   status === item.value
-                    ? "bg-[#5383E8] text-white"
+                    ? "bg-[#8B5CF6] text-white"
                     : "text-[#d6d6e5] hover:bg-[#4A4A59] hover:text-white",
                 )}
               >

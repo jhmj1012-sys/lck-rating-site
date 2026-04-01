@@ -131,7 +131,7 @@ export function AccountActions({
                   type="button"
                   onClick={handleSaveNickname}
                   disabled={isSavingNickname}
-                  className="inline-flex h-10 items-center justify-center rounded-lg bg-[#5383E8] px-3 text-sm font-medium text-white transition hover:bg-[#4171D6] disabled:cursor-not-allowed disabled:opacity-70"
+                  className="inline-flex h-10 items-center justify-center rounded-lg bg-[#8B5CF6] px-3 text-sm font-medium text-white transition hover:bg-[#7C3AED] disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   {isSavingNickname ? "저장중..." : "확인"}
                 </button>
@@ -199,7 +199,7 @@ export function AccountActions({
                       value={reason}
                       checked={deleteReason === reason}
                       onChange={(event) => setDeleteReason(event.target.value)}
-                      className="h-4 w-4 accent-[#5383E8]"
+                      className="h-4 w-4 accent-[#8B5CF6]"
                     />
                     <span>{reason}</span>
                   </label>
@@ -212,7 +212,7 @@ export function AccountActions({
                 type="checkbox"
                 checked={deleteAgreement}
                 onChange={(event) => setDeleteAgreement(event.target.checked)}
-                className="mt-0.5 h-4 w-4 accent-[#5383E8]"
+                className="mt-0.5 h-4 w-4 accent-[#8B5CF6]"
               />
               <span>탈퇴 시 불이익과 3개월 재가입 제한을 모두 확인했으며, 회원탈퇴를 진행하는 데 동의합니다.</span>
             </label>
