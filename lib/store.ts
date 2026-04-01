@@ -457,6 +457,20 @@ function hasSupabaseStoreConfig() {
   return Boolean(supabaseUrl && supabaseSecretKey);
 }
 
+function getMissingSupabaseEnvVars() {
+  const missing: string[] = [];
+
+  if (!supabaseUrl) {
+    missing.push("NEXT_PUBLIC_SUPABASE_URL");
+  }
+
+  if (!supabaseSecretKey) {
+    missing.push("SUPABASE_SECRET_KEY");
+  }
+
+  return missing;
+}
+
 function getSupabaseAdminClient() {
   if (!supabaseUrl || !supabaseSecretKey) {
     throw new Error("Supabase environment variables are not configured.");
@@ -671,6 +685,12 @@ async function saveSupabaseRelationalStore(store: StoreShape) {
 }
 
 async function ensureStore(): Promise<StoreShape> {
+  if (process.env.VERCEL && !hasSupabaseStoreConfig()) {
+    throw new Error(
+      `Supabase store configuration is required on Vercel. Missing env: ${getMissingSupabaseEnvVars().join(", ")}`,
+    );
+  }
+
   if (hasSupabaseStoreConfig()) {
     return getSupabaseStoreMode() === "relational" ? ensureSupabaseRelationalStore() : ensureSupabaseJsonStore();
   }
@@ -679,6 +699,12 @@ async function ensureStore(): Promise<StoreShape> {
 }
 
 async function saveStore(store: StoreShape) {
+  if (process.env.VERCEL && !hasSupabaseStoreConfig()) {
+    throw new Error(
+      `Supabase store configuration is required on Vercel. Missing env: ${getMissingSupabaseEnvVars().join(", ")}`,
+    );
+  }
+
   if (hasSupabaseStoreConfig()) {
     if (getSupabaseStoreMode() === "relational") {
       await saveSupabaseRelationalStore(store);
