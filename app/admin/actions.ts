@@ -64,6 +64,58 @@ export async function updateMatchRosterAction(formData: FormData) {
   revalidatePath("/admin");
 }
 
+export async function updateMatchResultAction(formData: FormData) {
+  await requireAdmin();
+
+  const matchId = formData.get("matchId");
+  if (typeof matchId !== "string" || !matchId) {
+    throw new Error("경기 정보가 없습니다.");
+  }
+
+  const league = formData.get("league");
+  const stage = formData.get("stage");
+  const patch = formData.get("patch");
+  const scheduledAt = formData.get("scheduledAt");
+  const teamACode = formData.get("teamACode");
+  const teamBCode = formData.get("teamBCode");
+
+  if (
+    typeof league !== "string" ||
+    typeof stage !== "string" ||
+    typeof patch !== "string" ||
+    typeof scheduledAt !== "string" ||
+    typeof teamACode !== "string" ||
+    typeof teamBCode !== "string"
+  ) {
+    throw new Error("경기 기본 정보가 올바르지 않습니다.");
+  }
+
+  const scoreA = toNumber(formData.get("scoreA"));
+  const scoreB = toNumber(formData.get("scoreB"));
+  if (scoreA === null || scoreB === null || scoreA < 0 || scoreB < 0) {
+    throw new Error("점수는 0 이상의 숫자로 입력해 주세요.");
+  }
+
+  await upsertMatch({
+    matchId,
+    league,
+    stage,
+    patch,
+    status: "finished",
+    scheduledAt,
+    teamACode,
+    teamBCode,
+    scoreA,
+    scoreB,
+    predictionLocked: true,
+  });
+
+  revalidatePath("/");
+  revalidatePath("/schedule");
+  revalidatePath(`/matches/${matchId}`);
+  revalidatePath("/admin");
+}
+
 export async function toggleCommentVisibilityAction(formData: FormData) {
   await requireAdmin();
 

@@ -3107,36 +3107,6 @@
       "teamId": "team_kt"
     },
     {
-      "id": "participant_match_6_player_bro_1",
-      "matchId": "match_6",
-      "playerId": "player_bro_1",
-      "teamId": "team_bro"
-    },
-    {
-      "id": "participant_match_6_player_bro_2",
-      "matchId": "match_6",
-      "playerId": "player_bro_2",
-      "teamId": "team_bro"
-    },
-    {
-      "id": "participant_match_6_player_bro_3",
-      "matchId": "match_6",
-      "playerId": "player_bro_3",
-      "teamId": "team_bro"
-    },
-    {
-      "id": "participant_match_6_player_bro_4",
-      "matchId": "match_6",
-      "playerId": "player_bro_4",
-      "teamId": "team_bro"
-    },
-    {
-      "id": "participant_match_6_player_bro_5",
-      "matchId": "match_6",
-      "playerId": "player_bro_5",
-      "teamId": "team_bro"
-    },
-    {
       "id": "participant_match_6_player_bfx_1",
       "matchId": "match_6",
       "playerId": "player_bfx_1",
@@ -3165,6 +3135,36 @@
       "matchId": "match_6",
       "playerId": "player_bfx_5",
       "teamId": "team_bfx"
+    },
+    {
+      "id": "participant_match_6_player_bro_1",
+      "matchId": "match_6",
+      "playerId": "player_bro_1",
+      "teamId": "team_bro"
+    },
+    {
+      "id": "participant_match_6_player_bro_2",
+      "matchId": "match_6",
+      "playerId": "player_bro_2",
+      "teamId": "team_bro"
+    },
+    {
+      "id": "participant_match_6_player_bro_3",
+      "matchId": "match_6",
+      "playerId": "player_bro_3",
+      "teamId": "team_bro"
+    },
+    {
+      "id": "participant_match_6_player_bro_4",
+      "matchId": "match_6",
+      "playerId": "player_bro_4",
+      "teamId": "team_bro"
+    },
+    {
+      "id": "participant_match_6_player_bro_5",
+      "matchId": "match_6",
+      "playerId": "player_bro_5",
+      "teamId": "team_bro"
     },
     {
       "id": "participant_match_7_player_t1_1",
@@ -3227,36 +3227,6 @@
       "teamId": "team_hle"
     },
     {
-      "id": "participant_match_8_player_dk_1",
-      "matchId": "match_8",
-      "playerId": "player_dk_1",
-      "teamId": "team_dk"
-    },
-    {
-      "id": "participant_match_8_player_dk_2",
-      "matchId": "match_8",
-      "playerId": "player_dk_2",
-      "teamId": "team_dk"
-    },
-    {
-      "id": "participant_match_8_player_dk_3",
-      "matchId": "match_8",
-      "playerId": "player_dk_3",
-      "teamId": "team_dk"
-    },
-    {
-      "id": "participant_match_8_player_dk_4",
-      "matchId": "match_8",
-      "playerId": "player_dk_4",
-      "teamId": "team_dk"
-    },
-    {
-      "id": "participant_match_8_player_dk_5",
-      "matchId": "match_8",
-      "playerId": "player_dk_5",
-      "teamId": "team_dk"
-    },
-    {
       "id": "participant_match_8_player_krx_1",
       "matchId": "match_8",
       "playerId": "player_krx_1",
@@ -3285,6 +3255,36 @@
       "matchId": "match_8",
       "playerId": "player_krx_5",
       "teamId": "team_drx"
+    },
+    {
+      "id": "participant_match_8_player_dk_1",
+      "matchId": "match_8",
+      "playerId": "player_dk_1",
+      "teamId": "team_dk"
+    },
+    {
+      "id": "participant_match_8_player_dk_2",
+      "matchId": "match_8",
+      "playerId": "player_dk_2",
+      "teamId": "team_dk"
+    },
+    {
+      "id": "participant_match_8_player_dk_3",
+      "matchId": "match_8",
+      "playerId": "player_dk_3",
+      "teamId": "team_dk"
+    },
+    {
+      "id": "participant_match_8_player_dk_4",
+      "matchId": "match_8",
+      "playerId": "player_dk_4",
+      "teamId": "team_dk"
+    },
+    {
+      "id": "participant_match_8_player_dk_5",
+      "matchId": "match_8",
+      "playerId": "player_dk_5",
+      "teamId": "team_dk"
     },
     {
       "id": "participant_match_9_player_ns_1",
@@ -3407,36 +3407,6 @@
       "teamId": "team_bfx"
     },
     {
-      "id": "participant_match_11_player_hle_1",
-      "matchId": "match_11",
-      "playerId": "player_hle_1",
-      "teamId": "team_hle"
-    },
-    {
-      "id": "participant_match_11_player_hle_2",
-      "matchId": "match_11",
-      "playerId": "player_hle_2",
-      "teamId": "team_hle"
-    },
-    {
-      "id": "participant_match_11_player_hle_3",
-      "matchId": "match_11",
-      "playerId": "player_hle_3",
-      "teamId": "team_hle"
-    },
-    {
-      "id": "participant_match_11_player_hle_4",
-      "matchId": "match_11",
-      "playerId": "player_hle_4",
-      "teamId": "team_hle"
-    },
-    {
-      "id": "participant_match_11_player_hle_5",
-      "matchId": "match_11",
-      "playerId": "player_hle_5",
-      "teamId": "team_hle"
-    },
-    {
       "id": "participant_match_11_player_dk_1",
       "matchId": "match_11",
       "playerId": "player_dk_1",
@@ -3465,6 +3435,36 @@
       "matchId": "match_11",
       "playerId": "player_dk_5",
       "teamId": "team_dk"
+    },
+    {
+      "id": "participant_match_11_player_hle_1",
+      "matchId": "match_11",
+      "playerId": "player_hle_1",
+      "teamId": "team_hle"
+    },
+    {
+      "id": "participant_match_11_player_hle_2",
+      "matchId": "match_11",
+      "playerId": "player_hle_2",
+      "teamId": "team_hle"
+    },
+    {
+      "id": "participant_match_11_player_hle_3",
+      "matchId": "match_11",
+      "playerId": "player_hle_3",
+      "teamId": "team_hle"
+    },
+    {
+      "id": "participant_match_11_player_hle_4",
+      "matchId": "match_11",
+      "playerId": "player_hle_4",
+      "teamId": "team_hle"
+    },
+    {
+      "id": "participant_match_11_player_hle_5",
+      "matchId": "match_11",
+      "playerId": "player_hle_5",
+      "teamId": "team_hle"
     },
     {
       "id": "participant_match_12_player_t1_1",
@@ -3527,36 +3527,6 @@
       "teamId": "team_gen"
     },
     {
-      "id": "participant_match_13_player_krx_1",
-      "matchId": "match_13",
-      "playerId": "player_krx_1",
-      "teamId": "team_drx"
-    },
-    {
-      "id": "participant_match_13_player_krx_2",
-      "matchId": "match_13",
-      "playerId": "player_krx_2",
-      "teamId": "team_drx"
-    },
-    {
-      "id": "participant_match_13_player_krx_3",
-      "matchId": "match_13",
-      "playerId": "player_krx_3",
-      "teamId": "team_drx"
-    },
-    {
-      "id": "participant_match_13_player_krx_4",
-      "matchId": "match_13",
-      "playerId": "player_krx_4",
-      "teamId": "team_drx"
-    },
-    {
-      "id": "participant_match_13_player_krx_5",
-      "matchId": "match_13",
-      "playerId": "player_krx_5",
-      "teamId": "team_drx"
-    },
-    {
       "id": "participant_match_13_player_bro_1",
       "matchId": "match_13",
       "playerId": "player_bro_1",
@@ -3585,6 +3555,36 @@
       "matchId": "match_13",
       "playerId": "player_bro_5",
       "teamId": "team_bro"
+    },
+    {
+      "id": "participant_match_13_player_krx_1",
+      "matchId": "match_13",
+      "playerId": "player_krx_1",
+      "teamId": "team_drx"
+    },
+    {
+      "id": "participant_match_13_player_krx_2",
+      "matchId": "match_13",
+      "playerId": "player_krx_2",
+      "teamId": "team_drx"
+    },
+    {
+      "id": "participant_match_13_player_krx_3",
+      "matchId": "match_13",
+      "playerId": "player_krx_3",
+      "teamId": "team_drx"
+    },
+    {
+      "id": "participant_match_13_player_krx_4",
+      "matchId": "match_13",
+      "playerId": "player_krx_4",
+      "teamId": "team_drx"
+    },
+    {
+      "id": "participant_match_13_player_krx_5",
+      "matchId": "match_13",
+      "playerId": "player_krx_5",
+      "teamId": "team_drx"
     },
     {
       "id": "participant_match_14_player_kt_1",
@@ -3647,36 +3647,6 @@
       "teamId": "team_ns"
     },
     {
-      "id": "participant_match_15_player_t1_1",
-      "matchId": "match_15",
-      "playerId": "player_t1_1",
-      "teamId": "team_t1"
-    },
-    {
-      "id": "participant_match_15_player_t1_2",
-      "matchId": "match_15",
-      "playerId": "player_t1_2",
-      "teamId": "team_t1"
-    },
-    {
-      "id": "participant_match_15_player_t1_3",
-      "matchId": "match_15",
-      "playerId": "player_t1_3",
-      "teamId": "team_t1"
-    },
-    {
-      "id": "participant_match_15_player_t1_4",
-      "matchId": "match_15",
-      "playerId": "player_t1_4",
-      "teamId": "team_t1"
-    },
-    {
-      "id": "participant_match_15_player_t1_5",
-      "matchId": "match_15",
-      "playerId": "player_t1_5",
-      "teamId": "team_t1"
-    },
-    {
       "id": "participant_match_15_player_dns_1",
       "matchId": "match_15",
       "playerId": "player_dns_1",
@@ -3705,6 +3675,36 @@
       "matchId": "match_15",
       "playerId": "player_dns_5",
       "teamId": "team_dns"
+    },
+    {
+      "id": "participant_match_15_player_t1_1",
+      "matchId": "match_15",
+      "playerId": "player_t1_1",
+      "teamId": "team_t1"
+    },
+    {
+      "id": "participant_match_15_player_t1_2",
+      "matchId": "match_15",
+      "playerId": "player_t1_2",
+      "teamId": "team_t1"
+    },
+    {
+      "id": "participant_match_15_player_t1_3",
+      "matchId": "match_15",
+      "playerId": "player_t1_3",
+      "teamId": "team_t1"
+    },
+    {
+      "id": "participant_match_15_player_t1_4",
+      "matchId": "match_15",
+      "playerId": "player_t1_4",
+      "teamId": "team_t1"
+    },
+    {
+      "id": "participant_match_15_player_t1_5",
+      "matchId": "match_15",
+      "playerId": "player_t1_5",
+      "teamId": "team_t1"
     },
     {
       "id": "participant_match_16_player_hle_1",
@@ -3767,36 +3767,6 @@
       "teamId": "team_bfx"
     },
     {
-      "id": "participant_match_17_player_krx_1",
-      "matchId": "match_17",
-      "playerId": "player_krx_1",
-      "teamId": "team_drx"
-    },
-    {
-      "id": "participant_match_17_player_krx_2",
-      "matchId": "match_17",
-      "playerId": "player_krx_2",
-      "teamId": "team_drx"
-    },
-    {
-      "id": "participant_match_17_player_krx_3",
-      "matchId": "match_17",
-      "playerId": "player_krx_3",
-      "teamId": "team_drx"
-    },
-    {
-      "id": "participant_match_17_player_krx_4",
-      "matchId": "match_17",
-      "playerId": "player_krx_4",
-      "teamId": "team_drx"
-    },
-    {
-      "id": "participant_match_17_player_krx_5",
-      "matchId": "match_17",
-      "playerId": "player_krx_5",
-      "teamId": "team_drx"
-    },
-    {
       "id": "participant_match_17_player_ns_1",
       "matchId": "match_17",
       "playerId": "player_ns_1",
@@ -3827,34 +3797,34 @@
       "teamId": "team_ns"
     },
     {
-      "id": "participant_match_18_player_gen_1",
-      "matchId": "match_18",
-      "playerId": "player_gen_1",
-      "teamId": "team_gen"
+      "id": "participant_match_17_player_krx_1",
+      "matchId": "match_17",
+      "playerId": "player_krx_1",
+      "teamId": "team_drx"
     },
     {
-      "id": "participant_match_18_player_gen_2",
-      "matchId": "match_18",
-      "playerId": "player_gen_2",
-      "teamId": "team_gen"
+      "id": "participant_match_17_player_krx_2",
+      "matchId": "match_17",
+      "playerId": "player_krx_2",
+      "teamId": "team_drx"
     },
     {
-      "id": "participant_match_18_player_gen_3",
-      "matchId": "match_18",
-      "playerId": "player_gen_3",
-      "teamId": "team_gen"
+      "id": "participant_match_17_player_krx_3",
+      "matchId": "match_17",
+      "playerId": "player_krx_3",
+      "teamId": "team_drx"
     },
     {
-      "id": "participant_match_18_player_gen_4",
-      "matchId": "match_18",
-      "playerId": "player_gen_4",
-      "teamId": "team_gen"
+      "id": "participant_match_17_player_krx_4",
+      "matchId": "match_17",
+      "playerId": "player_krx_4",
+      "teamId": "team_drx"
     },
     {
-      "id": "participant_match_18_player_gen_5",
-      "matchId": "match_18",
-      "playerId": "player_gen_5",
-      "teamId": "team_gen"
+      "id": "participant_match_17_player_krx_5",
+      "matchId": "match_17",
+      "playerId": "player_krx_5",
+      "teamId": "team_drx"
     },
     {
       "id": "participant_match_18_player_dk_1",
@@ -3885,6 +3855,36 @@
       "matchId": "match_18",
       "playerId": "player_dk_5",
       "teamId": "team_dk"
+    },
+    {
+      "id": "participant_match_18_player_gen_1",
+      "matchId": "match_18",
+      "playerId": "player_gen_1",
+      "teamId": "team_gen"
+    },
+    {
+      "id": "participant_match_18_player_gen_2",
+      "matchId": "match_18",
+      "playerId": "player_gen_2",
+      "teamId": "team_gen"
+    },
+    {
+      "id": "participant_match_18_player_gen_3",
+      "matchId": "match_18",
+      "playerId": "player_gen_3",
+      "teamId": "team_gen"
+    },
+    {
+      "id": "participant_match_18_player_gen_4",
+      "matchId": "match_18",
+      "playerId": "player_gen_4",
+      "teamId": "team_gen"
+    },
+    {
+      "id": "participant_match_18_player_gen_5",
+      "matchId": "match_18",
+      "playerId": "player_gen_5",
+      "teamId": "team_gen"
     },
     {
       "id": "participant_match_19_player_bfx_1",
@@ -3947,36 +3947,6 @@
       "teamId": "team_dns"
     },
     {
-      "id": "participant_match_20_player_kt_1",
-      "matchId": "match_20",
-      "playerId": "player_kt_1",
-      "teamId": "team_kt"
-    },
-    {
-      "id": "participant_match_20_player_kt_2",
-      "matchId": "match_20",
-      "playerId": "player_kt_2",
-      "teamId": "team_kt"
-    },
-    {
-      "id": "participant_match_20_player_kt_3",
-      "matchId": "match_20",
-      "playerId": "player_kt_3",
-      "teamId": "team_kt"
-    },
-    {
-      "id": "participant_match_20_player_kt_4",
-      "matchId": "match_20",
-      "playerId": "player_kt_4",
-      "teamId": "team_kt"
-    },
-    {
-      "id": "participant_match_20_player_kt_5",
-      "matchId": "match_20",
-      "playerId": "player_kt_5",
-      "teamId": "team_kt"
-    },
-    {
       "id": "participant_match_20_player_bro_1",
       "matchId": "match_20",
       "playerId": "player_bro_1",
@@ -4005,6 +3975,36 @@
       "matchId": "match_20",
       "playerId": "player_bro_5",
       "teamId": "team_bro"
+    },
+    {
+      "id": "participant_match_20_player_kt_1",
+      "matchId": "match_20",
+      "playerId": "player_kt_1",
+      "teamId": "team_kt"
+    },
+    {
+      "id": "participant_match_20_player_kt_2",
+      "matchId": "match_20",
+      "playerId": "player_kt_2",
+      "teamId": "team_kt"
+    },
+    {
+      "id": "participant_match_20_player_kt_3",
+      "matchId": "match_20",
+      "playerId": "player_kt_3",
+      "teamId": "team_kt"
+    },
+    {
+      "id": "participant_match_20_player_kt_4",
+      "matchId": "match_20",
+      "playerId": "player_kt_4",
+      "teamId": "team_kt"
+    },
+    {
+      "id": "participant_match_20_player_kt_5",
+      "matchId": "match_20",
+      "playerId": "player_kt_5",
+      "teamId": "team_kt"
     },
     {
       "id": "participant_match_21_player_ns_1",
@@ -4067,36 +4067,6 @@
       "teamId": "team_bfx"
     },
     {
-      "id": "participant_match_22_player_dk_1",
-      "matchId": "match_22",
-      "playerId": "player_dk_1",
-      "teamId": "team_dk"
-    },
-    {
-      "id": "participant_match_22_player_dk_2",
-      "matchId": "match_22",
-      "playerId": "player_dk_2",
-      "teamId": "team_dk"
-    },
-    {
-      "id": "participant_match_22_player_dk_3",
-      "matchId": "match_22",
-      "playerId": "player_dk_3",
-      "teamId": "team_dk"
-    },
-    {
-      "id": "participant_match_22_player_dk_4",
-      "matchId": "match_22",
-      "playerId": "player_dk_4",
-      "teamId": "team_dk"
-    },
-    {
-      "id": "participant_match_22_player_dk_5",
-      "matchId": "match_22",
-      "playerId": "player_dk_5",
-      "teamId": "team_dk"
-    },
-    {
       "id": "participant_match_22_player_kt_1",
       "matchId": "match_22",
       "playerId": "player_kt_1",
@@ -4127,34 +4097,34 @@
       "teamId": "team_kt"
     },
     {
-      "id": "participant_match_23_player_gen_1",
-      "matchId": "match_23",
-      "playerId": "player_gen_1",
-      "teamId": "team_gen"
+      "id": "participant_match_22_player_dk_1",
+      "matchId": "match_22",
+      "playerId": "player_dk_1",
+      "teamId": "team_dk"
     },
     {
-      "id": "participant_match_23_player_gen_2",
-      "matchId": "match_23",
-      "playerId": "player_gen_2",
-      "teamId": "team_gen"
+      "id": "participant_match_22_player_dk_2",
+      "matchId": "match_22",
+      "playerId": "player_dk_2",
+      "teamId": "team_dk"
     },
     {
-      "id": "participant_match_23_player_gen_3",
-      "matchId": "match_23",
-      "playerId": "player_gen_3",
-      "teamId": "team_gen"
+      "id": "participant_match_22_player_dk_3",
+      "matchId": "match_22",
+      "playerId": "player_dk_3",
+      "teamId": "team_dk"
     },
     {
-      "id": "participant_match_23_player_gen_4",
-      "matchId": "match_23",
-      "playerId": "player_gen_4",
-      "teamId": "team_gen"
+      "id": "participant_match_22_player_dk_4",
+      "matchId": "match_22",
+      "playerId": "player_dk_4",
+      "teamId": "team_dk"
     },
     {
-      "id": "participant_match_23_player_gen_5",
-      "matchId": "match_23",
-      "playerId": "player_gen_5",
-      "teamId": "team_gen"
+      "id": "participant_match_22_player_dk_5",
+      "matchId": "match_22",
+      "playerId": "player_dk_5",
+      "teamId": "team_dk"
     },
     {
       "id": "participant_match_23_player_bro_1",
@@ -4187,34 +4157,34 @@
       "teamId": "team_bro"
     },
     {
-      "id": "participant_match_24_player_hle_1",
-      "matchId": "match_24",
-      "playerId": "player_hle_1",
-      "teamId": "team_hle"
+      "id": "participant_match_23_player_gen_1",
+      "matchId": "match_23",
+      "playerId": "player_gen_1",
+      "teamId": "team_gen"
     },
     {
-      "id": "participant_match_24_player_hle_2",
-      "matchId": "match_24",
-      "playerId": "player_hle_2",
-      "teamId": "team_hle"
+      "id": "participant_match_23_player_gen_2",
+      "matchId": "match_23",
+      "playerId": "player_gen_2",
+      "teamId": "team_gen"
     },
     {
-      "id": "participant_match_24_player_hle_3",
-      "matchId": "match_24",
-      "playerId": "player_hle_3",
-      "teamId": "team_hle"
+      "id": "participant_match_23_player_gen_3",
+      "matchId": "match_23",
+      "playerId": "player_gen_3",
+      "teamId": "team_gen"
     },
     {
-      "id": "participant_match_24_player_hle_4",
-      "matchId": "match_24",
-      "playerId": "player_hle_4",
-      "teamId": "team_hle"
+      "id": "participant_match_23_player_gen_4",
+      "matchId": "match_23",
+      "playerId": "player_gen_4",
+      "teamId": "team_gen"
     },
     {
-      "id": "participant_match_24_player_hle_5",
-      "matchId": "match_24",
-      "playerId": "player_hle_5",
-      "teamId": "team_hle"
+      "id": "participant_match_23_player_gen_5",
+      "matchId": "match_23",
+      "playerId": "player_gen_5",
+      "teamId": "team_gen"
     },
     {
       "id": "participant_match_24_player_dns_1",
@@ -4245,6 +4215,36 @@
       "matchId": "match_24",
       "playerId": "player_dns_5",
       "teamId": "team_dns"
+    },
+    {
+      "id": "participant_match_24_player_hle_1",
+      "matchId": "match_24",
+      "playerId": "player_hle_1",
+      "teamId": "team_hle"
+    },
+    {
+      "id": "participant_match_24_player_hle_2",
+      "matchId": "match_24",
+      "playerId": "player_hle_2",
+      "teamId": "team_hle"
+    },
+    {
+      "id": "participant_match_24_player_hle_3",
+      "matchId": "match_24",
+      "playerId": "player_hle_3",
+      "teamId": "team_hle"
+    },
+    {
+      "id": "participant_match_24_player_hle_4",
+      "matchId": "match_24",
+      "playerId": "player_hle_4",
+      "teamId": "team_hle"
+    },
+    {
+      "id": "participant_match_24_player_hle_5",
+      "matchId": "match_24",
+      "playerId": "player_hle_5",
+      "teamId": "team_hle"
     },
     {
       "id": "participant_match_25_player_krx_1",
@@ -4307,36 +4307,6 @@
       "teamId": "team_bfx"
     },
     {
-      "id": "participant_match_26_player_t1_1",
-      "matchId": "match_26",
-      "playerId": "player_t1_1",
-      "teamId": "team_t1"
-    },
-    {
-      "id": "participant_match_26_player_t1_2",
-      "matchId": "match_26",
-      "playerId": "player_t1_2",
-      "teamId": "team_t1"
-    },
-    {
-      "id": "participant_match_26_player_t1_3",
-      "matchId": "match_26",
-      "playerId": "player_t1_3",
-      "teamId": "team_t1"
-    },
-    {
-      "id": "participant_match_26_player_t1_4",
-      "matchId": "match_26",
-      "playerId": "player_t1_4",
-      "teamId": "team_t1"
-    },
-    {
-      "id": "participant_match_26_player_t1_5",
-      "matchId": "match_26",
-      "playerId": "player_t1_5",
-      "teamId": "team_t1"
-    },
-    {
       "id": "participant_match_26_player_dk_1",
       "matchId": "match_26",
       "playerId": "player_dk_1",
@@ -4367,34 +4337,34 @@
       "teamId": "team_dk"
     },
     {
-      "id": "participant_match_27_player_gen_1",
-      "matchId": "match_27",
-      "playerId": "player_gen_1",
-      "teamId": "team_gen"
+      "id": "participant_match_26_player_t1_1",
+      "matchId": "match_26",
+      "playerId": "player_t1_1",
+      "teamId": "team_t1"
     },
     {
-      "id": "participant_match_27_player_gen_2",
-      "matchId": "match_27",
-      "playerId": "player_gen_2",
-      "teamId": "team_gen"
+      "id": "participant_match_26_player_t1_2",
+      "matchId": "match_26",
+      "playerId": "player_t1_2",
+      "teamId": "team_t1"
     },
     {
-      "id": "participant_match_27_player_gen_3",
-      "matchId": "match_27",
-      "playerId": "player_gen_3",
-      "teamId": "team_gen"
+      "id": "participant_match_26_player_t1_3",
+      "matchId": "match_26",
+      "playerId": "player_t1_3",
+      "teamId": "team_t1"
     },
     {
-      "id": "participant_match_27_player_gen_4",
-      "matchId": "match_27",
-      "playerId": "player_gen_4",
-      "teamId": "team_gen"
+      "id": "participant_match_26_player_t1_4",
+      "matchId": "match_26",
+      "playerId": "player_t1_4",
+      "teamId": "team_t1"
     },
     {
-      "id": "participant_match_27_player_gen_5",
-      "matchId": "match_27",
-      "playerId": "player_gen_5",
-      "teamId": "team_gen"
+      "id": "participant_match_26_player_t1_5",
+      "matchId": "match_26",
+      "playerId": "player_t1_5",
+      "teamId": "team_t1"
     },
     {
       "id": "participant_match_27_player_hle_1",
@@ -4427,34 +4397,34 @@
       "teamId": "team_hle"
     },
     {
-      "id": "participant_match_28_player_kt_1",
-      "matchId": "match_28",
-      "playerId": "player_kt_1",
-      "teamId": "team_kt"
+      "id": "participant_match_27_player_gen_1",
+      "matchId": "match_27",
+      "playerId": "player_gen_1",
+      "teamId": "team_gen"
     },
     {
-      "id": "participant_match_28_player_kt_2",
-      "matchId": "match_28",
-      "playerId": "player_kt_2",
-      "teamId": "team_kt"
+      "id": "participant_match_27_player_gen_2",
+      "matchId": "match_27",
+      "playerId": "player_gen_2",
+      "teamId": "team_gen"
     },
     {
-      "id": "participant_match_28_player_kt_3",
-      "matchId": "match_28",
-      "playerId": "player_kt_3",
-      "teamId": "team_kt"
+      "id": "participant_match_27_player_gen_3",
+      "matchId": "match_27",
+      "playerId": "player_gen_3",
+      "teamId": "team_gen"
     },
     {
-      "id": "participant_match_28_player_kt_4",
-      "matchId": "match_28",
-      "playerId": "player_kt_4",
-      "teamId": "team_kt"
+      "id": "participant_match_27_player_gen_4",
+      "matchId": "match_27",
+      "playerId": "player_gen_4",
+      "teamId": "team_gen"
     },
     {
-      "id": "participant_match_28_player_kt_5",
-      "matchId": "match_28",
-      "playerId": "player_kt_5",
-      "teamId": "team_kt"
+      "id": "participant_match_27_player_gen_5",
+      "matchId": "match_27",
+      "playerId": "player_gen_5",
+      "teamId": "team_gen"
     },
     {
       "id": "participant_match_28_player_dns_1",
@@ -4487,34 +4457,34 @@
       "teamId": "team_dns"
     },
     {
-      "id": "participant_match_29_player_ns_1",
-      "matchId": "match_29",
-      "playerId": "player_ns_1",
-      "teamId": "team_ns"
+      "id": "participant_match_28_player_kt_1",
+      "matchId": "match_28",
+      "playerId": "player_kt_1",
+      "teamId": "team_kt"
     },
     {
-      "id": "participant_match_29_player_ns_2",
-      "matchId": "match_29",
-      "playerId": "player_ns_2",
-      "teamId": "team_ns"
+      "id": "participant_match_28_player_kt_2",
+      "matchId": "match_28",
+      "playerId": "player_kt_2",
+      "teamId": "team_kt"
     },
     {
-      "id": "participant_match_29_player_ns_3",
-      "matchId": "match_29",
-      "playerId": "player_ns_3",
-      "teamId": "team_ns"
+      "id": "participant_match_28_player_kt_3",
+      "matchId": "match_28",
+      "playerId": "player_kt_3",
+      "teamId": "team_kt"
     },
     {
-      "id": "participant_match_29_player_ns_4",
-      "matchId": "match_29",
-      "playerId": "player_ns_4",
-      "teamId": "team_ns"
+      "id": "participant_match_28_player_kt_4",
+      "matchId": "match_28",
+      "playerId": "player_kt_4",
+      "teamId": "team_kt"
     },
     {
-      "id": "participant_match_29_player_ns_5",
-      "matchId": "match_29",
-      "playerId": "player_ns_5",
-      "teamId": "team_ns"
+      "id": "participant_match_28_player_kt_5",
+      "matchId": "match_28",
+      "playerId": "player_kt_5",
+      "teamId": "team_kt"
     },
     {
       "id": "participant_match_29_player_bro_1",
@@ -4547,34 +4517,34 @@
       "teamId": "team_bro"
     },
     {
-      "id": "participant_match_30_player_t1_1",
-      "matchId": "match_30",
-      "playerId": "player_t1_1",
-      "teamId": "team_t1"
+      "id": "participant_match_29_player_ns_1",
+      "matchId": "match_29",
+      "playerId": "player_ns_1",
+      "teamId": "team_ns"
     },
     {
-      "id": "participant_match_30_player_t1_2",
-      "matchId": "match_30",
-      "playerId": "player_t1_2",
-      "teamId": "team_t1"
+      "id": "participant_match_29_player_ns_2",
+      "matchId": "match_29",
+      "playerId": "player_ns_2",
+      "teamId": "team_ns"
     },
     {
-      "id": "participant_match_30_player_t1_3",
-      "matchId": "match_30",
-      "playerId": "player_t1_3",
-      "teamId": "team_t1"
+      "id": "participant_match_29_player_ns_3",
+      "matchId": "match_29",
+      "playerId": "player_ns_3",
+      "teamId": "team_ns"
     },
     {
-      "id": "participant_match_30_player_t1_4",
-      "matchId": "match_30",
-      "playerId": "player_t1_4",
-      "teamId": "team_t1"
+      "id": "participant_match_29_player_ns_4",
+      "matchId": "match_29",
+      "playerId": "player_ns_4",
+      "teamId": "team_ns"
     },
     {
-      "id": "participant_match_30_player_t1_5",
-      "matchId": "match_30",
-      "playerId": "player_t1_5",
-      "teamId": "team_t1"
+      "id": "participant_match_29_player_ns_5",
+      "matchId": "match_29",
+      "playerId": "player_ns_5",
+      "teamId": "team_ns"
     },
     {
       "id": "participant_match_30_player_krx_1",
@@ -4605,6 +4575,36 @@
       "matchId": "match_30",
       "playerId": "player_krx_5",
       "teamId": "team_drx"
+    },
+    {
+      "id": "participant_match_30_player_t1_1",
+      "matchId": "match_30",
+      "playerId": "player_t1_1",
+      "teamId": "team_t1"
+    },
+    {
+      "id": "participant_match_30_player_t1_2",
+      "matchId": "match_30",
+      "playerId": "player_t1_2",
+      "teamId": "team_t1"
+    },
+    {
+      "id": "participant_match_30_player_t1_3",
+      "matchId": "match_30",
+      "playerId": "player_t1_3",
+      "teamId": "team_t1"
+    },
+    {
+      "id": "participant_match_30_player_t1_4",
+      "matchId": "match_30",
+      "playerId": "player_t1_4",
+      "teamId": "team_t1"
+    },
+    {
+      "id": "participant_match_30_player_t1_5",
+      "matchId": "match_30",
+      "playerId": "player_t1_5",
+      "teamId": "team_t1"
     },
     {
       "id": "participant_match_31_player_kt_1",
@@ -4727,36 +4727,6 @@
       "teamId": "team_ns"
     },
     {
-      "id": "participant_match_33_player_dk_1",
-      "matchId": "match_33",
-      "playerId": "player_dk_1",
-      "teamId": "team_dk"
-    },
-    {
-      "id": "participant_match_33_player_dk_2",
-      "matchId": "match_33",
-      "playerId": "player_dk_2",
-      "teamId": "team_dk"
-    },
-    {
-      "id": "participant_match_33_player_dk_3",
-      "matchId": "match_33",
-      "playerId": "player_dk_3",
-      "teamId": "team_dk"
-    },
-    {
-      "id": "participant_match_33_player_dk_4",
-      "matchId": "match_33",
-      "playerId": "player_dk_4",
-      "teamId": "team_dk"
-    },
-    {
-      "id": "participant_match_33_player_dk_5",
-      "matchId": "match_33",
-      "playerId": "player_dk_5",
-      "teamId": "team_dk"
-    },
-    {
       "id": "participant_match_33_player_bro_1",
       "matchId": "match_33",
       "playerId": "player_bro_1",
@@ -4785,6 +4755,36 @@
       "matchId": "match_33",
       "playerId": "player_bro_5",
       "teamId": "team_bro"
+    },
+    {
+      "id": "participant_match_33_player_dk_1",
+      "matchId": "match_33",
+      "playerId": "player_dk_1",
+      "teamId": "team_dk"
+    },
+    {
+      "id": "participant_match_33_player_dk_2",
+      "matchId": "match_33",
+      "playerId": "player_dk_2",
+      "teamId": "team_dk"
+    },
+    {
+      "id": "participant_match_33_player_dk_3",
+      "matchId": "match_33",
+      "playerId": "player_dk_3",
+      "teamId": "team_dk"
+    },
+    {
+      "id": "participant_match_33_player_dk_4",
+      "matchId": "match_33",
+      "playerId": "player_dk_4",
+      "teamId": "team_dk"
+    },
+    {
+      "id": "participant_match_33_player_dk_5",
+      "matchId": "match_33",
+      "playerId": "player_dk_5",
+      "teamId": "team_dk"
     },
     {
       "id": "participant_match_34_player_gen_1",
@@ -4847,36 +4847,6 @@
       "teamId": "team_dns"
     },
     {
-      "id": "participant_match_35_player_kt_1",
-      "matchId": "match_35",
-      "playerId": "player_kt_1",
-      "teamId": "team_kt"
-    },
-    {
-      "id": "participant_match_35_player_kt_2",
-      "matchId": "match_35",
-      "playerId": "player_kt_2",
-      "teamId": "team_kt"
-    },
-    {
-      "id": "participant_match_35_player_kt_3",
-      "matchId": "match_35",
-      "playerId": "player_kt_3",
-      "teamId": "team_kt"
-    },
-    {
-      "id": "participant_match_35_player_kt_4",
-      "matchId": "match_35",
-      "playerId": "player_kt_4",
-      "teamId": "team_kt"
-    },
-    {
-      "id": "participant_match_35_player_kt_5",
-      "matchId": "match_35",
-      "playerId": "player_kt_5",
-      "teamId": "team_kt"
-    },
-    {
       "id": "participant_match_35_player_bfx_1",
       "matchId": "match_35",
       "playerId": "player_bfx_1",
@@ -4905,6 +4875,36 @@
       "matchId": "match_35",
       "playerId": "player_bfx_5",
       "teamId": "team_bfx"
+    },
+    {
+      "id": "participant_match_35_player_kt_1",
+      "matchId": "match_35",
+      "playerId": "player_kt_1",
+      "teamId": "team_kt"
+    },
+    {
+      "id": "participant_match_35_player_kt_2",
+      "matchId": "match_35",
+      "playerId": "player_kt_2",
+      "teamId": "team_kt"
+    },
+    {
+      "id": "participant_match_35_player_kt_3",
+      "matchId": "match_35",
+      "playerId": "player_kt_3",
+      "teamId": "team_kt"
+    },
+    {
+      "id": "participant_match_35_player_kt_4",
+      "matchId": "match_35",
+      "playerId": "player_kt_4",
+      "teamId": "team_kt"
+    },
+    {
+      "id": "participant_match_35_player_kt_5",
+      "matchId": "match_35",
+      "playerId": "player_kt_5",
+      "teamId": "team_kt"
     },
     {
       "id": "participant_match_36_player_hle_1",
@@ -5147,6 +5147,36 @@
       "teamId": "team_bfx"
     },
     {
+      "id": "participant_match_40_player_ns_1",
+      "matchId": "match_40",
+      "playerId": "player_ns_1",
+      "teamId": "team_ns"
+    },
+    {
+      "id": "participant_match_40_player_ns_2",
+      "matchId": "match_40",
+      "playerId": "player_ns_2",
+      "teamId": "team_ns"
+    },
+    {
+      "id": "participant_match_40_player_ns_3",
+      "matchId": "match_40",
+      "playerId": "player_ns_3",
+      "teamId": "team_ns"
+    },
+    {
+      "id": "participant_match_40_player_ns_4",
+      "matchId": "match_40",
+      "playerId": "player_ns_4",
+      "teamId": "team_ns"
+    },
+    {
+      "id": "participant_match_40_player_ns_5",
+      "matchId": "match_40",
+      "playerId": "player_ns_5",
+      "teamId": "team_ns"
+    },
+    {
       "id": "participant_match_40_player_gen_1",
       "matchId": "match_40",
       "playerId": "player_gen_1",
@@ -5177,32 +5207,32 @@
       "teamId": "team_gen"
     },
     {
-      "id": "participant_match_40_player_ns_1",
-      "matchId": "match_40",
+      "id": "participant_match_41_player_ns_1",
+      "matchId": "match_41",
       "playerId": "player_ns_1",
       "teamId": "team_ns"
     },
     {
-      "id": "participant_match_40_player_ns_2",
-      "matchId": "match_40",
+      "id": "participant_match_41_player_ns_2",
+      "matchId": "match_41",
       "playerId": "player_ns_2",
       "teamId": "team_ns"
     },
     {
-      "id": "participant_match_40_player_ns_3",
-      "matchId": "match_40",
+      "id": "participant_match_41_player_ns_3",
+      "matchId": "match_41",
       "playerId": "player_ns_3",
       "teamId": "team_ns"
     },
     {
-      "id": "participant_match_40_player_ns_4",
-      "matchId": "match_40",
+      "id": "participant_match_41_player_ns_4",
+      "matchId": "match_41",
       "playerId": "player_ns_4",
       "teamId": "team_ns"
     },
     {
-      "id": "participant_match_40_player_ns_5",
-      "matchId": "match_40",
+      "id": "participant_match_41_player_ns_5",
+      "matchId": "match_41",
       "playerId": "player_ns_5",
       "teamId": "team_ns"
     },
@@ -5237,34 +5267,34 @@
       "teamId": "team_t1"
     },
     {
-      "id": "participant_match_41_player_ns_1",
-      "matchId": "match_41",
-      "playerId": "player_ns_1",
-      "teamId": "team_ns"
+      "id": "participant_match_42_player_kt_1",
+      "matchId": "match_42",
+      "playerId": "player_kt_1",
+      "teamId": "team_kt"
     },
     {
-      "id": "participant_match_41_player_ns_2",
-      "matchId": "match_41",
-      "playerId": "player_ns_2",
-      "teamId": "team_ns"
+      "id": "participant_match_42_player_kt_2",
+      "matchId": "match_42",
+      "playerId": "player_kt_2",
+      "teamId": "team_kt"
     },
     {
-      "id": "participant_match_41_player_ns_3",
-      "matchId": "match_41",
-      "playerId": "player_ns_3",
-      "teamId": "team_ns"
+      "id": "participant_match_42_player_kt_3",
+      "matchId": "match_42",
+      "playerId": "player_kt_3",
+      "teamId": "team_kt"
     },
     {
-      "id": "participant_match_41_player_ns_4",
-      "matchId": "match_41",
-      "playerId": "player_ns_4",
-      "teamId": "team_ns"
+      "id": "participant_match_42_player_kt_4",
+      "matchId": "match_42",
+      "playerId": "player_kt_4",
+      "teamId": "team_kt"
     },
     {
-      "id": "participant_match_41_player_ns_5",
-      "matchId": "match_41",
-      "playerId": "player_ns_5",
-      "teamId": "team_ns"
+      "id": "participant_match_42_player_kt_5",
+      "matchId": "match_42",
+      "playerId": "player_kt_5",
+      "teamId": "team_kt"
     },
     {
       "id": "participant_match_42_player_hle_1",
@@ -5295,36 +5325,6 @@
       "matchId": "match_42",
       "playerId": "player_hle_5",
       "teamId": "team_hle"
-    },
-    {
-      "id": "participant_match_42_player_kt_1",
-      "matchId": "match_42",
-      "playerId": "player_kt_1",
-      "teamId": "team_kt"
-    },
-    {
-      "id": "participant_match_42_player_kt_2",
-      "matchId": "match_42",
-      "playerId": "player_kt_2",
-      "teamId": "team_kt"
-    },
-    {
-      "id": "participant_match_42_player_kt_3",
-      "matchId": "match_42",
-      "playerId": "player_kt_3",
-      "teamId": "team_kt"
-    },
-    {
-      "id": "participant_match_42_player_kt_4",
-      "matchId": "match_42",
-      "playerId": "player_kt_4",
-      "teamId": "team_kt"
-    },
-    {
-      "id": "participant_match_42_player_kt_5",
-      "matchId": "match_42",
-      "playerId": "player_kt_5",
-      "teamId": "team_kt"
     },
     {
       "id": "participant_match_43_player_gen_1",
@@ -5387,36 +5387,6 @@
       "teamId": "team_drx"
     },
     {
-      "id": "participant_match_44_player_dk_1",
-      "matchId": "match_44",
-      "playerId": "player_dk_1",
-      "teamId": "team_dk"
-    },
-    {
-      "id": "participant_match_44_player_dk_2",
-      "matchId": "match_44",
-      "playerId": "player_dk_2",
-      "teamId": "team_dk"
-    },
-    {
-      "id": "participant_match_44_player_dk_3",
-      "matchId": "match_44",
-      "playerId": "player_dk_3",
-      "teamId": "team_dk"
-    },
-    {
-      "id": "participant_match_44_player_dk_4",
-      "matchId": "match_44",
-      "playerId": "player_dk_4",
-      "teamId": "team_dk"
-    },
-    {
-      "id": "participant_match_44_player_dk_5",
-      "matchId": "match_44",
-      "playerId": "player_dk_5",
-      "teamId": "team_dk"
-    },
-    {
       "id": "participant_match_44_player_bfx_1",
       "matchId": "match_44",
       "playerId": "player_bfx_1",
@@ -5447,34 +5417,34 @@
       "teamId": "team_bfx"
     },
     {
-      "id": "participant_match_45_player_bro_1",
-      "matchId": "match_45",
-      "playerId": "player_bro_1",
-      "teamId": "team_bro"
+      "id": "participant_match_44_player_dk_1",
+      "matchId": "match_44",
+      "playerId": "player_dk_1",
+      "teamId": "team_dk"
     },
     {
-      "id": "participant_match_45_player_bro_2",
-      "matchId": "match_45",
-      "playerId": "player_bro_2",
-      "teamId": "team_bro"
+      "id": "participant_match_44_player_dk_2",
+      "matchId": "match_44",
+      "playerId": "player_dk_2",
+      "teamId": "team_dk"
     },
     {
-      "id": "participant_match_45_player_bro_3",
-      "matchId": "match_45",
-      "playerId": "player_bro_3",
-      "teamId": "team_bro"
+      "id": "participant_match_44_player_dk_3",
+      "matchId": "match_44",
+      "playerId": "player_dk_3",
+      "teamId": "team_dk"
     },
     {
-      "id": "participant_match_45_player_bro_4",
-      "matchId": "match_45",
-      "playerId": "player_bro_4",
-      "teamId": "team_bro"
+      "id": "participant_match_44_player_dk_4",
+      "matchId": "match_44",
+      "playerId": "player_dk_4",
+      "teamId": "team_dk"
     },
     {
-      "id": "participant_match_45_player_bro_5",
-      "matchId": "match_45",
-      "playerId": "player_bro_5",
-      "teamId": "team_bro"
+      "id": "participant_match_44_player_dk_5",
+      "matchId": "match_44",
+      "playerId": "player_dk_5",
+      "teamId": "team_dk"
     },
     {
       "id": "participant_match_45_player_dns_1",
@@ -5507,34 +5477,34 @@
       "teamId": "team_dns"
     },
     {
-      "id": "participant_match_46_player_t1_1",
-      "matchId": "match_46",
-      "playerId": "player_t1_1",
-      "teamId": "team_t1"
+      "id": "participant_match_45_player_bro_1",
+      "matchId": "match_45",
+      "playerId": "player_bro_1",
+      "teamId": "team_bro"
     },
     {
-      "id": "participant_match_46_player_t1_2",
-      "matchId": "match_46",
-      "playerId": "player_t1_2",
-      "teamId": "team_t1"
+      "id": "participant_match_45_player_bro_2",
+      "matchId": "match_45",
+      "playerId": "player_bro_2",
+      "teamId": "team_bro"
     },
     {
-      "id": "participant_match_46_player_t1_3",
-      "matchId": "match_46",
-      "playerId": "player_t1_3",
-      "teamId": "team_t1"
+      "id": "participant_match_45_player_bro_3",
+      "matchId": "match_45",
+      "playerId": "player_bro_3",
+      "teamId": "team_bro"
     },
     {
-      "id": "participant_match_46_player_t1_4",
-      "matchId": "match_46",
-      "playerId": "player_t1_4",
-      "teamId": "team_t1"
+      "id": "participant_match_45_player_bro_4",
+      "matchId": "match_45",
+      "playerId": "player_bro_4",
+      "teamId": "team_bro"
     },
     {
-      "id": "participant_match_46_player_t1_5",
-      "matchId": "match_46",
-      "playerId": "player_t1_5",
-      "teamId": "team_t1"
+      "id": "participant_match_45_player_bro_5",
+      "matchId": "match_45",
+      "playerId": "player_bro_5",
+      "teamId": "team_bro"
     },
     {
       "id": "participant_match_46_player_hle_1",
@@ -5565,6 +5535,36 @@
       "matchId": "match_46",
       "playerId": "player_hle_5",
       "teamId": "team_hle"
+    },
+    {
+      "id": "participant_match_46_player_t1_1",
+      "matchId": "match_46",
+      "playerId": "player_t1_1",
+      "teamId": "team_t1"
+    },
+    {
+      "id": "participant_match_46_player_t1_2",
+      "matchId": "match_46",
+      "playerId": "player_t1_2",
+      "teamId": "team_t1"
+    },
+    {
+      "id": "participant_match_46_player_t1_3",
+      "matchId": "match_46",
+      "playerId": "player_t1_3",
+      "teamId": "team_t1"
+    },
+    {
+      "id": "participant_match_46_player_t1_4",
+      "matchId": "match_46",
+      "playerId": "player_t1_4",
+      "teamId": "team_t1"
+    },
+    {
+      "id": "participant_match_46_player_t1_5",
+      "matchId": "match_46",
+      "playerId": "player_t1_5",
+      "teamId": "team_t1"
     },
     {
       "id": "participant_match_47_player_gen_1",
@@ -5747,36 +5747,6 @@
       "teamId": "team_bro"
     },
     {
-      "id": "participant_match_50_player_bfx_1",
-      "matchId": "match_50",
-      "playerId": "player_bfx_1",
-      "teamId": "team_bfx"
-    },
-    {
-      "id": "participant_match_50_player_bfx_2",
-      "matchId": "match_50",
-      "playerId": "player_bfx_2",
-      "teamId": "team_bfx"
-    },
-    {
-      "id": "participant_match_50_player_bfx_3",
-      "matchId": "match_50",
-      "playerId": "player_bfx_3",
-      "teamId": "team_bfx"
-    },
-    {
-      "id": "participant_match_50_player_bfx_4",
-      "matchId": "match_50",
-      "playerId": "player_bfx_4",
-      "teamId": "team_bfx"
-    },
-    {
-      "id": "participant_match_50_player_bfx_5",
-      "matchId": "match_50",
-      "playerId": "player_bfx_5",
-      "teamId": "team_bfx"
-    },
-    {
       "id": "participant_match_50_player_dns_1",
       "matchId": "match_50",
       "playerId": "player_dns_1",
@@ -5805,6 +5775,36 @@
       "matchId": "match_50",
       "playerId": "player_dns_5",
       "teamId": "team_dns"
+    },
+    {
+      "id": "participant_match_50_player_bfx_1",
+      "matchId": "match_50",
+      "playerId": "player_bfx_1",
+      "teamId": "team_bfx"
+    },
+    {
+      "id": "participant_match_50_player_bfx_2",
+      "matchId": "match_50",
+      "playerId": "player_bfx_2",
+      "teamId": "team_bfx"
+    },
+    {
+      "id": "participant_match_50_player_bfx_3",
+      "matchId": "match_50",
+      "playerId": "player_bfx_3",
+      "teamId": "team_bfx"
+    },
+    {
+      "id": "participant_match_50_player_bfx_4",
+      "matchId": "match_50",
+      "playerId": "player_bfx_4",
+      "teamId": "team_bfx"
+    },
+    {
+      "id": "participant_match_50_player_bfx_5",
+      "matchId": "match_50",
+      "playerId": "player_bfx_5",
+      "teamId": "team_bfx"
     },
     {
       "id": "participant_match_51_player_gen_1",
@@ -6107,36 +6107,6 @@
       "teamId": "team_dns"
     },
     {
-      "id": "participant_match_56_player_gen_1",
-      "matchId": "match_56",
-      "playerId": "player_gen_1",
-      "teamId": "team_gen"
-    },
-    {
-      "id": "participant_match_56_player_gen_2",
-      "matchId": "match_56",
-      "playerId": "player_gen_2",
-      "teamId": "team_gen"
-    },
-    {
-      "id": "participant_match_56_player_gen_3",
-      "matchId": "match_56",
-      "playerId": "player_gen_3",
-      "teamId": "team_gen"
-    },
-    {
-      "id": "participant_match_56_player_gen_4",
-      "matchId": "match_56",
-      "playerId": "player_gen_4",
-      "teamId": "team_gen"
-    },
-    {
-      "id": "participant_match_56_player_gen_5",
-      "matchId": "match_56",
-      "playerId": "player_gen_5",
-      "teamId": "team_gen"
-    },
-    {
       "id": "participant_match_56_player_krx_1",
       "matchId": "match_56",
       "playerId": "player_krx_1",
@@ -6165,6 +6135,36 @@
       "matchId": "match_56",
       "playerId": "player_krx_5",
       "teamId": "team_drx"
+    },
+    {
+      "id": "participant_match_56_player_gen_1",
+      "matchId": "match_56",
+      "playerId": "player_gen_1",
+      "teamId": "team_gen"
+    },
+    {
+      "id": "participant_match_56_player_gen_2",
+      "matchId": "match_56",
+      "playerId": "player_gen_2",
+      "teamId": "team_gen"
+    },
+    {
+      "id": "participant_match_56_player_gen_3",
+      "matchId": "match_56",
+      "playerId": "player_gen_3",
+      "teamId": "team_gen"
+    },
+    {
+      "id": "participant_match_56_player_gen_4",
+      "matchId": "match_56",
+      "playerId": "player_gen_4",
+      "teamId": "team_gen"
+    },
+    {
+      "id": "participant_match_56_player_gen_5",
+      "matchId": "match_56",
+      "playerId": "player_gen_5",
+      "teamId": "team_gen"
     },
     {
       "id": "participant_match_57_player_kt_1",
@@ -6347,36 +6347,6 @@
       "teamId": "team_dk"
     },
     {
-      "id": "participant_match_60_player_hle_1",
-      "matchId": "match_60",
-      "playerId": "player_hle_1",
-      "teamId": "team_hle"
-    },
-    {
-      "id": "participant_match_60_player_hle_2",
-      "matchId": "match_60",
-      "playerId": "player_hle_2",
-      "teamId": "team_hle"
-    },
-    {
-      "id": "participant_match_60_player_hle_3",
-      "matchId": "match_60",
-      "playerId": "player_hle_3",
-      "teamId": "team_hle"
-    },
-    {
-      "id": "participant_match_60_player_hle_4",
-      "matchId": "match_60",
-      "playerId": "player_hle_4",
-      "teamId": "team_hle"
-    },
-    {
-      "id": "participant_match_60_player_hle_5",
-      "matchId": "match_60",
-      "playerId": "player_hle_5",
-      "teamId": "team_hle"
-    },
-    {
       "id": "participant_match_60_player_krx_1",
       "matchId": "match_60",
       "playerId": "player_krx_1",
@@ -6405,6 +6375,36 @@
       "matchId": "match_60",
       "playerId": "player_krx_5",
       "teamId": "team_drx"
+    },
+    {
+      "id": "participant_match_60_player_hle_1",
+      "matchId": "match_60",
+      "playerId": "player_hle_1",
+      "teamId": "team_hle"
+    },
+    {
+      "id": "participant_match_60_player_hle_2",
+      "matchId": "match_60",
+      "playerId": "player_hle_2",
+      "teamId": "team_hle"
+    },
+    {
+      "id": "participant_match_60_player_hle_3",
+      "matchId": "match_60",
+      "playerId": "player_hle_3",
+      "teamId": "team_hle"
+    },
+    {
+      "id": "participant_match_60_player_hle_4",
+      "matchId": "match_60",
+      "playerId": "player_hle_4",
+      "teamId": "team_hle"
+    },
+    {
+      "id": "participant_match_60_player_hle_5",
+      "matchId": "match_60",
+      "playerId": "player_hle_5",
+      "teamId": "team_hle"
     },
     {
       "id": "participant_match_61_player_t1_1",
@@ -6467,36 +6467,6 @@
       "teamId": "team_ns"
     },
     {
-      "id": "participant_match_62_player_dk_1",
-      "matchId": "match_62",
-      "playerId": "player_dk_1",
-      "teamId": "team_dk"
-    },
-    {
-      "id": "participant_match_62_player_dk_2",
-      "matchId": "match_62",
-      "playerId": "player_dk_2",
-      "teamId": "team_dk"
-    },
-    {
-      "id": "participant_match_62_player_dk_3",
-      "matchId": "match_62",
-      "playerId": "player_dk_3",
-      "teamId": "team_dk"
-    },
-    {
-      "id": "participant_match_62_player_dk_4",
-      "matchId": "match_62",
-      "playerId": "player_dk_4",
-      "teamId": "team_dk"
-    },
-    {
-      "id": "participant_match_62_player_dk_5",
-      "matchId": "match_62",
-      "playerId": "player_dk_5",
-      "teamId": "team_dk"
-    },
-    {
       "id": "participant_match_62_player_dns_1",
       "matchId": "match_62",
       "playerId": "player_dns_1",
@@ -6527,34 +6497,34 @@
       "teamId": "team_dns"
     },
     {
-      "id": "participant_match_63_player_gen_1",
-      "matchId": "match_63",
-      "playerId": "player_gen_1",
-      "teamId": "team_gen"
+      "id": "participant_match_62_player_dk_1",
+      "matchId": "match_62",
+      "playerId": "player_dk_1",
+      "teamId": "team_dk"
     },
     {
-      "id": "participant_match_63_player_gen_2",
-      "matchId": "match_63",
-      "playerId": "player_gen_2",
-      "teamId": "team_gen"
+      "id": "participant_match_62_player_dk_2",
+      "matchId": "match_62",
+      "playerId": "player_dk_2",
+      "teamId": "team_dk"
     },
     {
-      "id": "participant_match_63_player_gen_3",
-      "matchId": "match_63",
-      "playerId": "player_gen_3",
-      "teamId": "team_gen"
+      "id": "participant_match_62_player_dk_3",
+      "matchId": "match_62",
+      "playerId": "player_dk_3",
+      "teamId": "team_dk"
     },
     {
-      "id": "participant_match_63_player_gen_4",
-      "matchId": "match_63",
-      "playerId": "player_gen_4",
-      "teamId": "team_gen"
+      "id": "participant_match_62_player_dk_4",
+      "matchId": "match_62",
+      "playerId": "player_dk_4",
+      "teamId": "team_dk"
     },
     {
-      "id": "participant_match_63_player_gen_5",
-      "matchId": "match_63",
-      "playerId": "player_gen_5",
-      "teamId": "team_gen"
+      "id": "participant_match_62_player_dk_5",
+      "matchId": "match_62",
+      "playerId": "player_dk_5",
+      "teamId": "team_dk"
     },
     {
       "id": "participant_match_63_player_bfx_1",
@@ -6587,34 +6557,34 @@
       "teamId": "team_bfx"
     },
     {
-      "id": "participant_match_64_player_kt_1",
-      "matchId": "match_64",
-      "playerId": "player_kt_1",
-      "teamId": "team_kt"
+      "id": "participant_match_63_player_gen_1",
+      "matchId": "match_63",
+      "playerId": "player_gen_1",
+      "teamId": "team_gen"
     },
     {
-      "id": "participant_match_64_player_kt_2",
-      "matchId": "match_64",
-      "playerId": "player_kt_2",
-      "teamId": "team_kt"
+      "id": "participant_match_63_player_gen_2",
+      "matchId": "match_63",
+      "playerId": "player_gen_2",
+      "teamId": "team_gen"
     },
     {
-      "id": "participant_match_64_player_kt_3",
-      "matchId": "match_64",
-      "playerId": "player_kt_3",
-      "teamId": "team_kt"
+      "id": "participant_match_63_player_gen_3",
+      "matchId": "match_63",
+      "playerId": "player_gen_3",
+      "teamId": "team_gen"
     },
     {
-      "id": "participant_match_64_player_kt_4",
-      "matchId": "match_64",
-      "playerId": "player_kt_4",
-      "teamId": "team_kt"
+      "id": "participant_match_63_player_gen_4",
+      "matchId": "match_63",
+      "playerId": "player_gen_4",
+      "teamId": "team_gen"
     },
     {
-      "id": "participant_match_64_player_kt_5",
-      "matchId": "match_64",
-      "playerId": "player_kt_5",
-      "teamId": "team_kt"
+      "id": "participant_match_63_player_gen_5",
+      "matchId": "match_63",
+      "playerId": "player_gen_5",
+      "teamId": "team_gen"
     },
     {
       "id": "participant_match_64_player_krx_1",
@@ -6645,6 +6615,36 @@
       "matchId": "match_64",
       "playerId": "player_krx_5",
       "teamId": "team_drx"
+    },
+    {
+      "id": "participant_match_64_player_kt_1",
+      "matchId": "match_64",
+      "playerId": "player_kt_1",
+      "teamId": "team_kt"
+    },
+    {
+      "id": "participant_match_64_player_kt_2",
+      "matchId": "match_64",
+      "playerId": "player_kt_2",
+      "teamId": "team_kt"
+    },
+    {
+      "id": "participant_match_64_player_kt_3",
+      "matchId": "match_64",
+      "playerId": "player_kt_3",
+      "teamId": "team_kt"
+    },
+    {
+      "id": "participant_match_64_player_kt_4",
+      "matchId": "match_64",
+      "playerId": "player_kt_4",
+      "teamId": "team_kt"
+    },
+    {
+      "id": "participant_match_64_player_kt_5",
+      "matchId": "match_64",
+      "playerId": "player_kt_5",
+      "teamId": "team_kt"
     },
     {
       "id": "participant_match_65_player_hle_1",
@@ -6767,36 +6767,6 @@
       "teamId": "team_dns"
     },
     {
-      "id": "participant_match_67_player_t1_1",
-      "matchId": "match_67",
-      "playerId": "player_t1_1",
-      "teamId": "team_t1"
-    },
-    {
-      "id": "participant_match_67_player_t1_2",
-      "matchId": "match_67",
-      "playerId": "player_t1_2",
-      "teamId": "team_t1"
-    },
-    {
-      "id": "participant_match_67_player_t1_3",
-      "matchId": "match_67",
-      "playerId": "player_t1_3",
-      "teamId": "team_t1"
-    },
-    {
-      "id": "participant_match_67_player_t1_4",
-      "matchId": "match_67",
-      "playerId": "player_t1_4",
-      "teamId": "team_t1"
-    },
-    {
-      "id": "participant_match_67_player_t1_5",
-      "matchId": "match_67",
-      "playerId": "player_t1_5",
-      "teamId": "team_t1"
-    },
-    {
       "id": "participant_match_67_player_gen_1",
       "matchId": "match_67",
       "playerId": "player_gen_1",
@@ -6827,34 +6797,34 @@
       "teamId": "team_gen"
     },
     {
-      "id": "participant_match_68_player_ns_1",
-      "matchId": "match_68",
-      "playerId": "player_ns_1",
-      "teamId": "team_ns"
+      "id": "participant_match_67_player_t1_1",
+      "matchId": "match_67",
+      "playerId": "player_t1_1",
+      "teamId": "team_t1"
     },
     {
-      "id": "participant_match_68_player_ns_2",
-      "matchId": "match_68",
-      "playerId": "player_ns_2",
-      "teamId": "team_ns"
+      "id": "participant_match_67_player_t1_2",
+      "matchId": "match_67",
+      "playerId": "player_t1_2",
+      "teamId": "team_t1"
     },
     {
-      "id": "participant_match_68_player_ns_3",
-      "matchId": "match_68",
-      "playerId": "player_ns_3",
-      "teamId": "team_ns"
+      "id": "participant_match_67_player_t1_3",
+      "matchId": "match_67",
+      "playerId": "player_t1_3",
+      "teamId": "team_t1"
     },
     {
-      "id": "participant_match_68_player_ns_4",
-      "matchId": "match_68",
-      "playerId": "player_ns_4",
-      "teamId": "team_ns"
+      "id": "participant_match_67_player_t1_4",
+      "matchId": "match_67",
+      "playerId": "player_t1_4",
+      "teamId": "team_t1"
     },
     {
-      "id": "participant_match_68_player_ns_5",
-      "matchId": "match_68",
-      "playerId": "player_ns_5",
-      "teamId": "team_ns"
+      "id": "participant_match_67_player_t1_5",
+      "matchId": "match_67",
+      "playerId": "player_t1_5",
+      "teamId": "team_t1"
     },
     {
       "id": "participant_match_68_player_bfx_1",
@@ -6885,6 +6855,36 @@
       "matchId": "match_68",
       "playerId": "player_bfx_5",
       "teamId": "team_bfx"
+    },
+    {
+      "id": "participant_match_68_player_ns_1",
+      "matchId": "match_68",
+      "playerId": "player_ns_1",
+      "teamId": "team_ns"
+    },
+    {
+      "id": "participant_match_68_player_ns_2",
+      "matchId": "match_68",
+      "playerId": "player_ns_2",
+      "teamId": "team_ns"
+    },
+    {
+      "id": "participant_match_68_player_ns_3",
+      "matchId": "match_68",
+      "playerId": "player_ns_3",
+      "teamId": "team_ns"
+    },
+    {
+      "id": "participant_match_68_player_ns_4",
+      "matchId": "match_68",
+      "playerId": "player_ns_4",
+      "teamId": "team_ns"
+    },
+    {
+      "id": "participant_match_68_player_ns_5",
+      "matchId": "match_68",
+      "playerId": "player_ns_5",
+      "teamId": "team_ns"
     },
     {
       "id": "participant_match_69_player_hle_1",
@@ -7067,36 +7067,6 @@
       "teamId": "team_drx"
     },
     {
-      "id": "participant_match_72_player_kt_1",
-      "matchId": "match_72",
-      "playerId": "player_kt_1",
-      "teamId": "team_kt"
-    },
-    {
-      "id": "participant_match_72_player_kt_2",
-      "matchId": "match_72",
-      "playerId": "player_kt_2",
-      "teamId": "team_kt"
-    },
-    {
-      "id": "participant_match_72_player_kt_3",
-      "matchId": "match_72",
-      "playerId": "player_kt_3",
-      "teamId": "team_kt"
-    },
-    {
-      "id": "participant_match_72_player_kt_4",
-      "matchId": "match_72",
-      "playerId": "player_kt_4",
-      "teamId": "team_kt"
-    },
-    {
-      "id": "participant_match_72_player_kt_5",
-      "matchId": "match_72",
-      "playerId": "player_kt_5",
-      "teamId": "team_kt"
-    },
-    {
       "id": "participant_match_72_player_ns_1",
       "matchId": "match_72",
       "playerId": "player_ns_1",
@@ -7127,34 +7097,34 @@
       "teamId": "team_ns"
     },
     {
-      "id": "participant_match_73_player_hle_1",
-      "matchId": "match_73",
-      "playerId": "player_hle_1",
-      "teamId": "team_hle"
+      "id": "participant_match_72_player_kt_1",
+      "matchId": "match_72",
+      "playerId": "player_kt_1",
+      "teamId": "team_kt"
     },
     {
-      "id": "participant_match_73_player_hle_2",
-      "matchId": "match_73",
-      "playerId": "player_hle_2",
-      "teamId": "team_hle"
+      "id": "participant_match_72_player_kt_2",
+      "matchId": "match_72",
+      "playerId": "player_kt_2",
+      "teamId": "team_kt"
     },
     {
-      "id": "participant_match_73_player_hle_3",
-      "matchId": "match_73",
-      "playerId": "player_hle_3",
-      "teamId": "team_hle"
+      "id": "participant_match_72_player_kt_3",
+      "matchId": "match_72",
+      "playerId": "player_kt_3",
+      "teamId": "team_kt"
     },
     {
-      "id": "participant_match_73_player_hle_4",
-      "matchId": "match_73",
-      "playerId": "player_hle_4",
-      "teamId": "team_hle"
+      "id": "participant_match_72_player_kt_4",
+      "matchId": "match_72",
+      "playerId": "player_kt_4",
+      "teamId": "team_kt"
     },
     {
-      "id": "participant_match_73_player_hle_5",
-      "matchId": "match_73",
-      "playerId": "player_hle_5",
-      "teamId": "team_hle"
+      "id": "participant_match_72_player_kt_5",
+      "matchId": "match_72",
+      "playerId": "player_kt_5",
+      "teamId": "team_kt"
     },
     {
       "id": "participant_match_73_player_bfx_1",
@@ -7185,6 +7155,36 @@
       "matchId": "match_73",
       "playerId": "player_bfx_5",
       "teamId": "team_bfx"
+    },
+    {
+      "id": "participant_match_73_player_hle_1",
+      "matchId": "match_73",
+      "playerId": "player_hle_1",
+      "teamId": "team_hle"
+    },
+    {
+      "id": "participant_match_73_player_hle_2",
+      "matchId": "match_73",
+      "playerId": "player_hle_2",
+      "teamId": "team_hle"
+    },
+    {
+      "id": "participant_match_73_player_hle_3",
+      "matchId": "match_73",
+      "playerId": "player_hle_3",
+      "teamId": "team_hle"
+    },
+    {
+      "id": "participant_match_73_player_hle_4",
+      "matchId": "match_73",
+      "playerId": "player_hle_4",
+      "teamId": "team_hle"
+    },
+    {
+      "id": "participant_match_73_player_hle_5",
+      "matchId": "match_73",
+      "playerId": "player_hle_5",
+      "teamId": "team_hle"
     },
     {
       "id": "participant_match_74_player_dk_1",
@@ -7247,36 +7247,6 @@
       "teamId": "team_bro"
     },
     {
-      "id": "participant_match_75_player_krx_1",
-      "matchId": "match_75",
-      "playerId": "player_krx_1",
-      "teamId": "team_drx"
-    },
-    {
-      "id": "participant_match_75_player_krx_2",
-      "matchId": "match_75",
-      "playerId": "player_krx_2",
-      "teamId": "team_drx"
-    },
-    {
-      "id": "participant_match_75_player_krx_3",
-      "matchId": "match_75",
-      "playerId": "player_krx_3",
-      "teamId": "team_drx"
-    },
-    {
-      "id": "participant_match_75_player_krx_4",
-      "matchId": "match_75",
-      "playerId": "player_krx_4",
-      "teamId": "team_drx"
-    },
-    {
-      "id": "participant_match_75_player_krx_5",
-      "matchId": "match_75",
-      "playerId": "player_krx_5",
-      "teamId": "team_drx"
-    },
-    {
       "id": "participant_match_75_player_dns_1",
       "matchId": "match_75",
       "playerId": "player_dns_1",
@@ -7307,34 +7277,34 @@
       "teamId": "team_dns"
     },
     {
-      "id": "participant_match_76_player_gen_1",
-      "matchId": "match_76",
-      "playerId": "player_gen_1",
-      "teamId": "team_gen"
+      "id": "participant_match_75_player_krx_1",
+      "matchId": "match_75",
+      "playerId": "player_krx_1",
+      "teamId": "team_drx"
     },
     {
-      "id": "participant_match_76_player_gen_2",
-      "matchId": "match_76",
-      "playerId": "player_gen_2",
-      "teamId": "team_gen"
+      "id": "participant_match_75_player_krx_2",
+      "matchId": "match_75",
+      "playerId": "player_krx_2",
+      "teamId": "team_drx"
     },
     {
-      "id": "participant_match_76_player_gen_3",
-      "matchId": "match_76",
-      "playerId": "player_gen_3",
-      "teamId": "team_gen"
+      "id": "participant_match_75_player_krx_3",
+      "matchId": "match_75",
+      "playerId": "player_krx_3",
+      "teamId": "team_drx"
     },
     {
-      "id": "participant_match_76_player_gen_4",
-      "matchId": "match_76",
-      "playerId": "player_gen_4",
-      "teamId": "team_gen"
+      "id": "participant_match_75_player_krx_4",
+      "matchId": "match_75",
+      "playerId": "player_krx_4",
+      "teamId": "team_drx"
     },
     {
-      "id": "participant_match_76_player_gen_5",
-      "matchId": "match_76",
-      "playerId": "player_gen_5",
-      "teamId": "team_gen"
+      "id": "participant_match_75_player_krx_5",
+      "matchId": "match_75",
+      "playerId": "player_krx_5",
+      "teamId": "team_drx"
     },
     {
       "id": "participant_match_76_player_kt_1",
@@ -7365,6 +7335,36 @@
       "matchId": "match_76",
       "playerId": "player_kt_5",
       "teamId": "team_kt"
+    },
+    {
+      "id": "participant_match_76_player_gen_1",
+      "matchId": "match_76",
+      "playerId": "player_gen_1",
+      "teamId": "team_gen"
+    },
+    {
+      "id": "participant_match_76_player_gen_2",
+      "matchId": "match_76",
+      "playerId": "player_gen_2",
+      "teamId": "team_gen"
+    },
+    {
+      "id": "participant_match_76_player_gen_3",
+      "matchId": "match_76",
+      "playerId": "player_gen_3",
+      "teamId": "team_gen"
+    },
+    {
+      "id": "participant_match_76_player_gen_4",
+      "matchId": "match_76",
+      "playerId": "player_gen_4",
+      "teamId": "team_gen"
+    },
+    {
+      "id": "participant_match_76_player_gen_5",
+      "matchId": "match_76",
+      "playerId": "player_gen_5",
+      "teamId": "team_gen"
     },
     {
       "id": "participant_match_77_player_dk_1",
@@ -7427,36 +7427,6 @@
       "teamId": "team_bfx"
     },
     {
-      "id": "participant_match_78_player_hle_1",
-      "matchId": "match_78",
-      "playerId": "player_hle_1",
-      "teamId": "team_hle"
-    },
-    {
-      "id": "participant_match_78_player_hle_2",
-      "matchId": "match_78",
-      "playerId": "player_hle_2",
-      "teamId": "team_hle"
-    },
-    {
-      "id": "participant_match_78_player_hle_3",
-      "matchId": "match_78",
-      "playerId": "player_hle_3",
-      "teamId": "team_hle"
-    },
-    {
-      "id": "participant_match_78_player_hle_4",
-      "matchId": "match_78",
-      "playerId": "player_hle_4",
-      "teamId": "team_hle"
-    },
-    {
-      "id": "participant_match_78_player_hle_5",
-      "matchId": "match_78",
-      "playerId": "player_hle_5",
-      "teamId": "team_hle"
-    },
-    {
       "id": "participant_match_78_player_ns_1",
       "matchId": "match_78",
       "playerId": "player_ns_1",
@@ -7487,34 +7457,34 @@
       "teamId": "team_ns"
     },
     {
-      "id": "participant_match_79_player_gen_1",
-      "matchId": "match_79",
-      "playerId": "player_gen_1",
-      "teamId": "team_gen"
+      "id": "participant_match_78_player_hle_1",
+      "matchId": "match_78",
+      "playerId": "player_hle_1",
+      "teamId": "team_hle"
     },
     {
-      "id": "participant_match_79_player_gen_2",
-      "matchId": "match_79",
-      "playerId": "player_gen_2",
-      "teamId": "team_gen"
+      "id": "participant_match_78_player_hle_2",
+      "matchId": "match_78",
+      "playerId": "player_hle_2",
+      "teamId": "team_hle"
     },
     {
-      "id": "participant_match_79_player_gen_3",
-      "matchId": "match_79",
-      "playerId": "player_gen_3",
-      "teamId": "team_gen"
+      "id": "participant_match_78_player_hle_3",
+      "matchId": "match_78",
+      "playerId": "player_hle_3",
+      "teamId": "team_hle"
     },
     {
-      "id": "participant_match_79_player_gen_4",
-      "matchId": "match_79",
-      "playerId": "player_gen_4",
-      "teamId": "team_gen"
+      "id": "participant_match_78_player_hle_4",
+      "matchId": "match_78",
+      "playerId": "player_hle_4",
+      "teamId": "team_hle"
     },
     {
-      "id": "participant_match_79_player_gen_5",
-      "matchId": "match_79",
-      "playerId": "player_gen_5",
-      "teamId": "team_gen"
+      "id": "participant_match_78_player_hle_5",
+      "matchId": "match_78",
+      "playerId": "player_hle_5",
+      "teamId": "team_hle"
     },
     {
       "id": "participant_match_79_player_dns_1",
@@ -7547,34 +7517,34 @@
       "teamId": "team_dns"
     },
     {
-      "id": "participant_match_80_player_t1_1",
-      "matchId": "match_80",
-      "playerId": "player_t1_1",
-      "teamId": "team_t1"
+      "id": "participant_match_79_player_gen_1",
+      "matchId": "match_79",
+      "playerId": "player_gen_1",
+      "teamId": "team_gen"
     },
     {
-      "id": "participant_match_80_player_t1_2",
-      "matchId": "match_80",
-      "playerId": "player_t1_2",
-      "teamId": "team_t1"
+      "id": "participant_match_79_player_gen_2",
+      "matchId": "match_79",
+      "playerId": "player_gen_2",
+      "teamId": "team_gen"
     },
     {
-      "id": "participant_match_80_player_t1_3",
-      "matchId": "match_80",
-      "playerId": "player_t1_3",
-      "teamId": "team_t1"
+      "id": "participant_match_79_player_gen_3",
+      "matchId": "match_79",
+      "playerId": "player_gen_3",
+      "teamId": "team_gen"
     },
     {
-      "id": "participant_match_80_player_t1_4",
-      "matchId": "match_80",
-      "playerId": "player_t1_4",
-      "teamId": "team_t1"
+      "id": "participant_match_79_player_gen_4",
+      "matchId": "match_79",
+      "playerId": "player_gen_4",
+      "teamId": "team_gen"
     },
     {
-      "id": "participant_match_80_player_t1_5",
-      "matchId": "match_80",
-      "playerId": "player_t1_5",
-      "teamId": "team_t1"
+      "id": "participant_match_79_player_gen_5",
+      "matchId": "match_79",
+      "playerId": "player_gen_5",
+      "teamId": "team_gen"
     },
     {
       "id": "participant_match_80_player_bro_1",
@@ -7605,6 +7575,36 @@
       "matchId": "match_80",
       "playerId": "player_bro_5",
       "teamId": "team_bro"
+    },
+    {
+      "id": "participant_match_80_player_t1_1",
+      "matchId": "match_80",
+      "playerId": "player_t1_1",
+      "teamId": "team_t1"
+    },
+    {
+      "id": "participant_match_80_player_t1_2",
+      "matchId": "match_80",
+      "playerId": "player_t1_2",
+      "teamId": "team_t1"
+    },
+    {
+      "id": "participant_match_80_player_t1_3",
+      "matchId": "match_80",
+      "playerId": "player_t1_3",
+      "teamId": "team_t1"
+    },
+    {
+      "id": "participant_match_80_player_t1_4",
+      "matchId": "match_80",
+      "playerId": "player_t1_4",
+      "teamId": "team_t1"
+    },
+    {
+      "id": "participant_match_80_player_t1_5",
+      "matchId": "match_80",
+      "playerId": "player_t1_5",
+      "teamId": "team_t1"
     },
     {
       "id": "participant_match_81_player_gen_1",
@@ -7667,36 +7667,6 @@
       "teamId": "team_hle"
     },
     {
-      "id": "participant_match_82_player_krx_1",
-      "matchId": "match_82",
-      "playerId": "player_krx_1",
-      "teamId": "team_drx"
-    },
-    {
-      "id": "participant_match_82_player_krx_2",
-      "matchId": "match_82",
-      "playerId": "player_krx_2",
-      "teamId": "team_drx"
-    },
-    {
-      "id": "participant_match_82_player_krx_3",
-      "matchId": "match_82",
-      "playerId": "player_krx_3",
-      "teamId": "team_drx"
-    },
-    {
-      "id": "participant_match_82_player_krx_4",
-      "matchId": "match_82",
-      "playerId": "player_krx_4",
-      "teamId": "team_drx"
-    },
-    {
-      "id": "participant_match_82_player_krx_5",
-      "matchId": "match_82",
-      "playerId": "player_krx_5",
-      "teamId": "team_drx"
-    },
-    {
       "id": "participant_match_82_player_bfx_1",
       "matchId": "match_82",
       "playerId": "player_bfx_1",
@@ -7727,34 +7697,34 @@
       "teamId": "team_bfx"
     },
     {
-      "id": "participant_match_83_player_ns_1",
-      "matchId": "match_83",
-      "playerId": "player_ns_1",
-      "teamId": "team_ns"
+      "id": "participant_match_82_player_krx_1",
+      "matchId": "match_82",
+      "playerId": "player_krx_1",
+      "teamId": "team_drx"
     },
     {
-      "id": "participant_match_83_player_ns_2",
-      "matchId": "match_83",
-      "playerId": "player_ns_2",
-      "teamId": "team_ns"
+      "id": "participant_match_82_player_krx_2",
+      "matchId": "match_82",
+      "playerId": "player_krx_2",
+      "teamId": "team_drx"
     },
     {
-      "id": "participant_match_83_player_ns_3",
-      "matchId": "match_83",
-      "playerId": "player_ns_3",
-      "teamId": "team_ns"
+      "id": "participant_match_82_player_krx_3",
+      "matchId": "match_82",
+      "playerId": "player_krx_3",
+      "teamId": "team_drx"
     },
     {
-      "id": "participant_match_83_player_ns_4",
-      "matchId": "match_83",
-      "playerId": "player_ns_4",
-      "teamId": "team_ns"
+      "id": "participant_match_82_player_krx_4",
+      "matchId": "match_82",
+      "playerId": "player_krx_4",
+      "teamId": "team_drx"
     },
     {
-      "id": "participant_match_83_player_ns_5",
-      "matchId": "match_83",
-      "playerId": "player_ns_5",
-      "teamId": "team_ns"
+      "id": "participant_match_82_player_krx_5",
+      "matchId": "match_82",
+      "playerId": "player_krx_5",
+      "teamId": "team_drx"
     },
     {
       "id": "participant_match_83_player_dns_1",
@@ -7787,34 +7757,34 @@
       "teamId": "team_dns"
     },
     {
-      "id": "participant_match_84_player_t1_1",
-      "matchId": "match_84",
-      "playerId": "player_t1_1",
-      "teamId": "team_t1"
+      "id": "participant_match_83_player_ns_1",
+      "matchId": "match_83",
+      "playerId": "player_ns_1",
+      "teamId": "team_ns"
     },
     {
-      "id": "participant_match_84_player_t1_2",
-      "matchId": "match_84",
-      "playerId": "player_t1_2",
-      "teamId": "team_t1"
+      "id": "participant_match_83_player_ns_2",
+      "matchId": "match_83",
+      "playerId": "player_ns_2",
+      "teamId": "team_ns"
     },
     {
-      "id": "participant_match_84_player_t1_3",
-      "matchId": "match_84",
-      "playerId": "player_t1_3",
-      "teamId": "team_t1"
+      "id": "participant_match_83_player_ns_3",
+      "matchId": "match_83",
+      "playerId": "player_ns_3",
+      "teamId": "team_ns"
     },
     {
-      "id": "participant_match_84_player_t1_4",
-      "matchId": "match_84",
-      "playerId": "player_t1_4",
-      "teamId": "team_t1"
+      "id": "participant_match_83_player_ns_4",
+      "matchId": "match_83",
+      "playerId": "player_ns_4",
+      "teamId": "team_ns"
     },
     {
-      "id": "participant_match_84_player_t1_5",
-      "matchId": "match_84",
-      "playerId": "player_t1_5",
-      "teamId": "team_t1"
+      "id": "participant_match_83_player_ns_5",
+      "matchId": "match_83",
+      "playerId": "player_ns_5",
+      "teamId": "team_ns"
     },
     {
       "id": "participant_match_84_player_kt_1",
@@ -7845,6 +7815,36 @@
       "matchId": "match_84",
       "playerId": "player_kt_5",
       "teamId": "team_kt"
+    },
+    {
+      "id": "participant_match_84_player_t1_1",
+      "matchId": "match_84",
+      "playerId": "player_t1_1",
+      "teamId": "team_t1"
+    },
+    {
+      "id": "participant_match_84_player_t1_2",
+      "matchId": "match_84",
+      "playerId": "player_t1_2",
+      "teamId": "team_t1"
+    },
+    {
+      "id": "participant_match_84_player_t1_3",
+      "matchId": "match_84",
+      "playerId": "player_t1_3",
+      "teamId": "team_t1"
+    },
+    {
+      "id": "participant_match_84_player_t1_4",
+      "matchId": "match_84",
+      "playerId": "player_t1_4",
+      "teamId": "team_t1"
+    },
+    {
+      "id": "participant_match_84_player_t1_5",
+      "matchId": "match_84",
+      "playerId": "player_t1_5",
+      "teamId": "team_t1"
     },
     {
       "id": "participant_match_85_player_dk_1",
@@ -8027,36 +8027,6 @@
       "teamId": "team_dns"
     },
     {
-      "id": "participant_match_88_player_t1_1",
-      "matchId": "match_88",
-      "playerId": "player_t1_1",
-      "teamId": "team_t1"
-    },
-    {
-      "id": "participant_match_88_player_t1_2",
-      "matchId": "match_88",
-      "playerId": "player_t1_2",
-      "teamId": "team_t1"
-    },
-    {
-      "id": "participant_match_88_player_t1_3",
-      "matchId": "match_88",
-      "playerId": "player_t1_3",
-      "teamId": "team_t1"
-    },
-    {
-      "id": "participant_match_88_player_t1_4",
-      "matchId": "match_88",
-      "playerId": "player_t1_4",
-      "teamId": "team_t1"
-    },
-    {
-      "id": "participant_match_88_player_t1_5",
-      "matchId": "match_88",
-      "playerId": "player_t1_5",
-      "teamId": "team_t1"
-    },
-    {
       "id": "participant_match_88_player_bfx_1",
       "matchId": "match_88",
       "playerId": "player_bfx_1",
@@ -8087,34 +8057,34 @@
       "teamId": "team_bfx"
     },
     {
-      "id": "participant_match_89_player_hle_1",
-      "matchId": "match_89",
-      "playerId": "player_hle_1",
-      "teamId": "team_hle"
+      "id": "participant_match_88_player_t1_1",
+      "matchId": "match_88",
+      "playerId": "player_t1_1",
+      "teamId": "team_t1"
     },
     {
-      "id": "participant_match_89_player_hle_2",
-      "matchId": "match_89",
-      "playerId": "player_hle_2",
-      "teamId": "team_hle"
+      "id": "participant_match_88_player_t1_2",
+      "matchId": "match_88",
+      "playerId": "player_t1_2",
+      "teamId": "team_t1"
     },
     {
-      "id": "participant_match_89_player_hle_3",
-      "matchId": "match_89",
-      "playerId": "player_hle_3",
-      "teamId": "team_hle"
+      "id": "participant_match_88_player_t1_3",
+      "matchId": "match_88",
+      "playerId": "player_t1_3",
+      "teamId": "team_t1"
     },
     {
-      "id": "participant_match_89_player_hle_4",
-      "matchId": "match_89",
-      "playerId": "player_hle_4",
-      "teamId": "team_hle"
+      "id": "participant_match_88_player_t1_4",
+      "matchId": "match_88",
+      "playerId": "player_t1_4",
+      "teamId": "team_t1"
     },
     {
-      "id": "participant_match_89_player_hle_5",
-      "matchId": "match_89",
-      "playerId": "player_hle_5",
-      "teamId": "team_hle"
+      "id": "participant_match_88_player_t1_5",
+      "matchId": "match_88",
+      "playerId": "player_t1_5",
+      "teamId": "team_t1"
     },
     {
       "id": "participant_match_89_player_bro_1",
@@ -8147,34 +8117,34 @@
       "teamId": "team_bro"
     },
     {
-      "id": "participant_match_90_player_dk_1",
-      "matchId": "match_90",
-      "playerId": "player_dk_1",
-      "teamId": "team_dk"
+      "id": "participant_match_89_player_hle_1",
+      "matchId": "match_89",
+      "playerId": "player_hle_1",
+      "teamId": "team_hle"
     },
     {
-      "id": "participant_match_90_player_dk_2",
-      "matchId": "match_90",
-      "playerId": "player_dk_2",
-      "teamId": "team_dk"
+      "id": "participant_match_89_player_hle_2",
+      "matchId": "match_89",
+      "playerId": "player_hle_2",
+      "teamId": "team_hle"
     },
     {
-      "id": "participant_match_90_player_dk_3",
-      "matchId": "match_90",
-      "playerId": "player_dk_3",
-      "teamId": "team_dk"
+      "id": "participant_match_89_player_hle_3",
+      "matchId": "match_89",
+      "playerId": "player_hle_3",
+      "teamId": "team_hle"
     },
     {
-      "id": "participant_match_90_player_dk_4",
-      "matchId": "match_90",
-      "playerId": "player_dk_4",
-      "teamId": "team_dk"
+      "id": "participant_match_89_player_hle_4",
+      "matchId": "match_89",
+      "playerId": "player_hle_4",
+      "teamId": "team_hle"
     },
     {
-      "id": "participant_match_90_player_dk_5",
-      "matchId": "match_90",
-      "playerId": "player_dk_5",
-      "teamId": "team_dk"
+      "id": "participant_match_89_player_hle_5",
+      "matchId": "match_89",
+      "playerId": "player_hle_5",
+      "teamId": "team_hle"
     },
     {
       "id": "participant_match_90_player_ns_1",
@@ -8205,6 +8175,36 @@
       "matchId": "match_90",
       "playerId": "player_ns_5",
       "teamId": "team_ns"
+    },
+    {
+      "id": "participant_match_90_player_dk_1",
+      "matchId": "match_90",
+      "playerId": "player_dk_1",
+      "teamId": "team_dk"
+    },
+    {
+      "id": "participant_match_90_player_dk_2",
+      "matchId": "match_90",
+      "playerId": "player_dk_2",
+      "teamId": "team_dk"
+    },
+    {
+      "id": "participant_match_90_player_dk_3",
+      "matchId": "match_90",
+      "playerId": "player_dk_3",
+      "teamId": "team_dk"
+    },
+    {
+      "id": "participant_match_90_player_dk_4",
+      "matchId": "match_90",
+      "playerId": "player_dk_4",
+      "teamId": "team_dk"
+    },
+    {
+      "id": "participant_match_90_player_dk_5",
+      "matchId": "match_90",
+      "playerId": "player_dk_5",
+      "teamId": "team_dk"
     }
   ],
   "matchSets": [

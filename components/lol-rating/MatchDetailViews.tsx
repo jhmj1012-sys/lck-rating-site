@@ -577,7 +577,7 @@ function StarScorePicker({
 }) {
   const current = value ?? 0;
   return (
-    <div className='flex items-center gap-1'>
+    <div className='flex items-center gap-0.5 sm:gap-1'>
       {[1, 2, 3, 4, 5].map((index) => {
         const full = current >= index * 2;
         const half = !full && current === index * 2 - 1;
@@ -586,7 +586,7 @@ function StarScorePicker({
             key={index}
             type='button'
             disabled={disabled}
-            className='allow-disabled-cursor relative h-7 w-7 rounded-sm transition hover:scale-105 disabled:hover:scale-100'
+            className='allow-disabled-cursor relative h-5 w-5 rounded-sm transition hover:scale-105 disabled:hover:scale-100 sm:h-7 sm:w-7'
             onClick={(event) => {
               const rect = event.currentTarget.getBoundingClientRect();
               const isLeftHalf = event.clientX - rect.left < rect.width / 2;
@@ -595,10 +595,10 @@ function StarScorePicker({
             }}
             aria-label={`${index}별`}
           >
-            <span className='absolute inset-0 text-2xl leading-7 text-[#555569]'>★</span>
-            {full ? <span className='absolute inset-0 text-2xl leading-7 text-slate-800'>★</span> : null}
+            <span className='absolute inset-0 text-base leading-5 text-[#555569] sm:text-2xl sm:leading-7'>★</span>
+            {full ? <span className='absolute inset-0 text-base leading-5 text-slate-800 sm:text-2xl sm:leading-7'>★</span> : null}
             {half ? (
-              <span className='absolute inset-0 w-1/2 overflow-hidden text-2xl leading-7 text-slate-800'>★</span>
+              <span className='absolute inset-0 w-1/2 overflow-hidden text-base leading-5 text-slate-800 sm:text-2xl sm:leading-7'>★</span>
             ) : null}
           </button>
         );
@@ -737,7 +737,14 @@ function FinishedView({ data }: { data: MatchDetailData }) {
   return (
     <div className='space-y-5'>
       <Card>
-        <CardContent className='relative space-y-4 px-5 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-5 sm:px-6 sm:pb-[calc(6.5rem+env(safe-area-inset-bottom))] sm:pt-6'>
+        <CardContent
+          className={cn(
+            'relative space-y-4 px-5 pt-5 sm:px-6 sm:pt-6',
+            activeCommentPlayerId
+              ? 'pb-[calc(5.25rem+env(safe-area-inset-bottom))] sm:pb-[calc(5rem+env(safe-area-inset-bottom))]'
+              : 'pb-5 sm:pb-6',
+          )}
+        >
           <div className='flex flex-wrap items-center justify-between gap-3'>
             <h2 className='text-2xl font-black tracking-[-0.03em] text-slate-950'>선수 별 평점</h2>
             <div className='text-xs text-slate-500'>선수 아래 별을 눌러 바로 평점을 남기세요.</div>
@@ -762,13 +769,13 @@ function FinishedView({ data }: { data: MatchDetailData }) {
 
               return (
                 <div key={role}>
-                  <div className='grid grid-cols-[minmax(120px,180px)_58px_40px_58px_minmax(120px,180px)] items-center justify-center gap-3 text-sm'>
+                  <div className='grid grid-cols-[minmax(0,94px)_40px_24px_40px_minmax(0,94px)] items-center justify-center gap-1.5 text-sm sm:grid-cols-[minmax(120px,180px)_58px_40px_58px_minmax(120px,180px)] sm:gap-3'>
                     <div className='min-w-0'>
                       <button
                         type='button'
                         disabled={!left || !canWrite || Boolean(pendingPlayerId)}
                         onClick={() => left && submitQuickRating(left.id, leftViewerScore ?? 8)}
-                        className='allow-disabled-cursor w-full truncate text-left text-xl font-semibold text-slate-950 enabled:hover:text-sky-700'
+                        className='allow-disabled-cursor w-full truncate text-left text-base font-semibold text-slate-950 enabled:hover:text-sky-700 sm:text-xl'
                       >
                         {left?.name ?? '-'}
                       </button>
@@ -782,7 +789,7 @@ function FinishedView({ data }: { data: MatchDetailData }) {
                     </div>
                     <div
                       className={cn(
-                        'rounded-md px-2 py-1 text-center text-sm font-extrabold leading-none text-white transition',
+                        'rounded-md px-1 py-1 text-center text-xs font-extrabold leading-none text-white transition sm:px-2 sm:text-sm',
                         getRatingChipTone(leftRating, rightRating),
                         !leftRevealed ? 'blur-[6px] opacity-35' : '',
                       )}
@@ -790,11 +797,11 @@ function FinishedView({ data }: { data: MatchDetailData }) {
                       {!leftRevealed ? '•••' : leftRating !== null ? leftRating.toFixed(1) : '-'}
                     </div>
                     <div className='flex items-center justify-center'>
-                      <Image src={ROLE_META[role].iconPath} alt={ROLE_META[role].label} width={20} height={20} className='h-5 w-5 object-contain' />
+                      <Image src={ROLE_META[role].iconPath} alt={ROLE_META[role].label} width={20} height={20} className='h-4 w-4 object-contain sm:h-5 sm:w-5' />
                     </div>
                     <div
                       className={cn(
-                        'rounded-md px-2 py-1 text-center text-sm font-extrabold leading-none text-white transition',
+                        'rounded-md px-1 py-1 text-center text-xs font-extrabold leading-none text-white transition sm:px-2 sm:text-sm',
                         getRatingChipTone(rightRating, leftRating),
                         !rightRevealed ? 'blur-[6px] opacity-35' : '',
                       )}
@@ -806,7 +813,7 @@ function FinishedView({ data }: { data: MatchDetailData }) {
                         type='button'
                         disabled={!right || !canWrite || Boolean(pendingPlayerId)}
                         onClick={() => right && submitQuickRating(right.id, rightViewerScore ?? 8)}
-                        className='allow-disabled-cursor w-full truncate text-right text-xl font-semibold text-slate-950 enabled:hover:text-sky-700'
+                        className='allow-disabled-cursor w-full truncate text-right text-base font-semibold text-slate-950 enabled:hover:text-sky-700 sm:text-xl'
                       >
                         {right?.name ?? '-'}
                       </button>
@@ -930,20 +937,20 @@ function FinishedView({ data }: { data: MatchDetailData }) {
       <Card>
         <CardContent className='space-y-3 px-5 pb-5 pt-5 sm:px-6 sm:pb-6 sm:pt-6'>
           <div className='text-2xl font-black tracking-[-0.03em] text-slate-950'>내 예측 결과</div>
-          <div className='grid gap-3 sm:grid-cols-3'>
-            <div className='rounded-[14px] border border-slate-200 bg-slate-50 px-4 py-3'>
-              <div className='text-xs text-slate-500'>선택 팀</div>
-              <div className='mt-1 text-lg font-black text-slate-950'>{data.match.myPredictionTeam ?? '미참여'}</div>
+          <div className='grid grid-cols-3 gap-2 sm:gap-3'>
+            <div className='rounded-[14px] border border-slate-200 bg-slate-50 px-2 py-2 sm:px-4 sm:py-3'>
+              <div className='text-[11px] text-slate-500 sm:text-xs'>선택 팀</div>
+              <div className='mt-1 text-sm font-black text-slate-950 sm:text-lg'>{data.match.myPredictionTeam ?? '미참여'}</div>
             </div>
-            <div className='rounded-[14px] border border-slate-200 bg-slate-50 px-4 py-3'>
-              <div className='text-xs text-slate-500'>결과</div>
-              <div className='mt-1 text-lg font-black text-slate-950'>
+            <div className='rounded-[14px] border border-slate-200 bg-slate-50 px-2 py-2 sm:px-4 sm:py-3'>
+              <div className='text-[11px] text-slate-500 sm:text-xs'>결과</div>
+              <div className='mt-1 text-sm font-black text-slate-950 sm:text-lg'>
                 {data.match.myPredictionSettlementResult === 'hit' ? '적중' : data.match.myPredictionSettlementResult === 'miss' ? '실패' : '대기'}
               </div>
             </div>
-            <div className='rounded-[14px] border border-slate-200 bg-slate-50 px-4 py-3'>
-              <div className='text-xs text-slate-500'>보상</div>
-              <div className='mt-1 text-lg font-black text-slate-950'>+{data.match.myPredictionSettlementCoins}</div>
+            <div className='rounded-[14px] border border-slate-200 bg-slate-50 px-2 py-2 sm:px-4 sm:py-3'>
+              <div className='text-[11px] text-slate-500 sm:text-xs'>보상</div>
+              <div className='mt-1 text-sm font-black text-slate-950 sm:text-lg'>+{data.match.myPredictionSettlementCoins}</div>
             </div>
           </div>
         </CardContent>
