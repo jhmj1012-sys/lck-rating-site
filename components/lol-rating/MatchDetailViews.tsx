@@ -741,7 +741,7 @@ function FinishedView({ data }: { data: MatchDetailData }) {
           className={cn(
             'relative space-y-4 px-5 pt-5 sm:px-6 sm:pt-6',
             activeCommentPlayerId
-              ? 'pb-[calc(5.25rem+env(safe-area-inset-bottom))] sm:pb-[calc(5rem+env(safe-area-inset-bottom))]'
+              ? 'pb-[calc(7.25rem+env(safe-area-inset-bottom))] sm:pb-[calc(6.75rem+env(safe-area-inset-bottom))]'
               : 'pb-5 sm:pb-6',
           )}
         >

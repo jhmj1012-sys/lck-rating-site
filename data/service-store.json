@@ -29535,6 +29535,76 @@
       "comment": "",
       "createdAt": "2026-04-02T11:08:40.484Z",
       "updatedAt": "2026-04-02T11:08:40.484Z"
+    },
+    {
+      "id": "rating_14",
+      "userId": "user_1",
+      "matchId": "match_3",
+      "playerId": "player_dk_4",
+      "score": 8,
+      "comment": "",
+      "createdAt": "2026-04-02T12:29:12.983Z",
+      "updatedAt": "2026-04-02T12:29:12.983Z"
+    },
+    {
+      "id": "rating_15",
+      "userId": "user_1",
+      "matchId": "match_3",
+      "playerId": "player_dk_6",
+      "score": 6,
+      "comment": "",
+      "createdAt": "2026-04-02T12:29:15.015Z",
+      "updatedAt": "2026-04-02T12:29:15.015Z"
+    },
+    {
+      "id": "rating_16",
+      "userId": "user_1",
+      "matchId": "match_3",
+      "playerId": "player_ns_3",
+      "score": 6,
+      "comment": "",
+      "createdAt": "2026-04-02T12:29:15.840Z",
+      "updatedAt": "2026-04-02T12:29:15.840Z"
+    },
+    {
+      "id": "rating_17",
+      "userId": "user_1",
+      "matchId": "match_3",
+      "playerId": "player_dk_8",
+      "score": 7,
+      "comment": "",
+      "createdAt": "2026-04-02T12:30:59.458Z",
+      "updatedAt": "2026-04-02T12:31:14.669Z"
+    },
+    {
+      "id": "rating_18",
+      "userId": "user_1",
+      "matchId": "match_3",
+      "playerId": "player_dk_10",
+      "score": 5,
+      "comment": "",
+      "createdAt": "2026-04-02T12:31:16.689Z",
+      "updatedAt": "2026-04-02T12:31:24.442Z"
+    },
+    {
+      "id": "rating_19",
+      "userId": "user_1",
+      "matchId": "match_3",
+      "playerId": "player_ns_8",
+      "score": 6,
+      "comment": "",
+      "createdAt": "2026-04-02T12:31:20.219Z",
+      "updatedAt": "2026-04-02T12:31:20.219Z"
+    },
+    {
+      "id": "rating_20",
+      "userId": "user_1",
+      "matchId": "match_3",
+      "playerId": "player_ns_5",
+      "score": 7,
+      "comment": "",
+      "createdAt": "2026-04-02T12:31:21.569Z",
+      "updatedAt": "2026-04-02T12:31:34.011Z"
     }
   ],
   "setPlayerRatings": [],
@@ -29693,6 +29763,83 @@
       "referenceId": "rating_13",
       "createdAt": "2026-04-02T11:08:40.484Z",
       "balanceAfter": 104
+    },
+    {
+      "id": "ledger_15",
+      "userId": "user_1",
+      "type": "earn",
+      "amount": 8,
+      "reason": "경기 평점 참여 코인",
+      "referenceType": "player_rating_submit",
+      "referenceId": "rating_14",
+      "createdAt": "2026-04-02T12:29:12.983Z",
+      "balanceAfter": 112
+    },
+    {
+      "id": "ledger_16",
+      "userId": "user_1",
+      "type": "earn",
+      "amount": 8,
+      "reason": "경기 평점 참여 코인",
+      "referenceType": "player_rating_submit",
+      "referenceId": "rating_15",
+      "createdAt": "2026-04-02T12:29:15.015Z",
+      "balanceAfter": 120
+    },
+    {
+      "id": "ledger_17",
+      "userId": "user_1",
+      "type": "earn",
+      "amount": 8,
+      "reason": "경기 평점 참여 코인",
+      "referenceType": "player_rating_submit",
+      "referenceId": "rating_16",
+      "createdAt": "2026-04-02T12:29:15.840Z",
+      "balanceAfter": 128
+    },
+    {
+      "id": "ledger_18",
+      "userId": "user_1",
+      "type": "earn",
+      "amount": 8,
+      "reason": "경기 평점 참여 코인",
+      "referenceType": "player_rating_submit",
+      "referenceId": "rating_17",
+      "createdAt": "2026-04-02T12:30:59.458Z",
+      "balanceAfter": 136
+    },
+    {
+      "id": "ledger_19",
+      "userId": "user_1",
+      "type": "earn",
+      "amount": 8,
+      "reason": "경기 평점 참여 코인",
+      "referenceType": "player_rating_submit",
+      "referenceId": "rating_18",
+      "createdAt": "2026-04-02T12:31:16.689Z",
+      "balanceAfter": 144
+    },
+    {
+      "id": "ledger_20",
+      "userId": "user_1",
+      "type": "earn",
+      "amount": 8,
+      "reason": "경기 평점 참여 코인",
+      "referenceType": "player_rating_submit",
+      "referenceId": "rating_19",
+      "createdAt": "2026-04-02T12:31:20.219Z",
+      "balanceAfter": 152
+    },
+    {
+      "id": "ledger_21",
+      "userId": "user_1",
+      "type": "earn",
+      "amount": 8,
+      "reason": "경기 평점 참여 코인",
+      "referenceType": "player_rating_submit",
+      "referenceId": "rating_20",
+      "createdAt": "2026-04-02T12:31:21.569Z",
+      "balanceAfter": 160
     }
   ],
   "notifications": [],
@@ -29736,10 +29883,10 @@
     "seasonPredictionQuestions": 4,
     "seasonPredictionOptions": 23,
     "seasonPredictionEntries": 1,
-    "playerRatings": 14,
+    "playerRatings": 21,
     "setPlayerRatings": 1,
     "comments": 1,
-    "pointLedger": 15,
+    "pointLedger": 22,
     "notifications": 1,
     "profileStoreItems": 4,
     "userInventory": 1

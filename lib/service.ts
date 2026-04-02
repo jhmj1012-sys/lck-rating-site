@@ -794,6 +794,45 @@ function getSetRatings(store: StoreShape, matchSetId: string, playerId: string) 
 
 function getMatchPlayers(store: StoreShape, matchId: string, viewerId: string | null) {
   const match = getMatchById(store, matchId);
+  const playerById = new Map(store.players.map((player) => [player.id, player]));
+  const teamCodeById = new Map(store.teams.map((team) => [team.id, team.code]));
+  const scoresByPlayerId = new Map<string, number[]>();
+  const viewerMatchRatingByPlayerId = new Map<string, { score: number; comment: string }>();
+  const globalScoresByPlayerId = new Map<string, number[]>();
+  const matchSetIds = new Set(store.matchSets.filter((set) => set.matchId === matchId).map((set) => set.id));
+
+  for (const rating of store.playerRatings) {
+    const globalScores = globalScoresByPlayerId.get(rating.playerId) ?? [];
+    globalScores.push(rating.score);
+    globalScoresByPlayerId.set(rating.playerId, globalScores);
+
+    if (rating.matchId !== matchId) {
+      continue;
+    }
+
+    const matchScores = scoresByPlayerId.get(rating.playerId) ?? [];
+    matchScores.push(rating.score);
+    scoresByPlayerId.set(rating.playerId, matchScores);
+
+    if (viewerId && rating.userId === viewerId) {
+      viewerMatchRatingByPlayerId.set(rating.playerId, { score: rating.score, comment: rating.comment ?? "" });
+    }
+  }
+
+  for (const rating of store.setPlayerRatings) {
+    const globalScores = globalScoresByPlayerId.get(rating.playerId) ?? [];
+    globalScores.push(rating.score);
+    globalScoresByPlayerId.set(rating.playerId, globalScores);
+
+    if (!matchSetIds.has(rating.matchSetId)) {
+      continue;
+    }
+
+    const matchScores = scoresByPlayerId.get(rating.playerId) ?? [];
+    matchScores.push(rating.score);
+    scoresByPlayerId.set(rating.playerId, matchScores);
+  }
+
   const participants = store.matchParticipants.filter((participant) => participant.matchId === matchId);
   const fallbackParticipants =
     participants.length > 0 || !match
@@ -811,34 +850,21 @@ function getMatchPlayers(store: StoreShape, matchId: string, viewerId: string | 
 
   return fallbackParticipants
     .map((participant) => {
-      const player = store.players.find((candidate) => candidate.id === participant.playerId);
-      const team = getTeamById(store, participant.teamId);
-      if (!player || !team) {
+      const player = playerById.get(participant.playerId);
+      const teamCode = teamCodeById.get(participant.teamId);
+      if (!player || !teamCode) {
         return null;
       }
 
-      const ratings = store.playerRatings.filter((rating) => rating.matchId === matchId && rating.playerId === participant.playerId);
-      const setRatings = store.setPlayerRatings.filter((rating) => {
-        const set = getSetById(store, rating.matchSetId);
-        return set?.matchId === matchId && rating.playerId === participant.playerId;
-      });
-      const allScores = [...ratings.map((rating) => rating.score), ...setRatings.map((rating) => rating.score)];
-      const fallbackScores =
-        allScores.length > 0
-          ? allScores
-          : [
-              ...store.playerRatings.filter((rating) => rating.playerId === participant.playerId).map((rating) => rating.score),
-              ...store.setPlayerRatings.filter((rating) => rating.playerId === participant.playerId).map((rating) => rating.score),
-            ];
-      const viewerRating = viewerId
-        ? ratings.find((rating) => rating.userId === viewerId) ?? null
-        : null;
+      const currentScores = scoresByPlayerId.get(participant.playerId) ?? [];
+      const fallbackScores = currentScores.length > 0 ? currentScores : (globalScoresByPlayerId.get(participant.playerId) ?? []);
+      const viewerRating = viewerMatchRatingByPlayerId.get(participant.playerId) ?? null;
 
       return {
         id: player.id,
         playerSlug: player.slug,
         name: player.name,
-        team: team.code,
+        team: teamCode,
         role: player.role,
         rating: Number(average(fallbackScores).toFixed(1)),
         ratingCount: fallbackScores.length,
@@ -2051,6 +2077,7 @@ function buildTeamRosterDetail(store: StoreShape, teamId: string): TeamRosterDet
 }
 
 function buildScheduleGroups(store: StoreShape): MatchMonthGroup[] {
+  const matchesById = new Map(store.matches.map((match) => [match.id, match]));
   const items = store.matches
     .slice()
     .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
@@ -2058,9 +2085,7 @@ function buildScheduleGroups(store: StoreShape): MatchMonthGroup[] {
 
   const monthMap = new Map<string, MatchMonthGroup>();
   for (const item of items) {
-    const date = new Date(
-      store.matches.find((match) => match.id === item.id)?.scheduledAt ?? Date.now(),
-    );
+    const date = new Date(matchesById.get(item.id)?.scheduledAt ?? Date.now());
     const weekStart = getScheduleWeekStart(date);
     const monthId = `${weekStart.getFullYear()}-${String(weekStart.getMonth() + 1).padStart(2, "0")}`;
     const weekNumber = Math.floor((weekStart.getDate() - 1) / 7) + 1;
@@ -2107,8 +2132,8 @@ function buildScheduleGroups(store: StoreShape): MatchMonthGroup[] {
       .map((week) => ({
         ...week,
         dates: week.dates.slice().sort((a, b) => {
-          const aScheduledAt = store.matches.find((match) => match.id === a.matches[0]?.id)?.scheduledAt;
-          const bScheduledAt = store.matches.find((match) => match.id === b.matches[0]?.id)?.scheduledAt;
+          const aScheduledAt = matchesById.get(a.matches[0]?.id ?? "")?.scheduledAt;
+          const bScheduledAt = matchesById.get(b.matches[0]?.id ?? "")?.scheduledAt;
 
           if (!aScheduledAt || !bScheduledAt) {
             return a.id.localeCompare(b.id, "ko");
@@ -2126,16 +2151,29 @@ function buildScheduleGroups(store: StoreShape): MatchMonthGroup[] {
 }
 
 function buildSetSidePlayers(store: StoreShape, set: StoredMatchSet, teamId: string, viewerId: string | null) {
+  const playerById = new Map(store.players.map((player) => [player.id, player]));
+  const teamCodeById = new Map(store.teams.map((team) => [team.id, team.code]));
+  const ratingsByPlayerId = new Map<string, Array<{ score: number; comment: string; userId: string }>>();
+
+  for (const rating of store.setPlayerRatings) {
+    if (rating.matchSetId !== set.id) {
+      continue;
+    }
+    const entries = ratingsByPlayerId.get(rating.playerId) ?? [];
+    entries.push({ score: rating.score, comment: rating.comment, userId: rating.userId });
+    ratingsByPlayerId.set(rating.playerId, entries);
+  }
+
   return store.setParticipants
     .filter((participant) => participant.matchSetId === set.id && participant.teamId === teamId)
     .map((participant) => {
-      const player = store.players.find((item) => item.id === participant.playerId);
-      const team = getTeamById(store, participant.teamId);
-      if (!player || !team) {
+      const player = playerById.get(participant.playerId);
+      const teamCode = teamCodeById.get(participant.teamId);
+      if (!player || !teamCode) {
         return null;
       }
 
-      const ratings = getSetRatings(store, set.id, participant.playerId);
+      const ratings = ratingsByPlayerId.get(participant.playerId) ?? [];
       const comments = ratings.map((rating) => rating.comment.trim()).filter(Boolean).slice(0, 2);
       const viewerRating = viewerId
         ? ratings.find((rating) => rating.userId === viewerId)?.score ?? null
@@ -2144,7 +2182,7 @@ function buildSetSidePlayers(store: StoreShape, set: StoredMatchSet, teamId: str
       return {
         playerId: player.id,
         name: player.name,
-        team: team.code,
+        team: teamCode,
         role: player.role,
         averageRating: Number(average(ratings.map((rating) => rating.score)).toFixed(1)),
         ratingCount: ratings.length,
