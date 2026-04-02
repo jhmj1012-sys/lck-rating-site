@@ -388,3 +388,40 @@ button.allow-disabled-cursor:disabled {
     box-shadow: 0 0 0 6px rgba(255, 77, 94, 0);
   }
 }
+
+.mobile-tab-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.mobile-tab-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+@media (max-width: 390px) {
+  .mobile-site-title {
+    font-size: 13px;
+  }
+
+  .mobile-header-actions {
+    gap: 0.35rem;
+  }
+
+  .mobile-header-icon {
+    height: 36px;
+    width: 36px;
+    border-radius: 10px;
+  }
+
+  .mobile-account-button {
+    height: 36px;
+    padding-left: 0.55rem;
+    padding-right: 0.55rem;
+    border-radius: 9999px;
+  }
+
+  .mobile-account-label {
+    max-width: 58px;
+  }
+}

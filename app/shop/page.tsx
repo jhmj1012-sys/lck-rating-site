@@ -18,13 +18,6 @@ export default async function ShopPage() {
 
       <main className="min-h-screen bg-[#1C1C1F] px-4 py-8 sm:px-6">
         <div className="mx-auto max-w-5xl space-y-6">
-          <div>
-            <div>
-              <h1 className="text-[30px] font-semibold tracking-tight text-[#FFFFFF]">코인 상점</h1>
-              <p className="mt-2 text-sm leading-6 text-[#D4DCFF]">코인샵은 지금 열심히 만드는 중이에요. 조금만 기다려 주세요.</p>
-            </div>
-          </div>
-
           <section className="rounded-[28px] bg-[#31313C] p-6">
             <div className="grid gap-4 md:grid-cols-2">
               <article className="rounded-[24px] bg-[#3A3A47] px-5 py-5">

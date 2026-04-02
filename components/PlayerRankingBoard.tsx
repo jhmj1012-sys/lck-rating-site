@@ -89,8 +89,6 @@ export function PlayerRankingBoard({ data }: { data: PlayerRankingPageData }) {
   return (
     <main className="min-h-screen bg-[#1C1C1F] px-4 py-7 sm:px-6">
       <div className="mx-auto max-w-5xl space-y-4 lg:pl-2">
-        <h1 className="text-[30px] font-black tracking-[-0.04em] text-white">평점 순위</h1>
-
         <section
           className={cn(
             "overflow-hidden rounded-[24px] bg-[#31313C] shadow-[0_14px_36px_rgba(2,6,23,0.28)] transition-all duration-300",

@@ -580,9 +580,6 @@ export default function HupuScheduleHome({
   const isSchedulePage = mode === "schedule";
   const scheduleExplorerSection = (
     <>
-      <div className="mx-auto w-full max-w-5xl px-4 sm:px-5">
-        <h2 className="text-[30px] font-black tracking-[-0.04em] text-white">경기일정</h2>
-      </div>
       <section id="schedule-explorer" className="mx-auto w-full max-w-5xl overflow-hidden rounded-[20px] bg-[#31313C] text-white shadow-[0_12px_28px_rgba(2,6,23,0.28)]">
         <div className="bg-[#31313C] px-4 py-3 sm:px-5">
           <ScheduleFilterBar
@@ -655,11 +652,12 @@ export default function HupuScheduleHome({
           unreadNotificationCount={initialData.unreadNotificationCount}
         />
       <div className="border-b border-[#6D28D9] bg-[#8B5CF6]">
-        <nav className="mx-auto flex max-w-5xl items-center gap-1 px-4 sm:px-6">
+        <div className="mobile-tab-scroll mx-auto max-w-5xl px-4 sm:px-6">
+        <nav className="flex min-w-max items-center gap-1 whitespace-nowrap">
           <Link
             href="/"
             className={cn(
-              "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
+              "relative whitespace-nowrap px-3 py-2 text-[15px] font-bold tracking-[-0.02em] transition sm:px-5 sm:text-[17px]",
               "text-[#F5F3FF]",
             )}
             style={{ color: "#F5F3FF" }}
@@ -671,12 +669,12 @@ export default function HupuScheduleHome({
             }}
           >
             홈
-            {!isSchedulePage ? <span className="absolute inset-x-4 bottom-0 h-[2px] rounded-full bg-white" /> : null}
+            {!isSchedulePage ? <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-white sm:inset-x-4" /> : null}
           </Link>
           <Link
             href="/schedule"
             className={cn(
-              "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
+              "relative whitespace-nowrap px-3 py-2 text-[15px] font-bold tracking-[-0.02em] transition sm:px-5 sm:text-[17px]",
               "text-[#F5F3FF]",
             )}
             style={{ color: "#F5F3FF" }}
@@ -688,11 +686,11 @@ export default function HupuScheduleHome({
             }}
           >
             경기일정
-            {isSchedulePage ? <span className="absolute inset-x-4 bottom-0 h-[2px] rounded-full bg-white" /> : null}
+            {isSchedulePage ? <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-white sm:inset-x-4" /> : null}
           </Link>
           <Link
             href="/ratings"
-            className="relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] text-[#F5F3FF] transition"
+            className="relative whitespace-nowrap px-3 py-2 text-[15px] font-bold tracking-[-0.02em] text-[#F5F3FF] transition sm:px-5 sm:text-[17px]"
             style={{ color: "#F5F3FF" }}
             onMouseEnter={(event) => {
               event.currentTarget.style.color = "#E9D5FF";
@@ -706,7 +704,7 @@ export default function HupuScheduleHome({
           <Link
             href="/season-predictions"
             className={cn(
-              "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
+              "relative whitespace-nowrap px-3 py-2 text-[15px] font-bold tracking-[-0.02em] transition sm:px-5 sm:text-[17px]",
               "text-[#F5F3FF]",
             )}
             style={{ color: "#F5F3FF" }}
@@ -721,7 +719,7 @@ export default function HupuScheduleHome({
           </Link>
           <Link
             href="/games/15-dollar-challenge"
-            className="relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] text-[#F5F3FF] transition"
+            className="relative whitespace-nowrap px-3 py-2 text-[15px] font-bold tracking-[-0.02em] text-[#F5F3FF] transition sm:px-5 sm:text-[17px]"
             style={{ color: "#F5F3FF" }}
             onMouseEnter={(event) => {
               event.currentTarget.style.color = "#E9D5FF";
@@ -733,6 +731,7 @@ export default function HupuScheduleHome({
             게임
           </Link>
         </nav>
+        </div>
       </div>
       <main className="w-full bg-[#1C1C1F] py-6">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
@@ -785,7 +784,37 @@ export default function HupuScheduleHome({
 
             </section>
 
-            <section className="rounded-[28px] bg-[#31313C] p-5 text-white shadow-[0_12px_30px_rgba(2,6,23,0.28)] sm:p-6">
+            <section className="rounded-[20px] bg-[#31313C] p-4 text-white shadow-[0_12px_28px_rgba(2,6,23,0.28)] md:hidden">
+              <h2 className="text-[18px] font-black tracking-[-0.035em] text-white">빠른 참여</h2>
+              <div className="mt-3 grid gap-2">
+                <Link
+                  href="/schedule"
+                  className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#5b5b6c] bg-[#3A3A47] px-3 text-sm font-semibold text-white transition hover:bg-[#4A4A59]"
+                >
+                  경기일정 바로가기
+                </Link>
+                <Link
+                  href="/season-predictions"
+                  className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#8B5CF6] px-3 text-sm font-semibold text-white transition hover:bg-[#7C3AED]"
+                >
+                  시즌예측 참여하기
+                </Link>
+                <Link
+                  href="/ratings"
+                  className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#5b5b6c] bg-[#3A3A47] px-3 text-sm font-semibold text-white transition hover:bg-[#4A4A59]"
+                >
+                  평점순위 보기
+                </Link>
+                <Link
+                  href="/games/15-dollar-challenge"
+                  className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#5b5b6c] bg-[#3A3A47] px-3 text-sm font-semibold text-white transition hover:bg-[#4A4A59]"
+                >
+                  15달러 챌린지
+                </Link>
+              </div>
+            </section>
+
+            <section className="hidden rounded-[28px] bg-[#31313C] p-5 text-white shadow-[0_12px_30px_rgba(2,6,23,0.28)] sm:p-6 md:block">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <h2 className="text-[22px] font-black tracking-[-0.035em] text-white sm:text-[24px]">
@@ -834,7 +863,7 @@ export default function HupuScheduleHome({
               </section>
             ) : null}
 
-            {predictionTab === "match" ? <section id="recent-finished" className="space-y-4 rounded-[18px] bg-[#31313C] p-5 shadow-[0_10px_24px_rgba(2,6,23,0.28)]">
+            {predictionTab === "match" ? <section id="recent-finished" className="hidden space-y-4 rounded-[18px] bg-[#31313C] p-5 shadow-[0_10px_24px_rgba(2,6,23,0.28)] md:block">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <h2 className="text-[22px] font-black tracking-[-0.035em] text-white sm:text-[26px]">{LABELS.previousMatchTitle}</h2>
@@ -871,7 +900,7 @@ export default function HupuScheduleHome({
               </div>
             </section> : null}
 
-            {predictionTab === "match" ? <section>
+            {predictionTab === "match" ? <section className="hidden md:block">
               <div className="rounded-[18px] bg-[#31313C] p-5 text-white shadow-[0_10px_24px_rgba(2,6,23,0.28)]">
                 <h2 className="text-[22px] font-black tracking-[-0.035em] text-white sm:text-[24px]">실시간 평점 랭킹</h2>
                 <div className="mt-5 rounded-[24px] bg-[#3A3A47] px-3 py-4 sm:px-4">
@@ -921,7 +950,9 @@ export default function HupuScheduleHome({
 
           </div>
 
-          <ActionPanel data={initialData} />
+          <div className="hidden xl:block">
+            <ActionPanel data={initialData} />
+          </div>
         </div>
         )}
         </div>

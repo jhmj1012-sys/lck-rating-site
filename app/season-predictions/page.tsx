@@ -49,12 +49,6 @@ export default async function SeasonPredictionsPage({
 
       <main className="min-h-screen bg-[#1C1C1F] px-4 py-8 sm:px-6">
         <div className="mx-auto max-w-5xl space-y-6">
-          <div className="flex flex-wrap items-end gap-3">
-            <div>
-              <h1 className="text-3xl font-black text-[#FFFFFF]">시즌예측</h1>
-            </div>
-          </div>
-
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {data.items.map((item) => {
               const logo = getMarketLogo(item.logoKey);

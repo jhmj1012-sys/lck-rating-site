@@ -6,7 +6,7 @@ import { cn } from "@/components/lol-rating/utils";
 type StatusValue = "all" | "scheduled" | "finished";
 
 function compactWeekLabel(label: string) {
-  return label.replace(/^\s*\d+\s*주차\s*/u, "").trim();
+  return label.replace(/^\s*\d+\s*월\s*/u, "").trim();
 }
 
 interface ScheduleFilterBarProps {
@@ -30,7 +30,7 @@ function FilterSelect({
   options,
   disabled = false,
 }: {
-  label: string;
+  label?: string;
   value: string;
   onChange: (value: string) => void;
   options: Array<{ value: string; label: string }>;
@@ -38,7 +38,7 @@ function FilterSelect({
 }) {
   return (
     <label className="flex min-w-[120px] items-center gap-2 font-sans">
-      <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#d6d6e5]">{label}</span>
+      {label ? <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#d6d6e5]">{label}</span> : null}
       <select
         value={value}
         disabled={disabled}
@@ -99,21 +99,21 @@ export function ScheduleFilterBar({
           </div>
 
           <FilterSelect
-            label="리그"
+            label=""
             value={league}
             onChange={onLeagueChange}
             options={leagues.map((item) => ({ value: item, label: item === "all" ? "전체 리그" : item }))}
           />
 
           <FilterSelect
-            label="월"
+            label=""
             value={selectedMonthId}
             onChange={onMonthChange}
             options={monthOptions.map((month) => ({ value: month.id, label: month.label }))}
           />
 
           <FilterSelect
-            label="주차"
+            label=""
             value={selectedWeekId}
             onChange={onWeekChange}
             disabled={weekOptions.length === 0}

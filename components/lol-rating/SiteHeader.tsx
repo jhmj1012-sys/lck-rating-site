@@ -20,7 +20,9 @@ const HEADER_LABELS = {
   teams: "팀 로스터",
   admin: "관리자",
   account: "내 계정",
+  mypage: "마이페이지",
   shop: "코인 상점",
+  more: "더보기",
   notifications: "알림",
   signin: "로그인",
   checking: "확인 중",
@@ -56,10 +58,12 @@ function AccountEntryButton({
   isLoggedIn,
   label,
   email,
+  compact = false,
 }: {
   isLoggedIn: boolean;
   label: string;
   email?: string;
+  compact?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -82,10 +86,14 @@ function AccountEntryButton({
     return (
       <Link
         href="/signin"
-        className="inline-flex h-10 items-center gap-1.5 rounded-full bg-[#424254] px-3.5 text-sm font-semibold !text-[#FFFFFF] shadow-[0_8px_20px_rgba(2,6,23,0.28)] transition hover:bg-[#505063] hover:!text-[#FFFFFF]"
+        aria-label={HEADER_LABELS.signin}
+        className={cn(
+          "mobile-account-button inline-flex h-10 items-center gap-1.5 rounded-full bg-[#424254] text-sm font-semibold !text-[#FFFFFF] shadow-[0_8px_20px_rgba(2,6,23,0.28)] transition hover:bg-[#505063] hover:!text-[#FFFFFF]",
+          compact ? "px-2.5 text-[13px]" : "px-3.5",
+        )}
       >
         <UserIcon className="h-4 w-4 text-white" />
-        <span className="!text-[#FFFFFF]">로그인</span>
+        {compact ? null : <span className="!text-[#FFFFFF]">로그인</span>}
       </Link>
     );
   }
@@ -94,12 +102,16 @@ function AccountEntryButton({
     <div ref={menuRef} className="relative">
       <button
         type="button"
+        aria-label={HEADER_LABELS.mypage}
         onClick={() => setOpen((current) => !current)}
-        className="inline-flex h-10 items-center gap-1.5 rounded-full bg-[#424254] px-3.5 text-sm font-semibold text-white transition hover:bg-[#505063]"
+        className={cn(
+          "mobile-account-button inline-flex h-10 items-center gap-1.5 rounded-full bg-[#424254] text-sm font-semibold text-white transition hover:bg-[#505063]",
+          compact ? "px-2.5 text-[13px]" : "px-3.5",
+        )}
       >
         <UserIcon className="h-4 w-4 text-white" />
-        <span className="max-w-[90px] truncate text-[#FFFFFF]">{label}</span>
-        <span className="text-[10px] text-white">▼</span>
+        {compact ? null : <span className={cn("mobile-account-label truncate text-[#FFFFFF]", compact ? "max-w-[68px]" : "max-w-[90px]")}>{label}</span>}
+        {compact ? null : <span className="text-[10px] text-white">▼</span>}
       </button>
 
       {open ? (
@@ -115,7 +127,7 @@ function AccountEntryButton({
               style={{ fontFamily: "Pretendard, Pretendard Variable, SUIT Variable, Noto Sans KR, Segoe UI, sans-serif" }}
               onClick={() => setOpen(false)}
             >
-              마이페이지
+              {HEADER_LABELS.mypage}
             </Link>
             <button
               type="button"
@@ -162,7 +174,7 @@ function NotificationButton({
         type="button"
         aria-label={HEADER_LABELS.notifications}
         onClick={() => setOpen((value) => !value)}
-        className="group relative inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#424254] text-white transition hover:bg-[#505063] hover:text-white"
+        className="mobile-header-icon group relative inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#424254] text-white transition hover:bg-[#505063] hover:text-white"
       >
         <BellIcon className="h-4 w-4 text-white" />
         {unreadCount > 0 ? (
@@ -206,6 +218,69 @@ function NotificationButton({
               ))
             )}
           </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function MobileMoreMenu({ isAdmin }: { isAdmin: boolean }) {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const onMouseDown = (event: MouseEvent) => {
+      if (!menuRef.current) {
+        return;
+      }
+      if (!menuRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", onMouseDown);
+    return () => document.removeEventListener("mousedown", onMouseDown);
+  }, []);
+
+  return (
+    <div ref={menuRef} className="relative lg:hidden">
+      <button
+        type="button"
+        aria-label={HEADER_LABELS.more}
+        onClick={() => setOpen((value) => !value)}
+        className="mobile-header-icon inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#424254] text-white transition hover:bg-[#505063]"
+      >
+        <span className="text-xl leading-none text-white">⋯</span>
+      </button>
+
+      {open ? (
+        <div className="absolute right-0 top-12 z-50 w-[200px] overflow-hidden rounded-2xl border border-[#474756] bg-[#31313C] p-2 shadow-[0_16px_36px_rgba(2,6,23,0.34)]">
+          <Link
+            href="/shop"
+            className="flex min-h-10 items-center gap-2 rounded-xl px-3 !text-[14px] !font-medium !text-[#FFFFFF] transition hover:bg-[#3A3A47] hover:!text-[#FFFFFF]"
+            onClick={() => setOpen(false)}
+          >
+            <ShopIcon className="h-4 w-4 !text-[#FFFFFF]" />
+            <span className="!text-[#FFFFFF]">{HEADER_LABELS.shop}</span>
+          </Link>
+          <Link
+            href="/teams"
+            className="flex min-h-10 items-center gap-2 rounded-xl px-3 !text-[14px] !font-medium !text-[#FFFFFF] transition hover:bg-[#3A3A47] hover:!text-[#FFFFFF]"
+            onClick={() => setOpen(false)}
+          >
+            <TeamIcon className="h-4 w-4 !text-[#FFFFFF]" />
+            <span className="!text-[#FFFFFF]">{HEADER_LABELS.teams}</span>
+          </Link>
+          {isAdmin ? (
+            <Link
+              href="/admin"
+              className="flex min-h-10 items-center gap-2 rounded-xl px-3 !text-[14px] !font-medium !text-[#FFFFFF] transition hover:bg-[#3A3A47] hover:!text-[#FFFFFF]"
+              onClick={() => setOpen(false)}
+            >
+              <ShieldIcon className="h-4 w-4 !text-[#FFFFFF]" />
+              <span className="!text-[#FFFFFF]">{HEADER_LABELS.admin}</span>
+            </Link>
+          ) : null}
         </div>
       ) : null}
     </div>
@@ -381,32 +456,22 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
     <header className="sticky top-0 z-40 border-b border-transparent bg-[#1C1C1F] shadow-[0_6px_18px_rgba(32,45,55,0.08)] backdrop-blur-xl">
       <div className="mx-auto max-w-5xl px-4 py-2.5 sm:px-6">
         <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center justify-between gap-3">
-            <Link href="/" className="flex min-w-0 items-center gap-3">
+          <div className="flex min-w-0 items-center justify-between gap-2.5">
+            <Link href="/" className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#8B5CF6] text-xs font-black tracking-[-0.03em] text-white shadow-[0_10px_24px_rgba(139,92,246,0.24)]">
                 LPR
               </div>
               <div className="min-w-0">
-                <div className="truncate text-[17px] font-bold tracking-[-0.03em] text-[#FFFFFF]">
+                <div className="mobile-site-title truncate text-[14px] font-bold tracking-[-0.03em] text-[#FFFFFF] sm:text-[17px]">
                   <span className="text-[#8B5CF6]">L</span>OL <span className="text-[#8B5CF6]">P</span>RO <span className="text-[#8B5CF6]">R</span>ATING
                 </div>
               </div>
             </Link>
 
-            <div className="flex items-center gap-2 lg:hidden">
+            <div className="mobile-header-actions flex shrink-0 items-center gap-1.5 sm:gap-2 lg:hidden">
               <NotificationButton notifications={notifications} unreadCount={unreadNotificationCount} />
-              <IconNavLink href="/shop" label={HEADER_LABELS.shop}>
-                <ShopIcon className="h-4 w-4 text-white" />
-              </IconNavLink>
-              <IconNavLink href="/teams" label={HEADER_LABELS.teams}>
-                <TeamIcon className="h-4 w-4 text-white" />
-              </IconNavLink>
-              {isAdmin ? (
-                <IconNavLink href="/admin" label={HEADER_LABELS.admin}>
-                  <ShieldIcon className="h-4 w-4 text-white" />
-                </IconNavLink>
-              ) : null}
-              <AccountEntryButton isLoggedIn={isLoggedIn} label={accountLabel} email={accountEmail} />
+              <AccountEntryButton isLoggedIn={isLoggedIn} label={accountLabel} email={accountEmail} compact />
+              <MobileMoreMenu isAdmin={isAdmin} />
             </div>
           </div>
 

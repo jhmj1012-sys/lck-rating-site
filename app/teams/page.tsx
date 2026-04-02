@@ -84,6 +84,10 @@ export default async function TeamsPage({
   }
 
   const staff = TEAM_STAFF[selectedTeam.teamCode] ?? { headCoach: [], coach: [] };
+  const mobileTeams = [
+    selectedTeam,
+    ...sortedTeams.filter((team) => team.teamCode !== selectedTeam.teamCode),
+  ];
 
   return (
     <div>
@@ -94,13 +98,27 @@ export default async function TeamsPage({
       />
       <main className="min-h-screen bg-[#1C1C1F] px-4 py-8 sm:px-6">
         <div className="mx-auto max-w-5xl space-y-5">
-          <div>
-            <div className="text-xs font-medium uppercase tracking-[0.24em] text-[#AFC1F7]">2026 Integrated Roster</div>
-            <h1 className="mt-2 text-[30px] font-semibold tracking-tight text-[#FFFFFF]">2026 LCK 정규시즌 R1 통합 로스터</h1>
-          </div>
-
           <section className="rounded-[24px] bg-[#31313C] p-3">
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+            <div className="mobile-tab-scroll -mx-1 flex gap-2 px-1 sm:hidden">
+              {mobileTeams.map((team) => {
+                const active = team.teamCode === selectedTeam.teamCode;
+                return (
+                  <Link
+                    key={team.teamCode}
+                    href={`/teams?team=${team.teamCode}`}
+                    className={
+                      active
+                        ? "inline-flex h-9 min-w-[88px] shrink-0 items-center justify-center rounded-full bg-[#8B5CF6] px-4 text-sm font-medium !text-[#F8F8F8] visited:!text-[#F8F8F8]"
+                        : "inline-flex h-9 min-w-[88px] shrink-0 items-center justify-center rounded-full bg-[#424254] px-4 text-sm font-medium !text-[#F8F8F8] visited:!text-[#F8F8F8] hover:bg-[#4D4D61]"
+                    }
+                  >
+                    {team.teamCode}
+                  </Link>
+                );
+              })}
+            </div>
+
+            <div className="hidden grid-cols-2 gap-2 sm:grid sm:grid-cols-5">
               {sortedTeams.map((team) => {
                 const active = team.teamCode === selectedTeam.teamCode;
                 return (

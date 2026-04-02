@@ -18,11 +18,6 @@ export default async function FifteenDollarChallengePage() {
 
       <main className="min-h-screen bg-[#1C1C1F] px-4 py-8 sm:px-6">
         <div className="mx-auto max-w-5xl space-y-6">
-          <div>
-            <h1 className="text-[30px] font-semibold tracking-tight text-[#FFFFFF]">15달러 챌린지</h1>
-            <p className="mt-2 text-sm leading-6 text-[#D4DCFF]">챌린지 페이지는 현재 개편 작업 중입니다. 곧 더 나은 모습으로 돌아올게요.</p>
-          </div>
-
           <section className="rounded-[28px] bg-[#31313C] p-6">
             <div className="grid gap-4 md:grid-cols-2">
               <article className="rounded-[24px] bg-[#3A3A47] px-5 py-5">

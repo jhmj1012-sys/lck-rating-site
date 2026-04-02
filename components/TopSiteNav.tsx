@@ -26,11 +26,12 @@ export function TopSiteNav({
         unreadNotificationCount={unreadNotificationCount}
       />
       <div className="border-b border-[#6D28D9] bg-[#8B5CF6]">
-        <nav className={cn("mx-auto flex items-center gap-1 px-4 sm:px-6", maxWidthClass)}>
+        <div className={cn("mobile-tab-scroll mx-auto px-4 sm:px-6", maxWidthClass)}>
+        <nav className="flex min-w-max items-center gap-1 whitespace-nowrap">
           <Link
             href="/"
             className={cn(
-              "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
+              "relative whitespace-nowrap px-3 py-2 text-[15px] font-bold tracking-[-0.02em] transition sm:px-5 sm:text-[17px]",
               "text-[#F5F3FF]",
             )}
             style={{ color: "#F5F3FF" }}
@@ -42,12 +43,12 @@ export function TopSiteNav({
             }}
           >
             홈
-            {active === "match" ? <span className="absolute inset-x-4 bottom-0 h-[2px] rounded-full bg-white" /> : null}
+            {active === "match" ? <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-white sm:inset-x-4" /> : null}
           </Link>
           <Link
             href="/schedule"
             className={cn(
-              "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
+              "relative whitespace-nowrap px-3 py-2 text-[15px] font-bold tracking-[-0.02em] transition sm:px-5 sm:text-[17px]",
               "text-[#F5F3FF]",
             )}
             style={{ color: "#F5F3FF" }}
@@ -59,12 +60,12 @@ export function TopSiteNav({
             }}
           >
             경기일정
-            {active === "schedule" ? <span className="absolute inset-x-4 bottom-0 h-[2px] rounded-full bg-white" /> : null}
+            {active === "schedule" ? <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-white sm:inset-x-4" /> : null}
           </Link>
           <Link
             href="/ratings"
             className={cn(
-              "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
+              "relative whitespace-nowrap px-3 py-2 text-[15px] font-bold tracking-[-0.02em] transition sm:px-5 sm:text-[17px]",
               "text-[#F5F3FF]",
             )}
             style={{ color: "#F5F3FF" }}
@@ -76,12 +77,12 @@ export function TopSiteNav({
             }}
           >
             평점순위
-            {active === "ratings" ? <span className="absolute inset-x-4 bottom-0 h-[2px] rounded-full bg-white" /> : null}
+            {active === "ratings" ? <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-white sm:inset-x-4" /> : null}
           </Link>
           <Link
             href="/season-predictions"
             className={cn(
-              "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
+              "relative whitespace-nowrap px-3 py-2 text-[15px] font-bold tracking-[-0.02em] transition sm:px-5 sm:text-[17px]",
               "text-[#F5F3FF]",
             )}
             style={{ color: "#F5F3FF" }}
@@ -93,12 +94,12 @@ export function TopSiteNav({
             }}
           >
             시즌예측
-            {active === "season" ? <span className="absolute inset-x-4 bottom-0 h-[2px] rounded-full bg-white" /> : null}
+            {active === "season" ? <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-white sm:inset-x-4" /> : null}
           </Link>
           <Link
             href="/games/15-dollar-challenge"
             className={cn(
-              "relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] transition",
+              "relative whitespace-nowrap px-3 py-2 text-[15px] font-bold tracking-[-0.02em] transition sm:px-5 sm:text-[17px]",
               "text-[#F5F3FF]",
             )}
             style={{ color: "#F5F3FF" }}
@@ -110,9 +111,10 @@ export function TopSiteNav({
             }}
           >
             게임
-            {active === "games" ? <span className="absolute inset-x-4 bottom-0 h-[2px] rounded-full bg-white" /> : null}
+            {active === "games" ? <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-white sm:inset-x-4" /> : null}
           </Link>
         </nav>
+        </div>
       </div>
     </>
   );
