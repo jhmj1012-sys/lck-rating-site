@@ -74,6 +74,7 @@ const relativeTime = new Intl.RelativeTimeFormat("ko", { numeric: "auto" });
 const roleOrder: Record<PlayerRole, number> = { TOP: 0, JGL: 1, MID: 2, ADC: 3, SUP: 4 };
 const ROLE_SEQUENCE: PlayerRole[] = ["TOP", "JGL", "MID", "ADC", "SUP"];
 const scheduleWeekdayOrder = [4, 5, 6, 0, 1, 2, 3] as const;
+const APP_TIME_ZONE = "Asia/Seoul";
 const COINS = {
   predictionSubmit: 10,
   predictionHit: 5,
@@ -88,6 +89,15 @@ function getNowMs() {
 
 function getNowIso() {
   return new Date().toISOString();
+}
+
+function getDateKeyInAppTimeZone(value: string | number | Date) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: APP_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(value));
 }
 
 function clamp(value: number, min: number, max: number) {
@@ -1543,13 +1553,7 @@ function buildPredictionInsights(store: StoreShape, viewerId: string): {
 }
 
 function isSameCurrentDay(value: string) {
-  const target = new Date(value);
-  const currentDate = new Date(getNowMs());
-  return (
-    target.getFullYear() === currentDate.getFullYear() &&
-    target.getMonth() === currentDate.getMonth() &&
-    target.getDate() === currentDate.getDate()
-  );
+  return getDateKeyInAppTimeZone(value) === getDateKeyInAppTimeZone(getNowMs());
 }
 
 function buildHeroStats(store: StoreShape): HomeHeroStats {
@@ -1602,13 +1606,9 @@ function buildTodayMatches(store: StoreShape, viewerId: string | null): MatchDat
   }
 
   const firstUpcomingDate = new Date(upcomingMatches[0].scheduledAt);
+  const firstUpcomingDateKey = getDateKeyInAppTimeZone(firstUpcomingDate);
   const nextMatchdayMatches = upcomingMatches.filter((match) => {
-    const current = new Date(match.scheduledAt);
-    return (
-      current.getFullYear() === firstUpcomingDate.getFullYear() &&
-      current.getMonth() === firstUpcomingDate.getMonth() &&
-      current.getDate() === firstUpcomingDate.getDate()
-    );
+    return getDateKeyInAppTimeZone(match.scheduledAt) === firstUpcomingDateKey;
   });
 
   return nextMatchdayMatches.map((match) => buildMatchView(store, match, viewerId));
