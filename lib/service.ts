@@ -9,7 +9,6 @@ import type {
   StoreShape,
   StoredComment,
   StoredMatch,
-  StoredMatchSet,
   StoredNotification,
   StoredPointLedgerEntry,
   StoredSeasonPredictionEntry,
@@ -39,7 +38,6 @@ import type {
   MatchDateGroup,
   MatchDetailData,
   MatchListItem,
-  MatchSetSummary,
   MatchWeekGroup,
   MyCommentItem,
   NotificationItem,
@@ -66,8 +64,6 @@ import type {
   SeasonPredictionQuestionCard,
   SeasonPredictionQuestionStatus,
   ScheduleHubData,
-  SetDetailData,
-  SetPlayerRating,
   TeamStandingItem,
   UserProfile,
   WeekSchedule,
@@ -805,10 +801,6 @@ function getUserById(store: StoreShape, userId: string) {
   return store.users.find((user) => user.id === userId) ?? null;
 }
 
-function getSetById(store: StoreShape, setId: string) {
-  return store.matchSets.find((set) => set.id === setId) ?? null;
-}
-
 function getMatchById(store: StoreShape, matchId: string) {
   return store.matches.find((match) => match.id === matchId) ?? null;
 }
@@ -825,10 +817,6 @@ function countVisibleComments(comments: StoredComment[], matchId: string) {
   return comments.filter((comment) => comment.matchId === matchId && !comment.hidden).length;
 }
 
-function getSetRatings(store: StoreShape, matchSetId: string, playerId: string) {
-  return store.setPlayerRatings.filter((rating) => rating.matchSetId === matchSetId && rating.playerId === playerId);
-}
-
 function getMatchPlayers(store: StoreShape, matchId: string, viewerId: string | null) {
   const match = getMatchById(store, matchId);
   const playerById = new Map(store.players.map((player) => [player.id, player]));
@@ -836,7 +824,6 @@ function getMatchPlayers(store: StoreShape, matchId: string, viewerId: string | 
   const scoresByPlayerId = new Map<string, number[]>();
   const viewerMatchRatingByPlayerId = new Map<string, { score: number; comment: string }>();
   const globalScoresByPlayerId = new Map<string, number[]>();
-  const matchSetIds = new Set(store.matchSets.filter((set) => set.matchId === matchId).map((set) => set.id));
 
   for (const rating of store.playerRatings) {
     const globalScores = globalScoresByPlayerId.get(rating.playerId) ?? [];
@@ -854,20 +841,6 @@ function getMatchPlayers(store: StoreShape, matchId: string, viewerId: string | 
     if (viewerId && rating.userId === viewerId) {
       viewerMatchRatingByPlayerId.set(rating.playerId, { score: rating.score, comment: rating.comment ?? "" });
     }
-  }
-
-  for (const rating of store.setPlayerRatings) {
-    const globalScores = globalScoresByPlayerId.get(rating.playerId) ?? [];
-    globalScores.push(rating.score);
-    globalScoresByPlayerId.set(rating.playerId, globalScores);
-
-    if (!matchSetIds.has(rating.matchSetId)) {
-      continue;
-    }
-
-    const matchScores = scoresByPlayerId.get(rating.playerId) ?? [];
-    matchScores.push(rating.score);
-    scoresByPlayerId.set(rating.playerId, matchScores);
   }
 
   const participants = store.matchParticipants.filter((participant) => participant.matchId === matchId);
@@ -1040,54 +1013,6 @@ function buildMvp(players: PlayerRating[]) {
   return best?.name ?? "-";
 }
 
-function getMatchSets(store: StoreShape, matchId: string) {
-  return store.matchSets
-    .filter((set) => set.matchId === matchId)
-    .slice()
-    .sort((a, b) => a.setNumber - b.setNumber);
-}
-
-function buildSetTopPerformer(store: StoreShape, set: StoredMatchSet) {
-  const participants = store.setParticipants.filter((participant) => participant.matchSetId === set.id);
-  const candidates = participants
-    .map((participant) => {
-      const player = store.players.find((item) => item.id === participant.playerId);
-      const ratings = getSetRatings(store, set.id, participant.playerId);
-      if (!player || ratings.length === 0) {
-        return null;
-      }
-
-      return {
-        name: player.name,
-        average: average(ratings.map((rating) => rating.score)),
-      };
-    })
-    .filter((value): value is { name: string; average: number } => value !== null)
-    .sort((a, b) => b.average - a.average);
-
-  return candidates[0]?.name ?? null;
-}
-
-function buildSetSummary(store: StoreShape, set: StoredMatchSet, viewerId: string | null): MatchSetSummary {
-  const isPlayed = set.winnerTeamId !== null;
-  const winnerTeam = set.winnerTeamId ? getTeamById(store, set.winnerTeamId)?.code ?? null : null;
-  const ratingParticipants = store.setPlayerRatings.filter((rating) => rating.matchSetId === set.id).length;
-
-  return {
-    id: set.id,
-    setNumber: set.setNumber,
-    title: `세트 ${set.setNumber}`,
-    isPlayed,
-    winnerTeam,
-    durationLabel: isPlayed ? formatDurationLabel(set.durationMinutes) : "-",
-    scoreLabel: isPlayed ? `${set.teamAScore} : ${set.teamBScore}` : "미진행",
-    note: set.note,
-    ratingParticipants,
-    topPerformer: isPlayed ? buildSetTopPerformer(store, set) : null,
-    viewerHasRated: viewerId ? store.setPlayerRatings.some((rating) => rating.matchSetId === set.id && rating.userId === viewerId) : false,
-  };
-}
-
 function getTeamRecentMatches(store: StoreShape, teamId: string, beforeIso: string, limit = 5) {
   const cutoff = new Date(beforeIso).getTime();
   return store.matches
@@ -1216,20 +1141,18 @@ function getTeamKeyPlayerInsight(store: StoreShape, match: StoredMatch, teamId: 
         return null;
       }
 
-      const legacyScores = store.playerRatings.filter((rating) => rating.playerId === playerId).map((rating) => rating.score);
-      const setScores = store.setPlayerRatings.filter((rating) => rating.playerId === playerId).map((rating) => rating.score);
-      const allScores = [...legacyScores, ...setScores];
-      if (allScores.length === 0) {
+      const scores = store.playerRatings.filter((rating) => rating.playerId === playerId).map((rating) => rating.score);
+      if (scores.length === 0) {
         return null;
       }
 
-      const avgRating = Number(average(allScores).toFixed(1));
+      const avgRating = Number(average(scores).toFixed(1));
       return {
         playerId: player.id,
         name: player.name,
         role: player.role,
         avgRating,
-        ratingCount: allScores.length,
+        ratingCount: scores.length,
       } satisfies KeyPlayerInsight;
     })
     .filter((item): item is KeyPlayerInsight => item !== null)
@@ -1270,9 +1193,7 @@ function buildMatchView(store: StoreShape, match: StoredMatch, viewerId: string 
   const comments = buildComments(store, match.id, viewerId);
   const ratingComments = buildMatchRatingComments(store, match.id);
   const predictionSummary = match.lockedDistribution ?? buildPredictionSummary(store, match);
-  const totalRatings =
-    store.playerRatings.filter((rating) => rating.matchId === match.id).length +
-    store.setPlayerRatings.filter((rating) => getSetById(store, rating.matchSetId)?.matchId === match.id).length;
+  const totalRatings = store.playerRatings.filter((rating) => rating.matchId === match.id).length;
   const averagePlayerRating = players.filter((player) => player.ratingCount > 0);
   const myPrediction = viewerId
     ? store.predictions.find((prediction) => prediction.matchId === match.id && prediction.userId === viewerId)
@@ -1633,7 +1554,7 @@ function isSameCurrentDay(value: string) {
 
 function buildHeroStats(store: StoreShape): HomeHeroStats {
   const todayMatches = store.matches.filter((match) => isSameCurrentDay(match.scheduledAt)).length;
-  const totalRatings = store.playerRatings.length + store.setPlayerRatings.length;
+  const totalRatings = store.playerRatings.length;
   const totalComments = store.comments.filter((comment) => !comment.hidden).length;
 
   return {
@@ -1726,9 +1647,7 @@ function buildPlayerLeaderboard(store: StoreShape): HomePlayerLeaderboardItem[] 
   return store.players
     .map((player) => {
       const team = getTeamById(store, player.teamId);
-      const matchScores = store.playerRatings.filter((rating) => rating.playerId === player.id).map((rating) => rating.score);
-      const setScores = store.setPlayerRatings.filter((rating) => rating.playerId === player.id).map((rating) => rating.score);
-      const scores = [...matchScores, ...setScores];
+      const scores = store.playerRatings.filter((rating) => rating.playerId === player.id).map((rating) => rating.score);
       if (!team || scores.length === 0) {
         return null;
       }
@@ -1779,28 +1698,7 @@ function getPlayerRatingEntries(store: StoreShape): PlayerRatingEntry[] {
       } satisfies PlayerRatingEntry;
     })
     .filter((entry): entry is PlayerRatingEntry => entry !== null);
-
-  const entriesFromSet = store.setPlayerRatings
-    .map((rating) => {
-      const set = getSetById(store, rating.matchSetId);
-      if (!set) {
-        return null;
-      }
-      const match = getMatchById(store, set.matchId);
-      if (!match) {
-        return null;
-      }
-      return {
-        playerId: rating.playerId,
-        matchId: match.id,
-        score: rating.score,
-        ratedAt: rating.createdAt,
-        scheduledAt: match.scheduledAt,
-      } satisfies PlayerRatingEntry;
-    })
-    .filter((entry): entry is PlayerRatingEntry => entry !== null);
-
-  return [...entriesFromMatch, ...entriesFromSet];
+  return entriesFromMatch;
 }
 
 function buildPlayerRankingItems(store: StoreShape): PlayerRankingItem[] {
@@ -2096,7 +1994,7 @@ function buildMatchListItem(store: StoreShape, match: StoredMatch): MatchListIte
     teamA: teamA.code,
     teamB: teamB.code,
     score: match.scoreA === null || match.scoreB === null ? "VS" : `${match.scoreA} : ${match.scoreB}`,
-    ratingParticipants: store.setPlayerRatings.filter((rating) => getSetById(store, rating.matchSetId)?.matchId === match.id).length,
+    ratingParticipants: store.playerRatings.filter((rating) => rating.matchId === match.id).length,
     predictionVotes: predictionSummary.totalVotes,
     predictionRateA: predictionSummary.teamA,
     predictionRateB: predictionSummary.teamB,
@@ -2224,106 +2122,6 @@ function buildScheduleGroups(store: StoreShape): MatchMonthGroup[] {
         }),
       })),
   }));
-}
-
-function buildSetSidePlayers(store: StoreShape, set: StoredMatchSet, teamId: string, viewerId: string | null) {
-  const playerById = new Map(store.players.map((player) => [player.id, player]));
-  const teamCodeById = new Map(store.teams.map((team) => [team.id, team.code]));
-  const ratingsByPlayerId = new Map<string, Array<{ score: number; comment: string; userId: string }>>();
-
-  for (const rating of store.setPlayerRatings) {
-    if (rating.matchSetId !== set.id) {
-      continue;
-    }
-    const entries = ratingsByPlayerId.get(rating.playerId) ?? [];
-    entries.push({ score: rating.score, comment: rating.comment, userId: rating.userId });
-    ratingsByPlayerId.set(rating.playerId, entries);
-  }
-
-  return store.setParticipants
-    .filter((participant) => participant.matchSetId === set.id && participant.teamId === teamId)
-    .map((participant) => {
-      const player = playerById.get(participant.playerId);
-      const teamCode = teamCodeById.get(participant.teamId);
-      if (!player || !teamCode) {
-        return null;
-      }
-
-      const ratings = ratingsByPlayerId.get(participant.playerId) ?? [];
-      const comments = ratings.map((rating) => rating.comment.trim()).filter(Boolean).slice(0, 2);
-      const viewerRating = viewerId
-        ? ratings.find((rating) => rating.userId === viewerId)?.score ?? null
-        : null;
-
-      return {
-        playerId: player.id,
-        name: player.name,
-        team: teamCode,
-        role: player.role,
-        averageRating: Number(average(ratings.map((rating) => rating.score)).toFixed(1)),
-        ratingCount: ratings.length,
-        commentHighlights: comments,
-        viewerRating,
-      };
-    })
-    .filter((value): value is SetPlayerRating & { viewerRating: number | null } => value !== null)
-    .sort((a, b) => roleOrder[a.role] - roleOrder[b.role]);
-}
-
-function buildSetDetail(store: StoreShape, set: StoredMatchSet, viewerId: string | null): SetDetailData {
-  const match = store.matches.find((item) => item.id === set.matchId);
-  if (!match) {
-    throw new Error("경기를 찾을 수 없습니다.");
-  }
-
-  const teamA = getTeamById(store, match.teamAId);
-  const teamB = getTeamById(store, match.teamBId);
-  if (!teamA || !teamB) {
-    throw new Error("경기 팀 정보를 찾을 수 없습니다.");
-  }
-
-  const teamAPlayers = buildSetSidePlayers(store, set, match.teamAId, viewerId);
-  const teamBPlayers = buildSetSidePlayers(store, set, match.teamBId, viewerId);
-  const isPlayed = set.winnerTeamId !== null;
-  const viewerRatings = Object.fromEntries(
-    [...teamAPlayers, ...teamBPlayers]
-      .filter((player) => player.viewerRating !== null)
-      .map((player) => [player.playerId, player.viewerRating as number]),
-  );
-
-  return {
-    id: set.id,
-    matchId: match.id,
-    setNumber: set.setNumber,
-    title: `세트 ${set.setNumber}`,
-    isPlayed,
-    winnerTeam: set.winnerTeamId ? getTeamById(store, set.winnerTeamId)?.code ?? null : null,
-    durationLabel: isPlayed ? formatDurationLabel(set.durationMinutes) : "-",
-    scoreLabel: isPlayed ? `${set.teamAScore} : ${set.teamBScore}` : "미진행",
-    note: set.note,
-    teamA: teamA.code,
-    teamB: teamB.code,
-    teamAPlayers: teamAPlayers.map((player) => ({
-      playerId: player.playerId,
-      name: player.name,
-      team: player.team,
-      role: player.role,
-      averageRating: player.averageRating,
-      ratingCount: player.ratingCount,
-      commentHighlights: player.commentHighlights,
-    })),
-    teamBPlayers: teamBPlayers.map((player) => ({
-      playerId: player.playerId,
-      name: player.name,
-      team: player.team,
-      role: player.role,
-      averageRating: player.averageRating,
-      ratingCount: player.ratingCount,
-      commentHighlights: player.commentHighlights,
-    })),
-    viewerRatings,
-    canRate: match.status === "finished" && isPlayed,
-  };
 }
 
 async function readStoreWithPredictionLifecycle() {
@@ -2538,19 +2336,6 @@ export async function getMatchDetailData(matchId: string, viewerId: string | nul
   };
 }
 
-export async function getSetDetailData(matchId: string, setNumber: number, viewerId: string | null = null): Promise<SetDetailData> {
-  const store = await readStoreWithPredictionLifecycle();
-  const set = store.matchSets.find((item) => item.matchId === matchId && item.setNumber === setNumber);
-  if (!set) {
-    throw new Error("세트를 찾을 수 없습니다.");
-  }
-  if (set.winnerTeamId === null) {
-    throw new Error("진행되지 않은 세트입니다.");
-  }
-
-  return buildSetDetail(store, set, viewerId);
-}
-
 function buildMatchLabel(store: StoreShape, matchId: string) {
   const match = store.matches.find((item) => item.id === matchId);
   if (!match) {
@@ -2647,24 +2432,6 @@ export async function getMyPageData(viewerId: string): Promise<MyPageData> {
       };
     });
 
-  const setRatings: MyRatingItem[] = store.setPlayerRatings
-    .filter((rating) => rating.userId === viewerId)
-    .map((rating) => {
-      const player = store.players.find((item) => item.id === rating.playerId);
-      const set = getSetById(store, rating.matchSetId);
-      return {
-        id: rating.id,
-        matchId: set?.matchId ?? rating.matchSetId,
-        matchLabel: buildMatchLabel(store, set?.matchId ?? rating.matchSetId),
-        setNumber: set?.setNumber ?? null,
-        playerName: player?.name ?? rating.playerId,
-        team: player ? getTeamById(store, player.teamId)?.code ?? "" : "",
-        score: rating.score,
-        createdAt: rating.createdAt,
-        updatedAt: rating.updatedAt ?? rating.createdAt,
-      };
-    });
-
   const comments: MyCommentItem[] = store.comments
     .filter((comment) => comment.userId === viewerId)
     .slice()
@@ -2716,7 +2483,7 @@ export async function getMyPageData(viewerId: string): Promise<MyPageData> {
     },
     predictions,
     seasonPredictions,
-    ratings: [...legacyRatings, ...setRatings].sort(
+    ratings: legacyRatings.sort(
       (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
     ),
     comments,
@@ -2820,15 +2587,6 @@ export async function getAdminPanelData() {
     }),
     matches: store.matches.slice().sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()),
     matchParticipants: store.matchParticipants,
-    matchSets: store.matchSets.slice().sort((a, b) => {
-      if (a.matchId !== b.matchId) {
-        return a.matchId.localeCompare(b.matchId, "en");
-      }
-
-      return a.setNumber - b.setNumber;
-    }),
-    setParticipants: store.setParticipants,
-    setPlayerRatings: store.setPlayerRatings,
     comments: store.comments.slice().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
     seasonPredictionQuestions: store.seasonPredictionQuestions
       .slice()
@@ -3030,76 +2788,6 @@ export async function submitPlayerRating(input: {
     return {
       ratingComment: buildMatchRatingCommentView(store, ratingId),
     };
-  });
-}
-
-export async function submitSetPlayerRatings(input: {
-  viewerId: string;
-  matchId: string;
-  setNumber: number;
-  ratings: Array<{ playerId: string; score: number }>;
-}) {
-  return mutateStore(async (store) => {
-    const match = store.matches.find((item) => item.id === input.matchId);
-    if (!match || match.status !== "finished") {
-      throw new Error("종료된 경기 세트에서만 평점을 남길 수 있습니다.");
-    }
-
-    const set = store.matchSets.find((item) => item.matchId === input.matchId && item.setNumber === input.setNumber);
-    if (!set) {
-      throw new Error("세트를 찾을 수 없습니다.");
-    }
-
-    if (input.ratings.length === 0) {
-      throw new Error("저장할 평점이 없습니다.");
-    }
-
-    const participantIds = new Set(
-      store.setParticipants
-        .filter((participant) => participant.matchSetId === set.id)
-        .map((participant) => participant.playerId),
-    );
-    let changedCount = 0;
-
-    for (const ratingInput of input.ratings) {
-      if (!participantIds.has(ratingInput.playerId)) {
-        throw new Error("세트 출전 선수가 아닌 항목이 포함되어 있습니다.");
-      }
-
-      const score = clampScore(ratingInput.score);
-      const existing = store.setPlayerRatings.find(
-        (rating) => rating.matchSetId === set.id && rating.playerId === ratingInput.playerId && rating.userId === input.viewerId,
-      );
-
-      if (existing) {
-        existing.score = score;
-        existing.updatedAt = new Date().toISOString();
-        continue;
-      }
-
-      changedCount += 1;
-      store.setPlayerRatings.push({
-        id: createId(store, "setPlayerRatings", "set_rating"),
-        userId: input.viewerId,
-        matchSetId: set.id,
-        playerId: ratingInput.playerId,
-        score,
-        comment: "",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
-    }
-
-    if (changedCount > 0 && !isGuestUserId(store, input.viewerId)) {
-      appendPointLedgerEntry(store, {
-        userId: input.viewerId,
-        type: "earn",
-        amount: changedCount * COINS.setRatingPerPlayer,
-        reason: `세트 평점 참여 코인 (${changedCount}명)`,
-        referenceType: "set_rating_submit",
-        referenceId: `${set.id}:${input.viewerId}:${Date.now()}`,
-      });
-    }
   });
 }
 
@@ -3431,64 +3119,6 @@ export async function upsertMatch(input: {
   });
 }
 
-export async function upsertMatchSet(input: {
-  matchId: string;
-  setId?: string;
-  setNumber: number;
-  winnerTeamCode: string;
-  durationMinutes: number | null;
-  note: string;
-}) {
-  return mutateStore(async (store) => {
-    const match = store.matches.find((item) => item.id === input.matchId);
-    if (!match) {
-      throw new Error("경기를 찾을 수 없습니다.");
-    }
-
-    const winnerTeam = store.teams.find(
-      (team) => (team.id === match.teamAId || team.id === match.teamBId) && team.code === input.winnerTeamCode,
-    );
-    if (!winnerTeam) {
-      throw new Error("이 경기의 참가 팀만 세트 승자로 선택할 수 있습니다.");
-    }
-
-    const now = new Date().toISOString();
-    const set =
-      store.matchSets.find((item) => item.id === input.setId) ??
-      ({
-        id: createId(store, "matchSets", "set"),
-        matchId: input.matchId,
-        createdAt: now,
-      } as StoredMatchSet);
-
-    set.matchId = input.matchId;
-    set.setNumber = input.setNumber;
-    set.winnerTeamId = winnerTeam.id;
-    set.durationMinutes = input.durationMinutes;
-    set.teamAScore = winnerTeam.id === match.teamAId ? 1 : 0;
-    set.teamBScore = winnerTeam.id === match.teamBId ? 1 : 0;
-    set.note = input.note.trim();
-    set.updatedAt = now;
-
-    if (!store.matchSets.some((item) => item.id === set.id)) {
-      store.matchSets.push(set);
-    }
-
-    const existingParticipants = store.setParticipants.filter((participant) => participant.matchSetId === set.id);
-    if (existingParticipants.length === 0) {
-      const roster = store.matchParticipants.filter((participant) => participant.matchId === input.matchId);
-      for (const participant of roster) {
-        store.setParticipants.push({
-          id: createId(store, "setParticipants", "set_participant"),
-          matchSetId: set.id,
-          playerId: participant.playerId,
-          teamId: participant.teamId,
-        });
-      }
-    }
-  });
-}
-
 export async function updateMatchRoster(matchId: string, playerIds: string[]) {
   return mutateStore(async (store) => {
     const match = store.matches.find((item) => item.id === matchId);
@@ -3553,86 +3183,6 @@ export async function syncAllMatchRostersFromTeamRosters() {
   });
 }
 
-export async function updateSetRoster(setId: string, playerIds: string[]) {
-  return mutateStore(async (store) => {
-    const set = store.matchSets.find((item) => item.id === setId);
-    if (!set) {
-      throw new Error("세트를 찾을 수 없습니다.");
-    }
-
-    const match = store.matches.find((item) => item.id === set.matchId);
-    if (!match) {
-      throw new Error("경기를 찾을 수 없습니다.");
-    }
-
-    const allowedPlayers = store.players.filter((player) => player.teamId === match.teamAId || player.teamId === match.teamBId);
-    const allowedIds = new Set(allowedPlayers.map((player) => player.id));
-    const nextIds = playerIds.filter((playerId) => allowedIds.has(playerId));
-
-    store.setParticipants = store.setParticipants.filter((participant) => participant.matchSetId !== setId);
-    for (const playerId of nextIds) {
-      const player = store.players.find((item) => item.id === playerId);
-      if (!player) {
-        continue;
-      }
-
-      store.setParticipants.push({
-        id: createId(store, "setParticipants", "set_participant"),
-        matchSetId: setId,
-        playerId,
-        teamId: player.teamId,
-      });
-    }
-
-    const nextIdSet = new Set(nextIds);
-    store.setPlayerRatings = store.setPlayerRatings.filter(
-      (rating) => rating.matchSetId !== setId || nextIdSet.has(rating.playerId),
-    );
-  });
-}
-
-export async function saveAdminSetRating(input: {
-  userId: string;
-  setId: string;
-  playerId: string;
-  score: number;
-  comment: string;
-}) {
-  return mutateStore(async (store) => {
-    const set = store.matchSets.find((item) => item.id === input.setId);
-    if (!set) {
-      throw new Error("세트를 찾을 수 없습니다.");
-    }
-
-    const participant = store.setParticipants.find((item) => item.matchSetId === input.setId && item.playerId === input.playerId);
-    if (!participant) {
-      throw new Error("이 세트의 출전 선수가 아닙니다.");
-    }
-
-    const existing = store.setPlayerRatings.find(
-      (rating) => rating.matchSetId === input.setId && rating.playerId === input.playerId && rating.userId === input.userId,
-    );
-
-    if (existing) {
-      existing.score = clampScore(input.score);
-      existing.comment = input.comment.trim();
-      existing.updatedAt = new Date().toISOString();
-      return;
-    }
-
-    store.setPlayerRatings.push({
-      id: createId(store, "setPlayerRatings", "set_rating"),
-      userId: input.userId,
-      matchSetId: input.setId,
-      playerId: input.playerId,
-      score: clampScore(input.score),
-      comment: input.comment.trim(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    });
-  });
-}
-
 export async function setCommentHidden(commentId: string, hidden: boolean) {
   return mutateStore(async (store) => {
     const comment = store.comments.find((item) => item.id === commentId);
@@ -3680,7 +3230,6 @@ export async function deleteUserAccount(userId: string) {
     store.predictions = store.predictions.filter((item) => item.userId !== userId);
     store.seasonPredictionEntries = store.seasonPredictionEntries.filter((item) => item.userId !== userId);
     store.playerRatings = store.playerRatings.filter((item) => item.userId !== userId);
-    store.setPlayerRatings = store.setPlayerRatings.filter((item) => item.userId !== userId);
     store.pointLedger = store.pointLedger.filter((item) => item.userId !== userId);
     store.notifications = store.notifications.filter((item) => item.userId !== userId);
     store.userInventory = store.userInventory.filter((item) => item.userId !== userId);

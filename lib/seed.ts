@@ -4,7 +4,6 @@
   StoredComment,
   StoredMatch,
   StoredMatchParticipant,
-  StoredMatchSet,
   StoredNotification,
   StoredPlayer,
   StoredPointLedgerEntry,
@@ -13,8 +12,6 @@
   StoredSeasonPredictionOption,
   StoredSeasonPredictionQuestion,
   StoredProfileStoreItem,
-  StoredSetParticipant,
-  StoredSetPlayerRating,
   StoredTeam,
   StoredTeamRosterEntry,
   StoredUser,
@@ -447,45 +444,6 @@ function createMatchParticipants(players: StoredPlayer[], matches: StoredMatch[]
   );
 }
 
-function createMatchSets(matches: StoredMatch[]): StoredMatchSet[] {
-  return matches.flatMap((match) => {
-    const bestOf = getBestOfForStage(match.stage);
-    const playedSetWinners = match.status === "finished" ? createPlayedSetWinners(match) : [];
-
-    return Array.from({ length: bestOf }, (_, index) => {
-      const setNumber = index + 1;
-      const playedWinner = playedSetWinners[index];
-      const isPlayed = Boolean(playedWinner);
-
-      return {
-        id: `set_${match.id}_${setNumber}`,
-        matchId: match.id,
-        setNumber,
-        winnerTeamId: playedWinner === "A" ? match.teamAId : playedWinner === "B" ? match.teamBId : null,
-        durationMinutes: isPlayed ? 28 + Math.floor(hashToUnit(`${match.id}:duration:${setNumber}`) * 16) : null,
-        teamAScore: playedWinner === "A" ? 1 : 0,
-        teamBScore: playedWinner === "B" ? 1 : 0,
-        note: isPlayed ? `Set ${setNumber} completed.` : "\uBBF8\uC9C4\uD589",
-        createdAt: OFFICIAL_SCHEDULE_UPDATED_AT,
-        updatedAt: OFFICIAL_SCHEDULE_UPDATED_AT,
-      } satisfies StoredMatchSet;
-    });
-  });
-}
-
-function createSetParticipants(matchSets: StoredMatchSet[], matchParticipants: StoredMatchParticipant[]): StoredSetParticipant[] {
-  return matchSets.flatMap((set) =>
-    matchParticipants
-      .filter((participant) => participant.matchId === set.matchId)
-      .map((participant) => ({
-        id: `set_participant_${set.id}_${participant.playerId}`,
-        matchSetId: set.id,
-        playerId: participant.playerId,
-        teamId: participant.teamId,
-      })),
-  );
-}
-
 function createUsers(): StoredUser[] {
   return [];
 }
@@ -499,17 +457,6 @@ function createPredictions(users: StoredUser[], matches: StoredMatch[]): StoredP
 function createComments(users: StoredUser[], matches: StoredMatch[]): StoredComment[] {
   void users;
   void matches;
-  return [];
-}
-
-function createSetPlayerRatings(
-  users: StoredUser[],
-  matchSets: StoredMatchSet[],
-  setParticipants: StoredSetParticipant[],
-): StoredSetPlayerRating[] {
-  void users;
-  void matchSets;
-  void setParticipants;
   return [];
 }
 
@@ -642,10 +589,7 @@ export function createSeedStore(): StoreShape {
   const teamRosterEntries = createTeamRosterEntries(players);
   const matches = createMatches();
   const matchParticipants = createMatchParticipants(players, matches);
-  const matchSets = createMatchSets(matches);
-  const setParticipants = createSetParticipants(matchSets, matchParticipants);
   const predictions = createPredictions(users, matches);
-  const setPlayerRatings = createSetPlayerRatings(users, matchSets, setParticipants);
   const comments = createComments(users, matches);
   const seasonPredictionQuestions = createSeasonPredictionQuestions();
   const seasonPredictionOptions = createSeasonPredictionOptions();
@@ -662,14 +606,11 @@ export function createSeedStore(): StoreShape {
     teamRosterEntries,
     matches,
     matchParticipants,
-    matchSets,
-    setParticipants,
     predictions,
     seasonPredictionQuestions,
     seasonPredictionOptions,
     seasonPredictionEntries,
     playerRatings: [],
-    setPlayerRatings,
     comments,
     pointLedger,
     notifications,
@@ -682,14 +623,11 @@ export function createSeedStore(): StoreShape {
       teamRosterEntries: teamRosterEntries.length + 1,
       matches: matches.length + 1,
       matchParticipants: matchParticipants.length + 1,
-      matchSets: matchSets.length + 1,
-      setParticipants: setParticipants.length + 1,
       predictions: predictions.length + 1,
       seasonPredictionQuestions: seasonPredictionQuestions.length + 1,
       seasonPredictionOptions: seasonPredictionOptions.length + 1,
       seasonPredictionEntries: seasonPredictionEntries.length + 1,
       playerRatings: 1,
-      setPlayerRatings: setPlayerRatings.length + 1,
       comments: comments.length + 1,
       pointLedger: pointLedger.length + 1,
       notifications: notifications.length + 1,

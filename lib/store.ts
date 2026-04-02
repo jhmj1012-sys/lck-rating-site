@@ -56,14 +56,11 @@ const storeCollectionConfigs: CollectionConfig[] = [
   { key: "teamRosterEntries", table: "team_roster_entries" },
   { key: "matches", table: "matches" },
   { key: "matchParticipants", table: "match_participants" },
-  { key: "matchSets", table: "match_sets" },
-  { key: "setParticipants", table: "set_participants" },
   { key: "predictions", table: "predictions" },
   { key: "seasonPredictionQuestions", table: "season_prediction_questions" },
   { key: "seasonPredictionOptions", table: "season_prediction_options" },
   { key: "seasonPredictionEntries", table: "season_prediction_entries" },
   { key: "playerRatings", table: "player_ratings" },
-  { key: "setPlayerRatings", table: "set_player_ratings" },
   { key: "comments", table: "comments" },
   { key: "pointLedger", table: "point_ledger" },
   { key: "notifications", table: "notifications" },
@@ -158,14 +155,11 @@ function fallbackNotificationCopy(type: StoreShape["notifications"][number]["typ
 function getLegacyPoints(store: Partial<StoreShape>, userId: string) {
   const predictions = store.predictions ?? [];
   const playerRatings = store.playerRatings ?? [];
-  const setPlayerRatings = store.setPlayerRatings ?? [];
   const comments = store.comments ?? [];
   const matches = store.matches ?? [];
 
   const userPredictions = predictions.filter((prediction) => prediction.userId === userId);
-  const userRatings =
-    playerRatings.filter((rating) => rating.userId === userId).length +
-    setPlayerRatings.filter((rating) => rating.userId === userId).length;
+  const userRatings = playerRatings.filter((rating) => rating.userId === userId).length;
   const userComments = comments.filter((comment) => comment.userId === userId && !comment.hidden).length;
 
   const hit = userPredictions.filter((prediction) => {
@@ -216,9 +210,6 @@ function withDefaults(store: Partial<StoreShape>): StoreShape {
   const needsScheduleRefresh =
     !(store.matches ?? []).some((match) => match.id === "match_95") ||
     !(store.teams ?? []).some((team) => team.id === "team_tbd");
-  const needsSeededSets =
-    (store.matchSets ?? []).length === 0 ||
-    (store.setParticipants ?? []).length === 0;
   const seedTeamIds = new Set(seed.teams.map((team) => team.id));
   const seedPlayerIds = new Set(seed.players.map((player) => player.id));
   const seedRosterEntryIds = new Set(seed.teamRosterEntries.map((entry) => entry.id));
@@ -362,8 +353,6 @@ function withDefaults(store: Partial<StoreShape>): StoreShape {
         : seed.teamRosterEntries,
     matches: needsScheduleRefresh ? seed.matches : (store.matches ?? seed.matches),
     matchParticipants: needsScheduleRefresh ? seed.matchParticipants : (store.matchParticipants ?? seed.matchParticipants),
-    matchSets: needsScheduleRefresh || needsSeededSets ? seed.matchSets : (store.matchSets ?? seed.matchSets),
-    setParticipants: needsScheduleRefresh || needsSeededSets ? seed.setParticipants : (store.setParticipants ?? seed.setParticipants),
     predictions: (needsScheduleRefresh ? [] : (store.predictions ?? seed.predictions)).map((prediction) => {
       const ledgerEntries = (store.pointLedger ?? []) as StoreShape["pointLedger"];
       const legacyHitEntry = ledgerEntries.find(
@@ -434,11 +423,6 @@ function withDefaults(store: Partial<StoreShape>): StoreShape {
       };
     }),
     playerRatings: (needsScheduleRefresh ? [] : (store.playerRatings ?? seed.playerRatings)).map((rating) => ({
-      ...rating,
-      comment: looksGarbled(rating.comment) ? fallbackSetRatingComment(rating.score) : rating.comment,
-      updatedAt: rating.updatedAt ?? rating.createdAt,
-    })),
-    setPlayerRatings: ((needsScheduleRefresh || (store.setPlayerRatings ?? []).length === 0) ? seed.setPlayerRatings : (store.setPlayerRatings ?? seed.setPlayerRatings)).map((rating) => ({
       ...rating,
       comment: looksGarbled(rating.comment) ? fallbackSetRatingComment(rating.score) : rating.comment,
       updatedAt: rating.updatedAt ?? rating.createdAt,

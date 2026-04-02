@@ -109,26 +109,6 @@ export interface StoredMatchParticipant {
   teamId: string;
 }
 
-export interface StoredMatchSet {
-  id: string;
-  matchId: string;
-  setNumber: number;
-  winnerTeamId: string | null;
-  durationMinutes: number | null;
-  teamAScore: number;
-  teamBScore: number;
-  note: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface StoredSetParticipant {
-  id: string;
-  matchSetId: string;
-  playerId: string;
-  teamId: string;
-}
-
 export interface StoredPrediction {
   id: string;
   userId: string;
@@ -212,17 +192,6 @@ export interface StoredComment {
   updatedAt?: string | null;
 }
 
-export interface StoredSetPlayerRating {
-  id: string;
-  userId: string;
-  matchSetId: string;
-  playerId: string;
-  score: number;
-  comment: string;
-  createdAt: string;
-  updatedAt?: string | null;
-}
-
 export interface StoredPointLedgerEntry {
   id: string;
   userId: string;
@@ -273,14 +242,11 @@ export interface StoreShape {
   teamRosterEntries: StoredTeamRosterEntry[];
   matches: StoredMatch[];
   matchParticipants: StoredMatchParticipant[];
-  matchSets: StoredMatchSet[];
-  setParticipants: StoredSetParticipant[];
   predictions: StoredPrediction[];
   seasonPredictionQuestions: StoredSeasonPredictionQuestion[];
   seasonPredictionOptions: StoredSeasonPredictionOption[];
   seasonPredictionEntries: StoredSeasonPredictionEntry[];
   playerRatings: StoredPlayerRating[];
-  setPlayerRatings: StoredSetPlayerRating[];
   comments: StoredComment[];
   pointLedger: StoredPointLedgerEntry[];
   notifications: StoredNotification[];

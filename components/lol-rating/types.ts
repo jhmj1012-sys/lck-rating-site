@@ -240,53 +240,11 @@ export interface MatchMonthGroup {
   weeks: MatchWeekGroup[];
 }
 
-export interface MatchSetSummary {
-  id: string;
-  setNumber: number;
-  title: string;
-  isPlayed: boolean;
-  winnerTeam: string | null;
-  durationLabel: string;
-  scoreLabel: string;
-  note: string;
-  ratingParticipants: number;
-  topPerformer: string | null;
-  viewerHasRated: boolean;
-}
-
 export interface MatchSummaryItem {
   id: string;
   label: string;
   value: string;
   tone?: "default" | "accent" | "success";
-}
-
-export interface SetPlayerRating {
-  playerId: string;
-  name: string;
-  team: string;
-  role: PlayerRole;
-  averageRating: number;
-  ratingCount: number;
-  commentHighlights: string[];
-}
-
-export interface SetDetailData {
-  id: string;
-  matchId: string;
-  setNumber: number;
-  title: string;
-  isPlayed: boolean;
-  winnerTeam: string | null;
-  durationLabel: string;
-  scoreLabel: string;
-  note: string;
-  teamA: string;
-  teamB: string;
-  teamAPlayers: SetPlayerRating[];
-  teamBPlayers: SetPlayerRating[];
-  viewerRatings: Record<string, number>;
-  canRate: boolean;
 }
 
 export interface MatchDetailData {
