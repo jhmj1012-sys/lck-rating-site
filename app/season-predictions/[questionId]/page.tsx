@@ -62,9 +62,34 @@ export default async function SeasonPredictionDetailPage({
               <div className="rounded-full bg-[#4A4A59] px-3 py-1 text-xs font-semibold text-[#FFFFFF]">{getStatusLabel(detail.status)}</div>
             </div>
             <h1 className="mt-4 text-3xl font-black text-[#FFFFFF]">{detail.title}</h1>
-            <p className="mt-3 text-sm leading-7 text-[#D4DCFF]">{detail.description}</p>
 
-            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            <div className="mt-3 flex flex-wrap gap-2 sm:hidden">
+              <div className="rounded-full bg-[#3A3A47] px-3 py-1 text-xs font-medium text-[#FFFFFF]">{detail.season}</div>
+              <div className="rounded-full bg-[#3A3A47] px-3 py-1 text-xs font-medium text-[#FFFFFF]">참여 {detail.totalEntries}명</div>
+              <div className="rounded-full bg-[#3A3A47] px-3 py-1 text-xs font-medium text-[#FFFFFF]">마감 {formatDate(detail.closeAt)}</div>
+            </div>
+
+            <p className="mt-3 hidden text-sm leading-7 text-[#D4DCFF] sm:block">{detail.description}</p>
+
+            <div className="mt-4 rounded-2xl bg-[#3A3A47] px-4 py-3 text-sm text-[#D4DCFF]">
+              {detail.canSubmit
+                ? `마감까지 ${detail.countdownLabel}`
+                : detail.status === "resolved"
+                  ? "결과가 확정되었습니다."
+                  : "마감된 질문입니다."}
+            </div>
+
+            {detail.myEntry ? (
+              <div className="mt-3 rounded-2xl bg-[#3A3A47] px-4 py-3 text-sm text-[#FFFFFF]">
+                현재 내 선택: {detail.myEntry.selectedOptionLabel}
+              </div>
+            ) : null}
+
+            <div className="mt-4 border-t border-[#474756] pt-4">
+              <SeasonPredictionEntryForm detail={detail} showMyEntry={false} />
+            </div>
+
+            <div className="mt-5 hidden gap-3 sm:grid sm:grid-cols-3">
               <div className="rounded-2xl bg-[#3A3A47] px-4 py-3 text-sm text-[#FFFFFF]">
                 <div className="text-xs text-[#D4DCFF]">시즌</div>
                 <div className="mt-1 font-semibold text-[#FFFFFF]">{detail.season}</div>
@@ -77,24 +102,6 @@ export default async function SeasonPredictionDetailPage({
                 <div className="text-xs text-[#D4DCFF]">참여자</div>
                 <div className="mt-1 font-semibold text-[#FFFFFF]">{detail.totalEntries}명</div>
               </div>
-            </div>
-
-            <div className="mt-4 rounded-2xl bg-[#3A3A47] px-4 py-3 text-sm text-[#D4DCFF]">
-              {detail.canSubmit
-                ? `마감까지 ${detail.countdownLabel}`
-                : detail.status === "resolved"
-                  ? "결과가 확정되었습니다."
-                  : "마감된 질문입니다."}
-            </div>
-
-            {detail.myEntry ? (
-              <div className="mt-4 rounded-2xl bg-[#3A3A47] px-4 py-3 text-sm text-[#FFFFFF]">
-                현재 내 선택: {detail.myEntry.selectedOptionLabel}
-              </div>
-            ) : null}
-
-            <div className="mt-4 border-t border-[#474756] pt-4">
-              <SeasonPredictionEntryForm detail={detail} showMyEntry={false} />
             </div>
           </section>
         </div>

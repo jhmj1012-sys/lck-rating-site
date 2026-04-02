@@ -435,15 +435,15 @@ function TodayMatchCard({ match, forcePredictCta = false }: { match: MatchData; 
         </div>
         <div className="relative mt-4 h-4 overflow-hidden rounded-full bg-[#2A2A34]">
           <div className="flex h-full">
-            <div className="h-full bg-[#234D74]" style={{ width: `${match.predictionSummary.teamA}%` }} />
-            <div className="h-full bg-[#672C44]" style={{ width: `${match.predictionSummary.teamB}%` }} />
+            <div className="h-full bg-[#2F9FD8]" style={{ width: `${match.predictionSummary.teamA}%` }} />
+            <div className="h-full bg-[#D84040]" style={{ width: `${match.predictionSummary.teamB}%` }} />
           </div>
           {match.predictionSummary.teamA > 0 && match.predictionSummary.teamA < 100 ? (
             <div
               className="pointer-events-none absolute inset-y-0 w-4 -translate-x-1/2"
               style={{
                 left: `${match.predictionSummary.teamA}%`,
-                background: "linear-gradient(90deg, #234D74 0%, #672C44 100%)",
+                background: "linear-gradient(90deg, #2F9FD8 0%, #D84040 100%)",
                 filter: "blur(1.6px)",
                 opacity: 0.9,
               }}

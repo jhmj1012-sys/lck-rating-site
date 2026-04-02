@@ -278,8 +278,6 @@ function PredictionGamePanel({ match }: { match: MatchData }) {
             : null;
   const selectedShare = selectedTeam === match.teamA ? match.predictionSummary.teamA : selectedTeam === match.teamB ? match.predictionSummary.teamB : null;
   const estimatedBonusCoins = selectedShare === null ? null : estimateHitBonusCoins(selectedShare);
-  const teamAOddsPercent = estimateOddsPercent(match.predictionSummary.teamA);
-  const teamBOddsPercent = estimateOddsPercent(match.predictionSummary.teamB);
 
   const renderPickCard = (team: string) => {
     const isLeft = team === match.teamA;
@@ -296,17 +294,15 @@ function PredictionGamePanel({ match }: { match: MatchData }) {
           setCompletedTeam(null);
         }}
         className={cn(
-          'rounded-[20px] border p-4 transition',
-          isLeft ? 'text-left' : 'text-right',
-          active
-            ? isLeft
-              ? 'border-[#234D74] bg-[linear-gradient(180deg,#2E5C88_0%,#234D74_100%)] shadow-none'
-              : 'border-[#672C44] bg-[linear-gradient(180deg,#7A3753_0%,#672C44_100%)] shadow-none'
+          'flex min-h-[72px] items-center justify-center rounded-[20px] border p-4 text-center transition',
+            active
+              ? isLeft
+              ? 'border-[#2F9FD8] bg-[linear-gradient(180deg,#44AFE4_0%,#2F9FD8_100%)] shadow-none'
+              : 'border-[#D84040] bg-[linear-gradient(180deg,#E25656_0%,#D84040_100%)] shadow-none'
             : 'border-slate-200 bg-slate-50 hover:bg-white',
         )}
       >
-        
-        <div className='mt-2 text-2xl font-black text-slate-950'>{getTeamDisplayName(team)}</div>
+        <div className='truncate text-2xl font-black text-slate-950'>{getTeamDisplayName(team)}</div>
       </button>
     );
   };
@@ -319,38 +315,33 @@ function PredictionGamePanel({ match }: { match: MatchData }) {
           <div className='text-xs text-slate-500'>총 {match.predictionSummary.totalVotes.toLocaleString()}명 참여</div>
         </div>
 
-        <div className='grid gap-3 sm:grid-cols-2 sm:items-stretch'>
+        <div className='grid grid-cols-2 gap-2 sm:gap-3 sm:items-stretch'>
           {renderPickCard(match.teamA)}
           {renderPickCard(match.teamB)}
         </div>
 
         <div className='mt-4 rounded-[16px] border border-slate-200 bg-slate-50 px-3 py-3'>
+          <div className='text-center text-[11px] font-semibold tracking-[0.08em] text-slate-500'>승부예측</div>
           <div className='relative mt-2 h-2.5 overflow-hidden rounded-full bg-[#2A2A34]'>
             <div className='flex h-full w-full'>
-              <div className='h-full bg-[#234D74]' style={{ width: `${match.predictionSummary.teamA}%` }} />
-              <div className='h-full bg-[#672C44]' style={{ width: `${match.predictionSummary.teamB}%` }} />
+              <div className='h-full bg-[#2F9FD8]' style={{ width: `${match.predictionSummary.teamA}%` }} />
+              <div className='h-full bg-[#D84040]' style={{ width: `${match.predictionSummary.teamB}%` }} />
             </div>
             {match.predictionSummary.teamA > 0 && match.predictionSummary.teamA < 100 ? (
               <div
                 className='pointer-events-none absolute inset-y-0 w-4 -translate-x-1/2'
                 style={{
                   left: `${match.predictionSummary.teamA}%`,
-                  background: 'linear-gradient(90deg, #234D74 0%, #672C44 100%)',
+                  background: 'linear-gradient(90deg, #2F9FD8 0%, #D84040 100%)',
                   filter: 'blur(1.6px)',
                   opacity: 0.9,
                 }}
               />
             ) : null}
           </div>
-          <div className='mt-2 flex items-center justify-between text-base font-black text-slate-800'>
-            <span>
-              {match.predictionSummary.teamA}%{" "}
-              <span className='text-xs font-medium text-slate-500'>배당 {teamAOddsPercent}%</span>
-            </span>
-            <span>
-              {match.predictionSummary.teamB}%{" "}
-              <span className='text-xs font-medium text-slate-500'>배당 {teamBOddsPercent}%</span>
-            </span>
+          <div className='mt-2 flex items-center justify-between text-[12px] font-semibold text-slate-600'>
+            <span>{match.predictionSummary.teamA}%</span>
+            <span>{match.predictionSummary.teamB}%</span>
           </div>
         </div>
       </div>
@@ -359,9 +350,10 @@ function PredictionGamePanel({ match }: { match: MatchData }) {
         <div>참여 시 +{PREDICTION_JOIN_REWARD_COINS} 코인 지급</div>
         <div className='mt-1'>
           적중 시 배당에 따라 추가 지급
-          {estimatedBonusCoins !== null ? ` (현재 선택 기준 예상 +${estimatedBonusCoins} 코인)` : ''}
         </div>
-        <div className='mt-1'>경기시작 10분 전 예측 마감</div>
+        {estimatedBonusCoins !== null ? (
+          <div className='mt-1 text-slate-600'>현재 선택 기준 예상 +{estimatedBonusCoins} 코인</div>
+        ) : null}
       </div>
 
       <Button
