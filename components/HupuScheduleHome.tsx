@@ -433,22 +433,18 @@ function TodayMatchCard({ match, forcePredictCta = false }: { match: MatchData; 
           <div className="text-[30px] font-black tracking-[-0.04em] text-white">{match.predictionSummary.teamA}%</div>
           <div className="text-[30px] font-black tracking-[-0.04em] text-white">{match.predictionSummary.teamB}%</div>
         </div>
-        <div className="relative mt-4 h-4 overflow-hidden rounded-full bg-[#2A2A34]">
-          <div className="flex h-full">
-            <div className="h-full bg-[#2F9FD8]" style={{ width: `${match.predictionSummary.teamA}%` }} />
-            <div className="h-full bg-[#D84040]" style={{ width: `${match.predictionSummary.teamB}%` }} />
-          </div>
-          {match.predictionSummary.teamA > 0 && match.predictionSummary.teamA < 100 ? (
-            <div
-              className="pointer-events-none absolute inset-y-0 w-4 -translate-x-1/2"
-              style={{
-                left: `${match.predictionSummary.teamA}%`,
-                background: "linear-gradient(90deg, #2F9FD8 0%, #D84040 100%)",
-                filter: "blur(1.6px)",
-                opacity: 0.9,
-              }}
-            />
-          ) : null}
+        <div className="mt-3 text-[11px] font-semibold tracking-[0.08em] text-[#d6d6e5]">승부예측</div>
+        <div className="relative mt-2 h-[11px] w-full overflow-hidden rounded-[5px] bg-[#2A2A34]">
+          <div
+            className="h-full w-full"
+            style={{
+              background: `linear-gradient(to right, #2f9fd8 0%, #4fc3e8 ${Math.max(0, Math.min(100, match.predictionSummary.teamA - 15))}%, #9b7dde ${Math.max(0, Math.min(100, match.predictionSummary.teamA))}%, #e84057 ${Math.max(0, Math.min(100, match.predictionSummary.teamA + 15))}%, #c0303f 100%)`,
+            }}
+          />
+        </div>
+        <div className="mt-2 flex items-center justify-between text-[12px] font-semibold text-[#d6d6e5]">
+          <span>{match.predictionSummary.teamA}%</span>
+          <span>{match.predictionSummary.teamB}%</span>
         </div>
         <div className="mt-3 flex items-center justify-between text-sm text-[#d6d6e5]">
           <span>{LABELS.voteCount} {match.predictionSummary.totalVotes}</span>

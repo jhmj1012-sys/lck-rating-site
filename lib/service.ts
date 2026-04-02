@@ -72,6 +72,7 @@ import type {
   UserProfile,
   WeekSchedule,
 } from "@/components/lol-rating/types";
+import { COMMENT_MAX_LENGTH, COMMENT_MIN_LENGTH } from "@/lib/comment-constants";
 
 const relativeTime = new Intl.RelativeTimeFormat("ko", { numeric: "auto" });
 const roleOrder: Record<PlayerRole, number> = { TOP: 0, JGL: 1, MID: 2, ADC: 3, SUP: 4 };
@@ -480,6 +481,32 @@ function formatRelativeLabel(value: string) {
   }
 
   return relativeTime.format(Math.round(hours / 24), "day");
+}
+
+function formatCommentCreatedLabel(value: string) {
+  const targetMs = new Date(value).getTime();
+  const nowMs = getNowMs();
+  const diffMs = nowMs - targetMs;
+
+  if (diffMs >= 0 && diffMs < 24 * 60 * 60 * 1000) {
+    const minutes = Math.max(1, Math.floor(diffMs / 60000));
+    if (minutes < 60) {
+      return `${minutes}분 전`;
+    }
+    const hours = Math.floor(minutes / 60);
+    return `${hours}시간 전`;
+  }
+
+  const parts = new Intl.DateTimeFormat("ko-KR", {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "Asia/Seoul",
+  }).formatToParts(new Date(value));
+  const getPart = (type: "month" | "day" | "hour" | "minute") => parts.find((part) => part.type === type)?.value ?? "00";
+  return `${getPart("month")}.${getPart("day")} ${getPart("hour")}:${getPart("minute")}`;
 }
 
 function formatDateLabel(value: string) {
@@ -922,7 +949,7 @@ function buildComments(store: StoreShape, matchId: string, viewerId: string | nu
         parentId: comment.parentId,
         user: getPublicName(author),
         userSummary: buildPublicUserSummary(store, author?.id ?? null),
-        createdLabel: formatRelativeLabel(comment.createdAt),
+        createdLabel: formatCommentCreatedLabel(comment.createdAt),
         likes: recommendationCount,
         likedByMe: viewerId ? comment.recommendUserIds.includes(viewerId) : false,
         replyCount: replyCountByParent.get(comment.id) ?? 0,
@@ -3032,8 +3059,11 @@ export async function submitComment(input: {
     }
 
     const text = input.text.trim();
-    if (text.length < 2) {
+    if (text.length < COMMENT_MIN_LENGTH) {
       throw new Error("댓글은 두 글자 이상 입력해 주세요.");
+    }
+    if (text.length > COMMENT_MAX_LENGTH) {
+      throw new Error(`댓글은 최대 ${COMMENT_MAX_LENGTH}자까지 입력할 수 있습니다.`);
     }
 
     const parentId = input.parentId ?? null;

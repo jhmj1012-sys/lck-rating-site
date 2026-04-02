@@ -6,6 +6,7 @@ import { startTransition, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { toBlob } from 'html-to-image';
+import { COMMENT_MAX_LENGTH, COMMENT_MIN_LENGTH } from '@/lib/comment-constants';
 
 import type { MatchComment, MatchData, MatchDetailData, MatchSetSummary } from './types';
 import { getTeamDisplayName } from './team-branding';
@@ -323,22 +324,13 @@ function PredictionGamePanel({ match }: { match: MatchData }) {
 
         <div className='mt-4 rounded-[16px] border border-slate-200 bg-slate-50 px-3 py-3'>
           <div className='text-center text-[11px] font-semibold tracking-[0.08em] text-slate-500'>승부예측</div>
-          <div className='relative mt-2 h-2.5 overflow-hidden rounded-full bg-[#2A2A34]'>
-            <div className='flex h-full w-full'>
-              <div className='h-full bg-[#2F9FD8]' style={{ width: `${match.predictionSummary.teamA}%` }} />
-              <div className='h-full bg-[#D84040]' style={{ width: `${match.predictionSummary.teamB}%` }} />
-            </div>
-            {match.predictionSummary.teamA > 0 && match.predictionSummary.teamA < 100 ? (
-              <div
-                className='pointer-events-none absolute inset-y-0 w-4 -translate-x-1/2'
-                style={{
-                  left: `${match.predictionSummary.teamA}%`,
-                  background: 'linear-gradient(90deg, #2F9FD8 0%, #D84040 100%)',
-                  filter: 'blur(1.6px)',
-                  opacity: 0.9,
-                }}
-              />
-            ) : null}
+          <div className='relative mt-2 h-[11px] w-full overflow-hidden rounded-[5px] bg-[#2A2A34]'>
+            <div
+              className='h-full w-full'
+              style={{
+                background: `linear-gradient(to right, #2f9fd8 0%, #4fc3e8 ${Math.max(0, Math.min(100, match.predictionSummary.teamA - 15))}%, #9b7dde ${Math.max(0, Math.min(100, match.predictionSummary.teamA))}%, #e84057 ${Math.max(0, Math.min(100, match.predictionSummary.teamA + 15))}%, #c0303f 100%)`,
+              }}
+            />
           </div>
           <div className='mt-2 flex items-center justify-between text-[12px] font-semibold text-slate-600'>
             <span>{match.predictionSummary.teamA}%</span>
@@ -1047,59 +1039,99 @@ function CommentInputBar({
   const { data: session, status } = useSession();
   const [text, setText] = useState('');
   const [pending, setPending] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const canWrite = status === 'authenticated' && Boolean(session?.user?.hasNickname);
+  const avatarLabel = status === 'authenticated' ? '나' : '?';
+  const canSubmit = canWrite && !pending && text.trim().length >= COMMENT_MIN_LENGTH;
+
+  const submitComment = async () => {
+    if (!canSubmit) {
+      return;
+    }
+    try {
+      setPending(true);
+      await postJson(`/api/matches/${matchId}/comments`, { text, parentId: parentId ?? null });
+      setText('');
+      setToastMessage(parentId ? '답글이 등록되었습니다.' : '댓글이 등록되었습니다.');
+      window.setTimeout(() => setToastMessage(null), 2000);
+      startTransition(() => router.refresh());
+      onSubmitted?.();
+      onCancelReply?.();
+    } catch (error) {
+      setToastMessage(error instanceof Error ? error.message : '댓글 등록에 실패했습니다.');
+      window.setTimeout(() => setToastMessage(null), 2000);
+    } finally {
+      setPending(false);
+    }
+  };
 
   return (
-    <div className={cn('rounded-[18px] border border-slate-200 bg-white p-2.5', compact ? 'ml-10 sm:ml-14' : '')}>
-      <div className='flex items-end gap-2'>
-        <textarea
-          rows={compact ? 2 : 2}
-          value={text}
-          onChange={(event) => setText(event.target.value)}
-          className='min-h-[44px] flex-1 resize-none rounded-[14px] border border-transparent bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-sky-200 focus:bg-white'
-          placeholder={
-            status !== 'authenticated'
-              ? '로그인 후 댓글을 작성할 수 있습니다.'
-              : !session?.user?.hasNickname
-                ? '닉네임 설정 후 댓글을 작성할 수 있습니다.'
-                : placeholder
-          }
-          disabled={!canWrite || pending}
-        />
-        <Button
-          disabled={!canWrite || pending || text.trim().length < 2}
-          className='h-11 shrink-0 rounded-[12px] px-4'
-          onClick={async () => {
-            try {
-              setPending(true);
-              await postJson(`/api/matches/${matchId}/comments`, { text, parentId: parentId ?? null });
-              setText('');
-              setFeedback(parentId ? '답글이 등록되었습니다.' : '댓글이 등록되었습니다.');
-              startTransition(() => router.refresh());
-              onSubmitted?.();
-              onCancelReply?.();
-            } catch (error) {
-              setFeedback(error instanceof Error ? error.message : '댓글 등록에 실패했습니다.');
-            } finally {
-              setPending(false);
+    <div
+      className={cn(
+        'relative rounded-[18px] border border-white/10 bg-[#151520] p-2.5',
+        compact ? 'ml-10 sm:ml-14' : 'border-none bg-transparent p-0',
+      )}
+    >
+      <div className={cn('flex flex-nowrap gap-2', compact ? 'items-end' : 'items-start')}>
+        {!compact ? (
+          <Avatar className='mt-1 h-8 w-8 shrink-0 bg-[#8B5CF6] text-[11px] font-black text-white sm:h-9 sm:w-9'>{avatarLabel}</Avatar>
+        ) : null}
+        <div className='relative min-w-0 flex-1'>
+          <input
+            type='text'
+            value={text}
+            onChange={(event) => setText(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                void submitComment();
+              }
+            }}
+            maxLength={COMMENT_MAX_LENGTH}
+            className={cn(
+              'block h-12 w-full rounded-[14px] px-4 pr-16 text-[13px] outline-none transition sm:text-[14px]',
+              compact
+                ? '!border !border-white/15 !bg-[#262638] !text-slate-100 placeholder:!text-slate-300 focus:!border-[#8B5CF6]'
+                : '!border !border-white/15 !bg-[#2a2a3a] !text-slate-100 placeholder:!text-slate-300 focus:!border-[#8B5CF6]',
+            )}
+            placeholder={
+              status !== 'authenticated'
+                ? '로그인 후 댓글을 작성할 수 있습니다.'
+                : !session?.user?.hasNickname
+                  ? '닉네임 설정 후 댓글을 작성할 수 있습니다.'
+                  : placeholder
             }
-          }}
-        >
-          {pending ? '등록 중...' : parentId ? '답글' : '등록'}
-        </Button>
+            disabled={!canWrite || pending}
+          />
+          <Button
+            disabled={!canSubmit}
+            className={cn(
+              'absolute right-2 top-1/2 h-7 -translate-y-1/2 rounded-[8px] px-2.5 text-[11px] font-semibold',
+              compact ? 'bg-[#3E365F] text-white' : 'bg-[#3E365F] text-white',
+              canSubmit ? 'opacity-100' : 'opacity-30',
+            )}
+            onClick={() => void submitComment()}
+          >
+            {pending ? '...' : parentId ? '답글' : '등록'}
+          </Button>
+        </div>
       </div>
-      <div className='mt-1 flex items-center justify-between gap-2 px-1'>
-        <div className='text-[11px] text-slate-500'>{feedback ?? `${parentId ? '답글' : '댓글'}을 남겨보세요`}</div>
+      <div className={cn('mt-1 flex items-center justify-between gap-2 px-1', compact ? '' : 'mt-2')}>
+        <div />
         <div className='flex items-center gap-2'>
           {onCancelReply ? (
-            <button type='button' className='text-[11px] font-semibold text-slate-500 hover:text-slate-900' onClick={onCancelReply}>
+            <button type='button' className='text-[11px] font-semibold text-slate-400 hover:text-slate-200' onClick={onCancelReply}>
               취소
             </button>
           ) : null}
         </div>
       </div>
+      {toastMessage ? (
+        <div className='pointer-events-none absolute bottom-2 right-2 rounded-lg bg-[#232633] px-3 py-1.5 text-[11px] font-medium text-slate-100 shadow-[0_8px_20px_rgba(0,0,0,0.35)]'>
+          {toastMessage}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -1123,16 +1155,38 @@ function CommentActions({
   const { status } = useSession();
   const [likePending, setLikePending] = useState(false);
   const [deletePending, setDeletePending] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!menuOpen) {
+      return;
+    }
+
+    const handlePointerDown = (event: MouseEvent) => {
+      const target = event.target as Node | null;
+      if (!menuRef.current || !target) {
+        return;
+      }
+      if (!menuRef.current.contains(target)) {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    return () => document.removeEventListener('mousedown', handlePointerDown);
+  }, [menuOpen]);
 
   return (
-    <div className='mt-1 flex items-center gap-2 text-[11px] opacity-0 transition-opacity duration-200 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto'>
+    <div ref={menuRef} className='relative mt-1 flex items-center justify-between gap-2 text-[12px] font-normal'>
+      <div className='flex items-center gap-2'>
       {canRecommend ? (
         <button
           type='button'
           disabled={likePending}
           className={cn(
-            'allow-disabled-cursor rounded-full border px-2.5 py-1 font-semibold transition',
-            comment.likedByMe ? 'border-sky-200 bg-sky-50 text-sky-700' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300',
+            'allow-disabled-cursor inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 font-normal transition',
+            comment.likedByMe ? 'text-[#A56BFF]' : 'text-slate-400 hover:text-slate-200',
           )}
           onClick={async () => {
             if (status !== 'authenticated') {
@@ -1148,31 +1202,53 @@ function CommentActions({
             }
           }}
         >
-          추천
+          <span>{comment.likedByMe ? '♥' : '♡'}</span>
+          <span>{comment.likes}</span>
         </button>
       ) : null}
       {canReply ? (
-        <button type='button' className='rounded-full border border-slate-200 bg-white px-2.5 py-1 font-semibold text-slate-600 hover:border-slate-300 hover:text-slate-900' onClick={onReplyToggle}>
+        <button type='button' className='rounded-full px-1.5 py-0.5 font-normal text-slate-400 hover:text-slate-200' onClick={onReplyToggle}>
           답글{comment.replyCount > 0 ? ` ${comment.replyCount}` : ''}
         </button>
       ) : null}
-      {isMine ? (
-        <button
-          type='button'
-          disabled={deletePending}
-          className='allow-disabled-cursor rounded-full border border-slate-200 bg-white px-2.5 py-1 font-semibold text-slate-600 hover:border-slate-300 hover:text-slate-900'
-          onClick={async () => {
-            try {
-              setDeletePending(true);
-              await deleteJson(`/api/matches/${matchId}/comments/${comment.id}`);
-              startTransition(() => router.refresh());
-            } finally {
-              setDeletePending(false);
-            }
-          }}
-        >
-          삭제
-        </button>
+      </div>
+      <button
+        type='button'
+        className='rounded-full px-1 py-0.5 text-base leading-none text-slate-500 hover:text-slate-300'
+        aria-label='더보기'
+        onClick={() => setMenuOpen((open) => !open)}
+      >
+        …
+      </button>
+      {menuOpen ? (
+        <div className='absolute right-0 top-6 z-10 min-w-[110px] rounded-xl border border-[#2A2B36] bg-[#11131A] p-1.5 shadow-[0_8px_22px_rgba(0,0,0,0.35)]'>
+          <button type='button' disabled className='block w-full rounded-lg px-2 py-1.5 text-left text-[11px] text-slate-400'>
+            수정 (준비중)
+          </button>
+          {isMine ? (
+            <button
+              type='button'
+              disabled={deletePending}
+              className='allow-disabled-cursor block w-full rounded-lg px-2 py-1.5 text-left text-[11px] text-slate-200 hover:bg-[#1A1D27] hover:text-rose-300'
+              onClick={async () => {
+                try {
+                  setDeletePending(true);
+                  await deleteJson(`/api/matches/${matchId}/comments/${comment.id}`);
+                  startTransition(() => router.refresh());
+                } finally {
+                  setDeletePending(false);
+                  setMenuOpen(false);
+                }
+              }}
+            >
+              삭제
+            </button>
+          ) : (
+            <button type='button' disabled className='block w-full rounded-lg px-2 py-1.5 text-left text-[11px] text-slate-400'>
+              신고 (준비중)
+            </button>
+          )}
+        </div>
       ) : null}
     </div>
   );
@@ -1193,26 +1269,31 @@ function CommentBubble({
   canRecommend: boolean;
   onReplyToggle?: () => void;
 }) {
+  const isReply = !canReply;
+
   return (
-    <div className='group flex w-full justify-start gap-2'>
-      <Avatar className='mt-1 h-8 w-8 shrink-0 text-[11px] font-bold text-slate-700'>{getInitials(comment.user)}</Avatar>
-      <div className='flex max-w-[64%] flex-col items-start sm:max-w-[56%]'>
-        <div className='mb-1 flex w-full items-center gap-2 px-1 text-[11px] text-slate-500'>
-          <div className='truncate font-semibold text-slate-600'>{comment.user}</div>
-          {isMine ? <span className='rounded-full bg-[#4A4A59] px-2 py-0.5 font-semibold text-[#F8F8F8]'>내 댓글</span> : null}
-          <span className='text-slate-300'>·</span>
-          <div className='truncate'>{comment.createdLabel}</div>
-          {canRecommend ? <div className='ml-auto shrink-0 font-medium text-slate-500'>추천 {comment.likes}</div> : null}
-        </div>
+    <div className='group flex w-full min-w-0 justify-start gap-3'>
+      <Avatar className={cn('mt-1 h-8 w-8 shrink-0 text-[11px] font-bold', isMine ? 'bg-[#8B5CF6] text-white' : 'bg-[#E9E9E6] text-[#353535]')}>
+        {isMine ? '나' : getInitials(comment.user)}
+      </Avatar>
+      <div className='w-full min-w-0'>
         <div
           className={cn(
-            'rounded-2xl px-3.5 py-2 text-sm leading-6',
-            'rounded-tl-md border border-slate-200 bg-white text-slate-800',
+            'rounded-2xl border px-4 py-3',
+            isMine ? 'border-[#7c5cbf] bg-[#2a2a3a] text-slate-100' : 'border-[0.5px] border-[rgba(255,255,255,0.08)] bg-[#2a2a3a] text-slate-100',
           )}
         >
-          <p className='whitespace-pre-wrap break-words'>{comment.text}</p>
+          <div className='mb-1 flex items-start justify-between gap-2'>
+            <div className='truncate text-[13px] font-medium text-slate-100'>
+              {comment.user}
+            </div>
+            <div className='shrink-0 text-[12px] font-normal text-slate-400'>{comment.createdLabel}</div>
+          </div>
+          <p className={cn('whitespace-pre-wrap break-words [overflow-wrap:anywhere] font-normal leading-[1.6]', isReply ? 'text-[13px]' : 'text-[14px]')}>
+            {comment.text}
+          </p>
         </div>
-        <div className='mt-1 flex w-full items-center justify-end px-1'>
+        <div className='mt-[2px] w-full px-1'>
           <CommentActions matchId={matchId} comment={comment} isMine={isMine} canRecommend={canRecommend} canReply={canReply} onReplyToggle={onReplyToggle} />
         </div>
       </div>
@@ -1242,7 +1323,7 @@ function CommentThread({ matchId, comment, replies }: { matchId: string; comment
       ) : null}
 
       {orderedReplies.length > 0 ? (
-        <div className='ml-6 space-y-2 border-l border-slate-200/80 pl-3 sm:ml-10 sm:pl-4'>
+        <div className='ml-6 space-y-2 border-l border-[#3A3342] pl-3 sm:ml-10 sm:pl-4'>
           {orderedReplies.map((reply) => {
             const replyIsMine = Boolean(viewerId && reply.userId && viewerId === reply.userId);
             return <CommentBubble key={reply.id} matchId={matchId} comment={reply} isMine={replyIsMine} canReply={false} canRecommend={false} />;
@@ -1278,47 +1359,51 @@ function CommentsSection({ data }: { data: MatchDetailData }) {
   }, [data.match.commentsList]);
 
   return (
-    <Card className='overflow-hidden'>
-      <CardContent className='space-y-4 px-4 pb-4 pt-5 sm:px-6 sm:pb-5 sm:pt-6'>
+    <Card className='overflow-hidden border border-[#1E1E27] bg-[#07080D]'>
+      <CardContent className='space-y-4 px-4 pb-5 pt-6 text-[#E5E7EB] sm:px-6 sm:pb-6'>
         <div className='flex items-end justify-between gap-3'>
-          <div>
-            
-            <h2 className='mt-2 text-2xl font-black tracking-[-0.03em] text-slate-950'>댓글</h2>
-          </div>
-          <div className='flex items-center gap-2 text-sm'>
+          <div className='flex items-center gap-3 text-[13px] text-slate-300'>
+            <span className='font-semibold'>정렬</span>
             <button
               type='button'
-              className={cn('rounded-full border px-3 py-1.5 font-semibold', sort === 'latest' ? 'border-sky-200 bg-sky-50 text-sky-700' : 'border-slate-200 text-slate-600')}
+              className={cn(
+                'rounded-2xl border px-4 py-1.5 font-semibold',
+                sort === 'latest' ? 'border-[#2A2B36] bg-[#0D0E16] text-white' : 'border-[#2A2B36] bg-transparent text-slate-500',
+              )}
               onClick={() => setSort('latest')}
             >
               최신순
             </button>
             <button
               type='button'
-              className={cn('rounded-full border px-3 py-1.5 font-semibold', sort === 'top' ? 'border-sky-200 bg-sky-50 text-sky-700' : 'border-slate-200 text-slate-600')}
+              className={cn(
+                'rounded-2xl border px-4 py-1.5 font-semibold',
+                sort === 'top' ? 'border-[#2A2B36] bg-[#0D0E16] text-white' : 'border-[#2A2B36] bg-transparent text-slate-500',
+              )}
               onClick={() => setSort('top')}
             >
               추천순
             </button>
           </div>
+          <div className='text-[13px] font-semibold text-slate-300'>댓글 {rootComments.length}개</div>
         </div>
 
-        <div className='rounded-[20px] border border-slate-200 bg-slate-50/70 p-3 sm:p-4'>
+        <div className='mx-auto max-w-6xl'>
+          <CommentInputBar matchId={data.match.id} placeholder='댓글을 입력하세요...' />
+        </div>
+
+        <div className='rounded-[20px] border border-[#1E1E27] bg-transparent p-0'>
           {rootComments.length === 0 ? (
-            <div className='ui-empty'>아직 대화가 없습니다.</div>
+            <div className='py-8 text-center text-sm text-slate-500'>아직 대화가 없습니다.</div>
           ) : (
-            <div className='mx-auto max-w-3xl space-y-3'>
+            <div className='mx-auto max-w-6xl space-y-4'>
               {rootComments.map((comment) => (
-                <CommentThread key={comment.id} matchId={data.match.id} comment={comment} replies={repliesByParent.get(comment.id) ?? []} />
+                <div key={comment.id} className='border-b border-[#1E1E27] pb-4 last:border-b-0'>
+                  <CommentThread matchId={data.match.id} comment={comment} replies={repliesByParent.get(comment.id) ?? []} />
+                </div>
               ))}
             </div>
           )}
-        </div>
-
-        <div className='sticky bottom-0 z-10 border-t border-slate-200/80 bg-white/95 pt-3 backdrop-blur'>
-          <div className='mx-auto max-w-3xl'>
-            <CommentInputBar matchId={data.match.id} placeholder='경기 프리뷰 의견을 남겨보세요' />
-          </div>
         </div>
       </CardContent>
     </Card>
