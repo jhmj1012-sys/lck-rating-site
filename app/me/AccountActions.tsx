@@ -1,6 +1,6 @@
 'use client';
 
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -35,6 +35,7 @@ export function AccountActions({
   const [deleteReason, setDeleteReason] = useState("");
   const [deleteAgreement, setDeleteAgreement] = useState(false);
   const router = useRouter();
+  const { update: updateSession } = useSession();
 
   useEffect(() => {
     setNicknameInput(currentNickname);
@@ -53,7 +54,7 @@ export function AccountActions({
     try {
       setIsDeleting(true);
       const response = await fetch("/api/me/account", { method: "DELETE" });
-      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      const payload = (await response.json().catch(() => null)) as { error?: string; nickname?: string } | null;
 
       if (!response.ok) {
         window.alert(payload?.error ?? "회원탈퇴 처리에 실패했습니다.");
@@ -81,7 +82,7 @@ export function AccountActions({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nickname: trimmed }),
       });
-      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      const payload = (await response.json().catch(() => null)) as { error?: string; nickname?: string } | null;
 
       if (!response.ok) {
         window.alert(payload?.error ?? "닉네임 변경에 실패했습니다.");
@@ -89,6 +90,9 @@ export function AccountActions({
       }
 
       setNicknameMessage("저장되었습니다.");
+      if (payload?.nickname !== undefined) {
+        await updateSession({ nickname: payload.nickname });
+      }
       router.refresh();
     } finally {
       setIsSavingNickname(false);

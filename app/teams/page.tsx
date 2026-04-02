@@ -70,7 +70,7 @@ export default async function TeamsPage({
     return (
       <div>
         <TopSiteNav
-          active="schedule"
+          active="none"
           notifications={hubData.notifications}
           unreadNotificationCount={hubData.unreadNotificationCount}
         />
@@ -92,7 +92,7 @@ export default async function TeamsPage({
   return (
     <div>
       <TopSiteNav
-        active="schedule"
+        active="none"
         notifications={hubData.notifications}
         unreadNotificationCount={hubData.unreadNotificationCount}
       />
@@ -148,7 +148,7 @@ export default async function TeamsPage({
                 href={selectedTeam.sourceUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-full bg-[#424254] px-3 py-1.5 text-xs font-medium text-[#FFFFFF] hover:bg-[#4D4D61]"
+                className="rounded-full bg-[#424254] px-3 py-1.5 text-xs font-medium !text-[#FFFFFF] visited:!text-[#FFFFFF] hover:bg-[#4D4D61] hover:!text-[#FFFFFF]"
               >
                 공식 출처 보기
               </a>

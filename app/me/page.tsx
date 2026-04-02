@@ -201,18 +201,8 @@ export default async function MyPage({
           { label: "내 기록", value: accuracyComparison.myValue, color: "#8B5CF6" },
           { label: "참여자 평균", value: accuracyComparison.averageValue, color: "#7A7A92" },
         ],
-        preview: false,
       }
-    : {
-        title: "적중률",
-        summary: "예측에 참여하면 실제 적중률 비교가 여기에 표시됩니다.",
-        delta: "미리보기",
-        bars: [
-          { label: "내 기록", value: "58%", color: "#8B5CF6" },
-          { label: "참여자 평균", value: "46%", color: "#7A7A92" },
-        ],
-        preview: true,
-      };
+    : null;
 
   const mergedHistory = [
     ...data.ratings.map((rating): HistoryItem => ({
@@ -322,10 +312,6 @@ export default async function MyPage({
           <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] sm:p-6">
             {currentTab === "profile" ? (
               <div className="space-y-5">
-                <div>
-                  <h2 className="mt-2 text-2xl font-black text-slate-950">프로필</h2>
-                </div>
-
                 <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-5 py-5">
                   <div className="text-3xl font-black text-slate-950">{data.profile.nickname}</div>
                   <p className="mt-2 text-sm leading-6 text-slate-600">
@@ -369,10 +355,6 @@ export default async function MyPage({
 
             {currentTab === "metrics" ? (
               <div className="space-y-6">
-                <div>
-                  <p className="mt-2 text-sm text-slate-500">중요한 기록만 남기고, 평균과의 차이는 그래프로 정리했어요.</p>
-                </div>
-
                 <div className="grid gap-3 md:grid-cols-3">
                   {keyPredictionMetrics.map((item) => (
                     <div key={item.label} className="rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-5">
@@ -382,10 +364,6 @@ export default async function MyPage({
                   ))}
                 </div>
 
-                <div>
-                  <h3 className="mt-2 text-xl font-black text-slate-950">내 예측 vs 참여자 평균</h3>
-                  <p className="mt-2 text-sm text-slate-500">내 기록과 평균을 같은 기준선에서 비교할 수 있어요.</p>
-                </div>
                 {accuracyGraphData ? (
                   <div className="rounded-[22px] border border-slate-200 bg-slate-50 px-5 py-5">
                     <div className="flex flex-wrap items-start justify-between gap-3">
@@ -395,9 +373,6 @@ export default async function MyPage({
                       </div>
                       <div className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-sky-700">{accuracyGraphData.delta}</div>
                     </div>
-                    {accuracyGraphData.preview ? (
-                      <div className="mt-3 text-xs font-medium text-slate-500">예측 1회 이상 참여하면 실제 데이터로 자동 변경됩니다.</div>
-                    ) : null}
                     <div className="mt-6 flex items-end justify-center gap-10 rounded-[20px] bg-[#3A3A47] px-4 py-6">
                       {accuracyGraphData.bars.map((bar) => {
                         const numericValue = Math.min(Math.max(extractNumericValue(bar.value), 0), 100);
@@ -418,17 +393,17 @@ export default async function MyPage({
                       })}
                     </div>
                   </div>
-                ) : null}
+                ) : (
+                  <div className="rounded-[20px] border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-500">
+                    예측에 참여하면 내 예측 지표가 표시됩니다.
+                  </div>
+                )}
               </div>
             ) : null}
 
             {currentTab === "predictions" ? (
               <div>
-                <div className="flex items-end justify-between gap-3">
-                  <div>
-      
-                    <h2 className="mt-2 text-xl font-black text-slate-950">내 예측 기록</h2>
-                  </div>
+                <div className="flex items-end justify-end gap-3">
                   <div className="text-sm text-slate-500">{data.predictions.length}개</div>
                 </div>
                 <div className="mt-4 space-y-2.5">
@@ -465,11 +440,7 @@ export default async function MyPage({
 
             {currentTab === "season" ? (
               <div>
-                <div className="flex items-end justify-between gap-3">
-                  <div>
-      
-                    <h2 className="mt-2 text-xl font-black text-slate-950">시즌예측 내역</h2>
-                  </div>
+                <div className="flex items-end justify-end gap-3">
                   <div className="text-sm text-slate-500">{filteredSeasonPredictions.length}개</div>
                 </div>
 
@@ -534,11 +505,7 @@ export default async function MyPage({
 
             {currentTab === "coins" ? (
               <div>
-                <div className="flex items-end justify-between gap-3">
-                  <div>
-      
-                    <h2 className="mt-2 text-xl font-black text-slate-950">코인 내역</h2>
-                  </div>
+                <div className="flex items-end justify-end gap-3">
                   <div className="text-sm text-slate-500">{data.pointLedger.length}개</div>
                 </div>
                 <div className="mt-4 space-y-2.5">
@@ -578,10 +545,6 @@ export default async function MyPage({
 
             {currentTab === "account" ? (
               <div className="space-y-5">
-                <div>
-                  <h2 className="mt-2 text-xl font-black text-slate-950">계정관리</h2>
-                  <p className="mt-1 text-sm text-slate-500">닉네임 변경과 회원탈퇴를 이곳에서 진행할 수 있습니다.</p>
-                </div>
                 <div className="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4">
                   <AccountActions
                     hasNickname={Boolean(data.profile.hasNickname)}
@@ -596,11 +559,7 @@ export default async function MyPage({
 
             {currentTab === "history" ? (
               <div>
-                <div className="flex items-end justify-between gap-3">
-                  <div>
-    
-                    <h2 className="mt-2 text-xl font-black text-slate-950">히스토리 (평점 + 댓글)</h2>
-                  </div>
+                <div className="flex items-end justify-end gap-3">
                   <div className="text-sm text-slate-500">{filteredHistory.length}개</div>
                 </div>
 

@@ -11,7 +11,7 @@ export default async function ShopPage() {
   return (
     <div>
       <TopSiteNav
-        active="games"
+        active="none"
         notifications={hubData.notifications}
         unreadNotificationCount={hubData.unreadNotificationCount}
       />

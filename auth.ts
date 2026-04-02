@@ -40,7 +40,7 @@ export const authOptions: NextAuthOptions = {
     signIn: "/signin",
   },
   callbacks: {
-    async jwt({ token, user, trigger }) {
+    async jwt({ token, user, trigger, session }) {
       const email = user?.email ?? token.email;
       if (!email) {
         return token;
@@ -49,6 +49,17 @@ export const authOptions: NextAuthOptions = {
       token.email = email;
       token.name = user?.name ?? token.name;
       token.picture = user?.image ?? token.picture;
+
+      if (trigger === "update" && session) {
+        const updatedNickname =
+          typeof (session as { nickname?: unknown }).nickname === "string"
+            ? (session as { nickname?: string }).nickname?.trim()
+            : undefined;
+        if (updatedNickname !== undefined) {
+          token.nickname = updatedNickname;
+          token.hasNickname = Boolean(updatedNickname);
+        }
+      }
 
       if (!token.userId || user || trigger === "signIn") {
         try {

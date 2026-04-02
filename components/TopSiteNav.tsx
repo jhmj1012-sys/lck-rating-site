@@ -6,7 +6,7 @@ import { SiteHeader } from "@/components/lol-rating/SiteHeader";
 import type { NotificationItem } from "@/components/lol-rating/types";
 import { cn } from "@/components/lol-rating/utils";
 
-type TopNavKey = "match" | "season" | "schedule" | "ratings" | "games";
+type TopNavKey = "match" | "season" | "schedule" | "ratings" | "games" | "none";
 
 export function TopSiteNav({
   active,

@@ -72,7 +72,10 @@ export default async function SeasonPredictionsPage({
 
                   <div className="mt-4 space-y-2.5">
                     {topRows.slice(0, 3).map((row, index) => (
-                      <div key={`${item.id}_top_${index}`} className="flex items-center justify-between gap-2">
+                      <div
+                        key={`${item.id}_top_${index}`}
+                        className={`${index >= 2 ? "hidden sm:flex" : "flex"} items-center justify-between gap-2`}
+                      >
                         <span className="truncate text-sm font-normal text-[#FFFFFF]">{row.label}</span>
                         <span className="text-2xl font-normal tracking-tight text-[#FFFFFF]">{row.percent}%</span>
                       </div>

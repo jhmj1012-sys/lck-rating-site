@@ -188,7 +188,7 @@ function NotificationButton({
       </button>
 
       {open ? (
-        <div className="absolute right-0 top-12 z-50 w-[320px] overflow-hidden rounded-2xl border border-[#474756] bg-[#31313C] shadow-[0_16px_36px_rgba(2,6,23,0.34)]">
+        <div className="fixed left-2 right-2 top-[4.2rem] z-50 overflow-hidden rounded-2xl border border-[#474756] bg-[#31313C] shadow-[0_16px_36px_rgba(2,6,23,0.34)] sm:absolute sm:left-auto sm:right-0 sm:top-12 sm:w-[320px]">
           <div className="border-b border-[#474756] px-4 py-3">
             <div className="text-sm font-semibold text-[#FFFFFF]">{HEADER_LABELS.notifications}</div>
           </div>
@@ -458,13 +458,14 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
         <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-center justify-between gap-2.5">
             <Link href="/" className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#8B5CF6] text-xs font-black tracking-[-0.03em] text-white shadow-[0_10px_24px_rgba(139,92,246,0.24)]">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] bg-gradient-to-br from-[#8B5CF6] to-[#6D4BC4] text-[20px] font-black tracking-[-0.03em] text-white shadow-[0_10px_24px_rgba(139,92,246,0.24)]">
                 LPR
               </div>
               <div className="min-w-0">
-                <div className="mobile-site-title truncate text-[14px] font-bold tracking-[-0.03em] text-[#FFFFFF] sm:text-[17px]">
-                  <span className="text-[#8B5CF6]">L</span>OL <span className="text-[#8B5CF6]">P</span>RO <span className="text-[#8B5CF6]">R</span>ATING
+                <div className="mobile-site-title truncate text-[18px] font-extrabold tracking-[-0.02em] text-white">
+                  LOL PRO RATING
                 </div>
+                <div className="mt-0.5 truncate text-[11px] font-medium tracking-[-0.01em] text-[#8793B4]">평점으로 보는 LCK</div>
               </div>
             </Link>
 

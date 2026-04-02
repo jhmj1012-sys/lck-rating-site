@@ -298,6 +298,7 @@ function ScheduleRow({ match, revealSpoiler }: { match: MatchListItem; revealSpo
   const scoreTokens = match.status === "finished" ? match.score.split(":").map((value) => value.trim()) : ["", ""];
   const leftScore = scoreTokens[0] ?? "";
   const rightScore = scoreTokens[1] ?? "";
+  const mobileCenterLabel = match.status === "finished" ? scoreLabelForMobile(leftScore, rightScore) : "VS";
 
   return (
     <Link
@@ -308,43 +309,77 @@ function ScheduleRow({ match, revealSpoiler }: { match: MatchListItem; revealSpo
         <div className="text-[13px] font-bold leading-none tracking-[-0.02em] text-white sm:text-[14px]">{match.timeLabel}</div>
         <div className="mt-2 text-[11px] font-medium leading-5 text-[#d6d6e5]">{match.stage}</div>
       </div>
-      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center rounded-[24px] bg-[#31313C] px-4 py-4">
-        <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 sm:gap-5">
-          <span className="shrink-0 text-[13px] font-semibold text-[#d6d6e5]">{match.predictionRateA}%</span>
-          <span className="truncate text-center text-[19px] font-black leading-none tracking-[-0.03em] text-white sm:text-[21px]">{match.teamA}</span>
+      <div className="rounded-[24px] bg-[#31313C] px-4 py-4">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:hidden">
+          <span className="truncate text-center text-[17px] font-black leading-none tracking-[-0.02em] text-white">{match.teamA}</span>
           <span
             className={cn(
-              "w-8 text-center text-[24px] font-black leading-none tracking-[-0.03em] text-white sm:w-9 sm:text-[26px]",
-              hideScore ? "blur-[6px] opacity-75 select-none" : "",
+              "px-2 text-[17px] font-black leading-none tracking-[-0.02em] text-white",
+              hideScore ? "blur-[5px] opacity-75 select-none" : "",
             )}
           >
-            {leftScore}
+            {mobileCenterLabel}
           </span>
+          <span className="truncate text-center text-[17px] font-black leading-none tracking-[-0.02em] text-white">{match.teamB}</span>
         </div>
-        <div className="px-4">
+        <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:hidden">
+          <span className="text-left text-[12px] font-semibold text-[#d6d6e5]">{match.predictionRateA}%</span>
           {liveLike ? (
             <LiveBadge compact />
           ) : (
-            <span className={cn("inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold", getScheduleStatusTone(match.status, liveLike))}>
+            <span className={cn("inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold", getScheduleStatusTone(match.status, liveLike))}>
               {statusLabel}
             </span>
           )}
+          <span className="text-right text-[12px] font-semibold text-[#d6d6e5]">{match.predictionRateB}%</span>
         </div>
-        <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 sm:gap-5">
-          <span
-            className={cn(
-              "w-8 text-center text-[24px] font-black leading-none tracking-[-0.03em] text-white sm:w-9 sm:text-[26px]",
-              hideScore ? "blur-[6px] opacity-75 select-none" : "",
+
+        <div className="hidden min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center sm:grid">
+          <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-5">
+            <span className="shrink-0 text-[13px] font-semibold text-[#d6d6e5]">{match.predictionRateA}%</span>
+            <span className="truncate text-center text-[21px] font-black leading-none tracking-[-0.03em] text-white">{match.teamA}</span>
+            <span
+              className={cn(
+                "w-9 text-center text-[26px] font-black leading-none tracking-[-0.03em] text-white",
+                hideScore ? "blur-[6px] opacity-75 select-none" : "",
+              )}
+            >
+              {leftScore}
+            </span>
+          </div>
+          <div className="px-4">
+            {liveLike ? (
+              <LiveBadge compact />
+            ) : (
+              <span className={cn("inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold", getScheduleStatusTone(match.status, liveLike))}>
+                {statusLabel}
+              </span>
             )}
-          >
-            {rightScore}
-          </span>
-          <span className="truncate text-center text-[19px] font-black leading-none tracking-[-0.03em] text-white sm:text-[21px]">{match.teamB}</span>
-          <span className="shrink-0 text-[13px] font-semibold text-[#d6d6e5]">{match.predictionRateB}%</span>
+          </div>
+          <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-5">
+            <span
+              className={cn(
+                "w-9 text-center text-[26px] font-black leading-none tracking-[-0.03em] text-white",
+                hideScore ? "blur-[6px] opacity-75 select-none" : "",
+              )}
+            >
+              {rightScore}
+            </span>
+            <span className="truncate text-center text-[21px] font-black leading-none tracking-[-0.03em] text-white">{match.teamB}</span>
+            <span className="shrink-0 text-[13px] font-semibold text-[#d6d6e5]">{match.predictionRateB}%</span>
+          </div>
         </div>
       </div>
     </Link>
   );
+}
+
+function scoreLabelForMobile(leftScore: string, rightScore: string) {
+  if (!leftScore && !rightScore) {
+    return "VS";
+  }
+
+  return `${leftScore}:${rightScore}`;
 }
 
 function getDefaultMonthId(months: MatchMonthGroup[], fallbackId?: string) {
@@ -785,7 +820,7 @@ export default function HupuScheduleHome({
             </section>
 
             <section className="rounded-[20px] bg-[#31313C] p-4 text-white shadow-[0_12px_28px_rgba(2,6,23,0.28)] md:hidden">
-              <h2 className="text-[18px] font-black tracking-[-0.035em] text-white">빠른 참여</h2>
+              <h2 className="text-[18px] font-black tracking-[-0.035em] text-white">빠른 이동</h2>
               <div className="mt-3 grid gap-2">
                 <Link
                   href="/schedule"
@@ -810,6 +845,18 @@ export default function HupuScheduleHome({
                   className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#5b5b6c] bg-[#3A3A47] px-3 text-sm font-semibold text-white transition hover:bg-[#4A4A59]"
                 >
                   15달러 챌린지
+                </Link>
+                <Link
+                  href="/teams"
+                  className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#5b5b6c] bg-[#3A3A47] px-3 text-sm font-semibold text-white transition hover:bg-[#4A4A59]"
+                >
+                  팀 로스터
+                </Link>
+                <Link
+                  href="/shop"
+                  className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#5b5b6c] bg-[#3A3A47] px-3 text-sm font-semibold text-white transition hover:bg-[#4A4A59]"
+                >
+                  코인샵
                 </Link>
               </div>
             </section>
