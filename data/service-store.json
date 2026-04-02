@@ -29663,98 +29663,7 @@
     }
   ],
   "setPlayerRatings": [],
-  "comments": [
-    {
-      "id": "comment_1",
-      "userId": "user_1",
-      "matchId": "match_3",
-      "text": "안녕하세요",
-      "parentId": null,
-      "recommendUserIds": [
-        "user_1"
-      ],
-      "hidden": false,
-      "createdAt": "2026-04-02T12:58:52.832Z",
-      "updatedAt": "2026-04-02T13:11:56.228Z"
-    },
-    {
-      "id": "comment_2",
-      "userId": "user_1",
-      "matchId": "match_3",
-      "text": "ㅋㅋㅋ",
-      "parentId": "comment_1",
-      "recommendUserIds": [],
-      "hidden": true,
-      "createdAt": "2026-04-02T12:59:02.786Z",
-      "updatedAt": "2026-04-02T12:59:02.786Z"
-    },
-    {
-      "id": "comment_3",
-      "userId": "user_1",
-      "matchId": "match_3",
-      "text": "ㅎㅎㅎ",
-      "parentId": "comment_1",
-      "recommendUserIds": [],
-      "hidden": false,
-      "createdAt": "2026-04-02T12:59:31.355Z",
-      "updatedAt": "2026-04-02T12:59:31.355Z"
-    },
-    {
-      "id": "comment_4",
-      "userId": "user_1",
-      "matchId": "match_3",
-      "text": "네ㅎㅎ",
-      "parentId": null,
-      "recommendUserIds": [],
-      "hidden": true,
-      "createdAt": "2026-04-02T13:01:48.573Z",
-      "updatedAt": "2026-04-02T13:01:48.573Z"
-    },
-    {
-      "id": "comment_5",
-      "userId": "user_1",
-      "matchId": "match_1",
-      "text": "넵 ㅎㅎ",
-      "parentId": null,
-      "recommendUserIds": [],
-      "hidden": false,
-      "createdAt": "2026-04-02T13:13:42.433Z",
-      "updatedAt": "2026-04-02T13:13:42.433Z"
-    },
-    {
-      "id": "comment_6",
-      "userId": "user_1",
-      "matchId": "match_1",
-      "text": "ㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹㄹ",
-      "parentId": null,
-      "recommendUserIds": [],
-      "hidden": false,
-      "createdAt": "2026-04-02T13:13:49.791Z",
-      "updatedAt": "2026-04-02T13:13:49.791Z"
-    },
-    {
-      "id": "comment_7",
-      "userId": "user_1",
-      "matchId": "match_1",
-      "text": "ㅎㅎ",
-      "parentId": "comment_6",
-      "recommendUserIds": [],
-      "hidden": false,
-      "createdAt": "2026-04-02T13:13:54.873Z",
-      "updatedAt": "2026-04-02T13:13:54.873Z"
-    },
-    {
-      "id": "comment_8",
-      "userId": "user_1",
-      "matchId": "match_3",
-      "text": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-      "parentId": null,
-      "recommendUserIds": [],
-      "hidden": false,
-      "createdAt": "2026-04-02T13:21:02.694Z",
-      "updatedAt": "2026-04-02T13:21:02.694Z"
-    }
-  ],
+  "comments": [],
   "pointLedger": [
     {
       "id": "ledger_1",
@@ -29988,50 +29897,6 @@
       "balanceAfter": 160
     },
     {
-      "id": "ledger_22",
-      "userId": "user_1",
-      "type": "earn",
-      "amount": 4,
-      "reason": "경기 댓글 참여 코인",
-      "referenceType": "comment_submit",
-      "referenceId": "comment_1",
-      "createdAt": "2026-04-02T12:58:52.832Z",
-      "balanceAfter": 164
-    },
-    {
-      "id": "ledger_23",
-      "userId": "user_1",
-      "type": "earn",
-      "amount": 4,
-      "reason": "경기 댓글 참여 코인",
-      "referenceType": "comment_submit",
-      "referenceId": "comment_2",
-      "createdAt": "2026-04-02T12:59:02.786Z",
-      "balanceAfter": 168
-    },
-    {
-      "id": "ledger_24",
-      "userId": "user_1",
-      "type": "earn",
-      "amount": 4,
-      "reason": "경기 댓글 참여 코인",
-      "referenceType": "comment_submit",
-      "referenceId": "comment_3",
-      "createdAt": "2026-04-02T12:59:31.355Z",
-      "balanceAfter": 172
-    },
-    {
-      "id": "ledger_25",
-      "userId": "user_1",
-      "type": "earn",
-      "amount": 4,
-      "reason": "경기 댓글 참여 코인",
-      "referenceType": "comment_submit",
-      "referenceId": "comment_4",
-      "createdAt": "2026-04-02T13:01:48.573Z",
-      "balanceAfter": 176
-    },
-    {
       "id": "ledger_26",
       "userId": "user_1",
       "type": "earn",
@@ -30074,50 +29939,6 @@
       "referenceId": "rating_24",
       "createdAt": "2026-04-02T13:12:55.678Z",
       "balanceAfter": 208
-    },
-    {
-      "id": "ledger_30",
-      "userId": "user_1",
-      "type": "earn",
-      "amount": 4,
-      "reason": "경기 댓글 참여 코인",
-      "referenceType": "comment_submit",
-      "referenceId": "comment_5",
-      "createdAt": "2026-04-02T13:13:42.433Z",
-      "balanceAfter": 212
-    },
-    {
-      "id": "ledger_31",
-      "userId": "user_1",
-      "type": "earn",
-      "amount": 4,
-      "reason": "경기 댓글 참여 코인",
-      "referenceType": "comment_submit",
-      "referenceId": "comment_6",
-      "createdAt": "2026-04-02T13:13:49.791Z",
-      "balanceAfter": 216
-    },
-    {
-      "id": "ledger_32",
-      "userId": "user_1",
-      "type": "earn",
-      "amount": 4,
-      "reason": "경기 댓글 참여 코인",
-      "referenceType": "comment_submit",
-      "referenceId": "comment_7",
-      "createdAt": "2026-04-02T13:13:54.873Z",
-      "balanceAfter": 220
-    },
-    {
-      "id": "ledger_33",
-      "userId": "user_1",
-      "type": "earn",
-      "amount": 4,
-      "reason": "경기 댓글 참여 코인",
-      "referenceType": "comment_submit",
-      "referenceId": "comment_8",
-      "createdAt": "2026-04-02T13:21:02.694Z",
-      "balanceAfter": 224
     },
     {
       "id": "ledger_34",

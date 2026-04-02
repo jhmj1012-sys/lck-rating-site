@@ -1037,12 +1037,19 @@ function CommentInputBar({
 }) {
   const router = useRouter();
   const { data: session, status } = useSession();
+  const [hydrated, setHydrated] = useState(false);
   const [text, setText] = useState('');
   const [pending, setPending] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const canWrite = status === 'authenticated' && Boolean(session?.user?.hasNickname);
-  const avatarLabel = status === 'authenticated' ? '나' : '?';
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  const isAuthenticated = hydrated && status === 'authenticated';
+  const hasNickname = Boolean(session?.user?.hasNickname);
+  const canWrite = isAuthenticated && hasNickname;
+  const avatarLabel = isAuthenticated ? '나' : '';
   const canSubmit = canWrite && !pending && text.trim().length >= COMMENT_MIN_LENGTH;
 
   const submitComment = async () => {
@@ -1096,13 +1103,15 @@ function CommentInputBar({
                 : '!border !border-white/15 !bg-[#2a2a3a] !text-slate-100 placeholder:!text-slate-300 focus:!border-[#8B5CF6]',
             )}
             placeholder={
-              status !== 'authenticated'
+              !hydrated
+                ? placeholder
+                : status !== 'authenticated'
                 ? '로그인 후 댓글을 작성할 수 있습니다.'
                 : !session?.user?.hasNickname
                   ? '닉네임 설정 후 댓글을 작성할 수 있습니다.'
                   : placeholder
             }
-            disabled={!canWrite || pending}
+            disabled={!hydrated || !canWrite || pending}
           />
           <Button
             disabled={!canSubmit}
