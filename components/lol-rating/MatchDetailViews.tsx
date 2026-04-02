@@ -975,23 +975,23 @@ function FinishedView({ data }: { data: MatchDetailData }) {
               </span>
             </button>
           </div>
-          <div data-share-card='true' ref={shareCardRef} className='mx-auto w-full max-w-[392px] aspect-[4/5] overflow-hidden rounded-[22px] border border-slate-200 bg-[#1C1C1F] p-5 text-white'>
+          <div data-share-card='true' ref={shareCardRef} className='mx-auto w-full max-w-[392px] aspect-[4/5] overflow-hidden rounded-[22px] border border-slate-200 bg-[#1C1C1F] p-3.5 text-white sm:p-5'>
             <div className='flex items-center justify-between gap-3'>
-              <div className='inline-flex items-center gap-2'>
-                <span className='inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[#8B5CF6] text-xs font-black tracking-[-0.03em] text-white'>LPR</span>
-                <span className='text-sm font-bold text-slate-100'>LOL PRO RATING</span>
+              <div className='inline-flex min-w-0 items-center gap-2'>
+                <span className='inline-flex h-8 w-8 items-center justify-center rounded-xl bg-[#8B5CF6] text-[11px] font-black tracking-[-0.03em] text-white sm:h-9 sm:w-9 sm:text-xs'>LPR</span>
+                <span className='truncate text-xs font-bold text-slate-100 sm:text-sm'>LOL PRO RATING</span>
               </div>
-              <div className='text-right text-[11px] text-slate-300'>{formatDateTime(data.match.scheduledAt)}</div>
+              <div className='shrink-0 text-right text-[10px] text-slate-300 sm:text-[11px]'>{formatDateTime(data.match.scheduledAt)}</div>
             </div>
-            <div className='mt-3 text-center text-xs font-semibold tracking-[0.16em] text-slate-300'>{data.match.league}</div>
-            <div className='mt-1 text-center text-sm font-semibold text-slate-200'>{data.match.stage} · {getSeriesFormatLabel(data.sets)}</div>
+            <div className='mt-2 text-center text-[11px] font-semibold tracking-[0.14em] text-slate-300 sm:mt-3 sm:text-xs sm:tracking-[0.16em]'>{data.match.league}</div>
+            <div className='mt-1 truncate text-center text-xs font-semibold text-slate-200 sm:text-sm'>{data.match.stage} · {getSeriesFormatLabel(data.sets)}</div>
             <div className='mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-2'>
-              <div className='text-center text-lg font-black'>{data.match.teamA}</div>
-              <div className='text-center text-4xl font-black tracking-[-0.03em]'>{data.match.score.replace(' : ', ' - ')}</div>
-              <div className='text-center text-lg font-black'>{data.match.teamB}</div>
+              <div className='truncate text-center text-base font-black sm:text-lg'>{data.match.teamA}</div>
+              <div className='text-center text-[28px] font-black tracking-[-0.03em] sm:text-4xl'>{data.match.score.replace(' : ', ' - ')}</div>
+              <div className='truncate text-center text-base font-black sm:text-lg'>{data.match.teamB}</div>
             </div>
-            <div className='mt-7 rounded-[14px] border border-white/20 bg-[#353544] p-3.5'>
-              <div className='space-y-5'>
+            <div className='mt-5 rounded-[14px] border border-white/20 bg-[#353544] p-2.5 sm:mt-7 sm:p-3.5'>
+              <div className='space-y-3.5 sm:space-y-5'>
                 {ROLE_ORDER.map((role) => {
                   const left = getPlayerByTeamAndRole(data.match.teamA, role);
                   const right = getPlayerByTeamAndRole(data.match.teamB, role);
@@ -999,20 +999,20 @@ function FinishedView({ data }: { data: MatchDetailData }) {
                   const rightRating = right ? Number(right.rating.toFixed(1)) : null;
 
                   return (
-                    <div key={`share_${role}`} className='grid grid-cols-[minmax(90px,1fr)_48px_32px_48px_minmax(90px,1fr)] items-center gap-1.5 text-center'>
-                      <div className='truncate pl-2 text-left text-[12px] font-semibold text-slate-100'>
+                    <div key={`share_${role}`} className='grid grid-cols-[minmax(0,1fr)_40px_24px_40px_minmax(0,1fr)] items-center gap-1 text-center sm:grid-cols-[minmax(90px,1fr)_48px_32px_48px_minmax(90px,1fr)] sm:gap-1.5'>
+                      <div className='truncate pl-1 text-left text-[11px] font-semibold text-slate-100 sm:pl-2 sm:text-[12px]'>
                         {left?.name ?? '-'}
                       </div>
-                      <div className='rounded-md px-1 py-[3px] text-[11px] font-semibold text-white' style={{ backgroundColor: getShareRatingChipColor(leftRating, rightRating) }}>
+                      <div className='rounded-md px-1 py-[2px] text-[10px] font-semibold text-white sm:py-[3px] sm:text-[11px]' style={{ backgroundColor: getShareRatingChipColor(leftRating, rightRating) }}>
                         {leftRating !== null ? leftRating.toFixed(1) : '-'}
                       </div>
-                      <div className='flex w-8 items-center justify-center'>
-                        <img src={ROLE_META[role].iconPath} alt={ROLE_META[role].label} width={18} height={18} className='h-[18px] w-[18px] translate-x-[1px] object-contain' />
+                      <div className='flex w-6 items-center justify-center sm:w-8'>
+                        <img src={ROLE_META[role].iconPath} alt={ROLE_META[role].label} width={16} height={16} className='h-4 w-4 translate-x-[1px] object-contain sm:h-[18px] sm:w-[18px]' />
                       </div>
-                      <div className='rounded-md px-1 py-[3px] text-[11px] font-semibold text-white' style={{ backgroundColor: getShareRatingChipColor(rightRating, leftRating) }}>
+                      <div className='rounded-md px-1 py-[2px] text-[10px] font-semibold text-white sm:py-[3px] sm:text-[11px]' style={{ backgroundColor: getShareRatingChipColor(rightRating, leftRating) }}>
                         {rightRating !== null ? rightRating.toFixed(1) : '-'}
                       </div>
-                      <div className='truncate pr-2 text-right text-[12px] font-semibold text-slate-100'>
+                      <div className='truncate pr-1 text-right text-[11px] font-semibold text-slate-100 sm:pr-2 sm:text-[12px]'>
                         {right?.name ?? '-'}
                       </div>
                     </div>
@@ -1201,6 +1201,7 @@ function CommentBubble({
           {isMine ? <span className='rounded-full bg-[#4A4A59] px-2 py-0.5 font-semibold text-[#F8F8F8]'>내 댓글</span> : null}
           <span className='text-slate-300'>·</span>
           <div className='truncate'>{comment.createdLabel}</div>
+          {canRecommend ? <div className='ml-auto shrink-0 font-medium text-slate-500'>추천 {comment.likes}</div> : null}
         </div>
         <div
           className={cn(
@@ -1210,8 +1211,7 @@ function CommentBubble({
         >
           <p className='whitespace-pre-wrap break-words'>{comment.text}</p>
         </div>
-        <div className='mt-1 flex w-full items-center justify-between px-1'>
-          {canRecommend ? <div className='text-[11px] font-medium text-slate-500'>추천 {comment.likes}</div> : <span />}
+        <div className='mt-1 flex w-full items-center justify-end px-1'>
           <CommentActions matchId={matchId} comment={comment} isMine={isMine} canRecommend={canRecommend} canReply={canReply} onReplyToggle={onReplyToggle} />
         </div>
       </div>
