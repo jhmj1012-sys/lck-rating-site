@@ -1076,13 +1076,13 @@ function CommentInputBar({
   return (
     <div
       className={cn(
-        'relative rounded-[18px] border border-white/10 bg-[#151520] p-2.5',
-        compact ? 'ml-10 sm:ml-14' : 'border-none bg-transparent p-0',
+        'relative rounded-[18px] p-2.5',
+        compact ? 'ml-10 mr-2 border border-white/10 bg-[#31313C] sm:ml-14 sm:mr-4' : 'border-none bg-transparent p-0',
       )}
     >
-      <div className={cn('flex flex-nowrap gap-2', compact ? 'items-end' : 'items-start')}>
+      <div className={cn('flex w-full min-w-0 flex-nowrap justify-start', compact ? 'items-end gap-2' : 'items-start gap-3')}>
         {!compact ? (
-          <Avatar className='mt-1 h-8 w-8 shrink-0 bg-[#8B5CF6] text-[11px] font-black text-white sm:h-9 sm:w-9'>{avatarLabel}</Avatar>
+          <Avatar className='mt-1 h-8 w-8 shrink-0 bg-[#5a3a8a] text-[11px] font-black text-white'>{avatarLabel}</Avatar>
         ) : null}
         <div className='relative min-w-0 flex-1'>
           <input
@@ -1099,7 +1099,7 @@ function CommentInputBar({
             className={cn(
               'block h-12 w-full rounded-[14px] px-4 pr-16 text-[13px] outline-none transition sm:text-[14px]',
               compact
-                ? '!border !border-white/15 !bg-[#262638] !text-slate-100 placeholder:!text-slate-300 focus:!border-[#8B5CF6]'
+                ? '!border !border-white/15 !bg-[#1E1E2E] !text-slate-100 placeholder:!text-slate-300 focus:!border-[#8B5CF6]'
                 : '!border !border-white/15 !bg-[#2a2a3a] !text-slate-100 placeholder:!text-slate-300 focus:!border-[#8B5CF6]',
             )}
             placeholder={
@@ -1113,27 +1113,28 @@ function CommentInputBar({
             }
             disabled={!hydrated || !canWrite || pending}
           />
-          <Button
-            disabled={!canSubmit}
-            className={cn(
-              'absolute right-2 top-1/2 h-7 -translate-y-1/2 rounded-[8px] px-2.5 text-[11px] font-semibold',
-              compact ? 'bg-[#3E365F] text-white' : 'bg-[#3E365F] text-white',
-              canSubmit ? 'opacity-100' : 'opacity-30',
-            )}
-            onClick={() => void submitComment()}
-          >
-            {pending ? '...' : parentId ? '답글' : '등록'}
-          </Button>
-        </div>
-      </div>
-      <div className={cn('mt-1 flex items-center justify-between gap-2 px-1', compact ? '' : 'mt-2')}>
-        <div />
-        <div className='flex items-center gap-2'>
-          {onCancelReply ? (
-            <button type='button' className='text-[11px] font-semibold text-slate-400 hover:text-slate-200' onClick={onCancelReply}>
-              취소
-            </button>
-          ) : null}
+          <div className='absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1'>
+            <Button
+              disabled={!canSubmit}
+              className={cn(
+                'h-6 rounded-[8px] px-2 text-[10px] font-semibold',
+                compact ? 'bg-[#3E365F] text-white' : 'bg-[#3E365F] text-white',
+                canSubmit ? 'opacity-100' : 'opacity-30',
+              )}
+              onClick={() => void submitComment()}
+            >
+              {pending ? '...' : parentId ? '답글' : '등록'}
+            </Button>
+            {onCancelReply ? (
+              <button
+                type='button'
+                className='rounded-[8px] px-2 py-1 text-[10px] font-semibold text-slate-300 hover:text-white'
+                onClick={onCancelReply}
+              >
+                닫기
+              </button>
+            ) : null}
+          </div>
         </div>
       </div>
       {toastMessage ? (
@@ -1282,14 +1283,14 @@ function CommentBubble({
 
   return (
     <div className='group flex w-full min-w-0 justify-start gap-3'>
-      <Avatar className={cn('mt-1 h-8 w-8 shrink-0 text-[11px] font-bold', isMine ? 'bg-[#8B5CF6] text-white' : 'bg-[#E9E9E6] text-[#353535]')}>
+      <Avatar className={cn('mt-1 h-8 w-8 shrink-0 text-[11px] font-bold', isMine ? 'bg-[#5a3a8a] text-white' : 'bg-[#E9E9E6] text-[#353535]')}>
         {isMine ? '나' : getInitials(comment.user)}
       </Avatar>
       <div className='w-full min-w-0'>
         <div
           className={cn(
             'rounded-2xl border px-4 py-3',
-            isMine ? 'border-[#7c5cbf] bg-[#2a2a3a] text-slate-100' : 'border-[0.5px] border-[rgba(255,255,255,0.08)] bg-[#2a2a3a] text-slate-100',
+            isMine ? 'border-[#5a3a8a] bg-[#1E1E2E] text-slate-100' : 'border-[0.5px] border-[rgba(255,255,255,0.08)] bg-[#1E1E2E] text-slate-100',
           )}
         >
           <div className='mb-1 flex items-start justify-between gap-2'>
@@ -1325,7 +1326,7 @@ function CommentThread({ matchId, comment, replies }: { matchId: string; comment
         <CommentInputBar
           matchId={matchId}
           parentId={comment.id}
-          placeholder='예상 한마디를 남겨보세요'
+          placeholder=''
           compact
           onCancelReply={() => setReplyOpen(false)}
         />
@@ -1407,7 +1408,7 @@ function CommentsSection({ data }: { data: MatchDetailData }) {
           ) : (
             <div className='mx-auto max-w-6xl space-y-4'>
               {rootComments.map((comment) => (
-                <div key={comment.id} className='border-b border-[#1E1E27] pb-4 last:border-b-0'>
+                <div key={comment.id} className='border-b border-[rgba(255,255,255,0.06)] pb-4 last:border-b-0'>
                   <CommentThread matchId={data.match.id} comment={comment} replies={repliesByParent.get(comment.id) ?? []} />
                 </div>
               ))}
