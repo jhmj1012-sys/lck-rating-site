@@ -63,6 +63,7 @@ export interface StoredTeam {
 
 export interface StoredPlayer {
   id: string;
+  slug: string;
   teamId: string;
   name: string;
   role: PlayerRole;

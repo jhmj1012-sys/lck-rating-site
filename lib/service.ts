@@ -669,7 +669,7 @@ function buildGlobalSearchResultData(
         id: player.id,
         title: player.name,
         subtitle: `${teamCode} · ${roleLabel}`,
-        href: `/player/${player.id}`,
+        href: `/player/${player.slug}`,
         score,
       };
     })
@@ -728,6 +728,7 @@ function buildRosterPlayerItems(store: StoreShape, entries: StoredTeamRosterEntr
 
       return {
         playerId: player.id,
+        playerSlug: player.slug,
         name: player.name,
         role: player.role,
         isMainRoster: entry.isMainRoster,
@@ -752,6 +753,10 @@ function getMatchById(store: StoreShape, matchId: string) {
 
 function getPlayerById(store: StoreShape, playerId: string) {
   return store.players.find((player) => player.id === playerId) ?? null;
+}
+
+function getPlayerBySlug(store: StoreShape, playerSlug: string) {
+  return store.players.find((player) => player.slug === playerSlug) ?? null;
 }
 
 function countVisibleComments(comments: StoredComment[], matchId: string) {
@@ -820,6 +825,7 @@ function getMatchPlayers(store: StoreShape, matchId: string, viewerId: string | 
 
       return {
         id: player.id,
+        playerSlug: player.slug,
         name: player.name,
         team: team.code,
         role: player.role,
@@ -1616,6 +1622,7 @@ function buildPlayerLeaderboard(store: StoreShape): HomePlayerLeaderboardItem[] 
 
       return {
         playerId: player.id,
+        playerSlug: player.slug,
         playerName: player.name,
         teamCode: team.code,
         averageRating: Number(average(scores).toFixed(1)),
@@ -1709,6 +1716,7 @@ function buildPlayerRankingItems(store: StoreShape): PlayerRankingItem[] {
 
       return {
         playerId: player.id,
+        playerSlug: player.slug,
         playerName: player.name,
         teamCode: team.code,
         role: player.role,
@@ -1723,20 +1731,14 @@ function buildPlayerRankingItems(store: StoreShape): PlayerRankingItem[] {
     .filter((item): item is PlayerRankingItem => item !== null);
 }
 
-function buildPlayerDetailPageData(store: StoreShape, playerId: string): PlayerDetailPageData | null {
-  const player = getPlayerById(store, playerId);
+function buildPlayerDetailPageData(store: StoreShape, playerSlug: string): PlayerDetailPageData | null {
+  const player = getPlayerBySlug(store, playerSlug);
   if (!player) {
     return null;
   }
 
   const team = getTeamById(store, player.teamId);
   if (!team) {
-    return null;
-  }
-
-  const rankingRows = buildPlayerRankingItems(store);
-  const row = rankingRows.find((item) => item.playerId === playerId);
-  if (!row) {
     return null;
   }
 
@@ -1750,7 +1752,7 @@ function buildPlayerDetailPageData(store: StoreShape, playerId: string): PlayerD
     }
   >();
 
-  for (const entry of getPlayerRatingEntries(store).filter((item) => item.playerId === playerId)) {
+  for (const entry of getPlayerRatingEntries(store).filter((item) => item.playerId === player.id)) {
     const current = groupedByMatch.get(entry.matchId);
     if (!current) {
       groupedByMatch.set(entry.matchId, {
@@ -1798,15 +1800,19 @@ function buildPlayerDetailPageData(store: StoreShape, playerId: string): PlayerD
       };
     });
 
+  const allScores = Array.from(groupedByMatch.values()).flatMap((entry) => entry.scores);
+  const recentScores = entries.map((entry) => entry.score);
+
   return {
     playerId: player.id,
+    playerSlug: player.slug,
     playerName: player.name,
     teamCode: team.code,
     role: player.role,
-    averageRating: Number(row.averageRating.toFixed(1)),
-    recentForm: Number(row.recentForm.toFixed(1)),
-    matchCount: row.matchCount,
-    participationCount: row.participationCount,
+    averageRating: Number((allScores.length > 0 ? average(allScores) : 0).toFixed(1)),
+    recentForm: Number((recentScores.length > 0 ? average(recentScores) : 0).toFixed(1)),
+    matchCount: groupedByMatch.size,
+    participationCount: allScores.length,
     recentMatches: entries,
   };
 }
@@ -1996,6 +2002,9 @@ function buildTeamRosterSummary(store: StoreShape, teamId: string): TeamRosterSu
 
   const entries = getRosterEntriesForTeam(store, teamId);
   const players = buildRosterPlayerItems(store, entries);
+  if (team.code !== "TBD" && players.length !== 11) {
+    console.warn(`[roster] expected 11 players for ${team.code}, got ${players.length}`);
+  }
   return {
     teamCode: team.code,
     teamName: team.name,
@@ -2024,7 +2033,7 @@ function buildTeamRosterDetail(store: StoreShape, teamId: string): TeamRosterDet
     teamName: summary.teamName,
     sourceUrl: summary.sourceUrl,
     updatedAt: summary.updatedAt,
-    rosterLabel: "2026 LCK R1 1군 로스터",
+    rosterLabel: "2026 LCK R1 통합 로스터",
     players: summary.players,
     recentMatches,
   };
@@ -2318,9 +2327,9 @@ export async function getGlobalSearchData(query: string, limitPerType?: number):
   return buildGlobalSearchResultData(store, query, limitPerType);
 }
 
-export async function getPlayerDetailPageData(playerId: string): Promise<PlayerDetailPageData> {
+export async function getPlayerDetailPageData(playerSlug: string): Promise<PlayerDetailPageData> {
   const store = await readStoreWithPredictionLifecycle();
-  const detail = buildPlayerDetailPageData(store, playerId);
+  const detail = buildPlayerDetailPageData(store, playerSlug);
   if (!detail) {
     throw new Error("선수 정보를 찾을 수 없습니다.");
   }

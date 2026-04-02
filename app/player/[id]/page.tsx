@@ -24,10 +24,14 @@ function ResultBadge({ result }: { result: "W" | "L" | "-" }) {
 export default async function PlayerDetailPage({ params }: PageProps) {
   const { id } = await params;
   const session = await getServerSession(authOptions);
-  const [hubData, player] = await Promise.all([
-    getScheduleHubData(session?.user?.id ?? null),
-    getPlayerDetailPageData(id),
-  ]);
+  const hubData = await getScheduleHubData(session?.user?.id ?? null);
+  let player = null;
+
+  try {
+    player = await getPlayerDetailPageData(id);
+  } catch {
+    notFound();
+  }
 
   if (!player) {
     notFound();

@@ -1,4 +1,4 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 
@@ -39,12 +39,10 @@ function StaffRow({ label, names }: { label: string; names: string[] }) {
 }
 
 function getMainPlayerByRole(team: TeamRosterSummary, role: PlayerRole) {
-  return (
-    team.players
-      .filter((player) => player.role === role && player.isMainRoster)
-      .slice()
-      .sort((a, b) => a.displayOrder - b.displayOrder)[0] ?? null
-  );
+  return team.players
+    .filter((player) => player.role === role)
+    .slice()
+    .sort((a, b) => a.displayOrder - b.displayOrder);
 }
 
 export default async function TeamsPage({
@@ -88,6 +86,7 @@ export default async function TeamsPage({
     selectedTeam,
     ...sortedTeams.filter((team) => team.teamCode !== selectedTeam.teamCode),
   ];
+  const hasExpectedRosterCount = selectedTeam.players.length === 11;
 
   return (
     <div>
@@ -160,20 +159,33 @@ export default async function TeamsPage({
             </div>
 
             <div className="mt-6 rounded-2xl bg-[#3A3A47] p-4">
-              <div className="text-sm font-medium text-[#FFFFFF]">포지션별 1군 선수</div>
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-sm font-medium text-[#FFFFFF]">팀 로스터</div>
+                <div className="text-xs text-[#D4DCFF]">{selectedTeam.players.length}/11</div>
+              </div>
+              {!hasExpectedRosterCount ? (
+                <div className="mt-2 rounded-lg bg-[#4A4A59] px-3 py-2 text-xs text-[#F8F8F8]">
+                  로스터 데이터 확인 필요: 현재 {selectedTeam.players.length}명
+                </div>
+              ) : null}
               <div className="mt-4 grid gap-2">
                 {ROLE_ORDER.map((role) => {
-                  const player = getMainPlayerByRole(selectedTeam, role);
+                  const players = getMainPlayerByRole(selectedTeam, role);
                   return (
-                    <div key={`${selectedTeam.teamCode}_${role}`} className="grid grid-cols-[34px_minmax(0,1fr)] items-center gap-3 rounded-xl bg-[#31313C] px-3 py-2.5">
+                    <div key={`${selectedTeam.teamCode}_${role}`} className="grid grid-cols-[34px_minmax(0,1fr)] items-start gap-3 rounded-xl bg-[#31313C] px-3 py-2.5">
                       <Image src={ROLE_ICON[role]} alt={role} width={24} height={24} className="h-6 w-6 object-contain" />
-                      {player ? (
-                        <Link
-                          href={`/player/${player.playerId}`}
-                          className="text-base font-medium !text-[#FFFFFF] visited:!text-[#FFFFFF] underline-offset-2 hover:!text-[#FFFFFF] hover:underline"
-                        >
-                          {player.name}
-                        </Link>
+                      {players.length > 0 ? (
+                        <div className="flex flex-col gap-1.5 py-0.5">
+                          {players.map((player) => (
+                            <Link
+                              key={player.playerId}
+                              href={`/player/${player.playerSlug}`}
+                              className="text-base font-medium !text-[#FFFFFF] visited:!text-[#FFFFFF] underline-offset-2 hover:!text-[#FFFFFF] hover:underline"
+                            >
+                              {player.name}
+                            </Link>
+                          ))}
+                        </div>
                       ) : (
                         <div className="text-base font-medium text-[#A9B5D8]">-</div>
                       )}
@@ -188,3 +200,4 @@ export default async function TeamsPage({
     </div>
   );
 }
+

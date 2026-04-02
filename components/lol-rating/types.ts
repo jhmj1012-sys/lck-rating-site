@@ -38,6 +38,7 @@ export interface GlobalSearchResultData {
 
 export interface PlayerRating {
   id: string;
+  playerSlug: string;
   name: string;
   team: string;
   role: PlayerRole;
@@ -405,6 +406,7 @@ export interface HomeCommentFeedItem {
 export interface HomePlayerLeaderboardItem {
   rank: number;
   playerId: string;
+  playerSlug: string;
   playerName: string;
   teamCode: string;
   averageRating: number;
@@ -413,6 +415,7 @@ export interface HomePlayerLeaderboardItem {
 
 export interface PlayerRankingItem {
   playerId: string;
+  playerSlug: string;
   playerName: string;
   teamCode: string;
   role: PlayerRole;
@@ -443,6 +446,7 @@ export interface PlayerRecentMatchRating {
 
 export interface PlayerDetailPageData {
   playerId: string;
+  playerSlug: string;
   playerName: string;
   teamCode: string;
   role: PlayerRole;
@@ -480,6 +484,7 @@ export interface ScheduleHubData {
 
 export interface RosterPlayerItem {
   playerId: string;
+  playerSlug: string;
   name: string;
   role: PlayerRole;
   isMainRoster: boolean;

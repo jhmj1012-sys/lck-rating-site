@@ -490,7 +490,7 @@ function PreMatchInsights({ data }: { data: MatchDetailData }) {
                   <div key={role} className='grid grid-cols-[minmax(0,1fr)_58px_40px_58px_minmax(0,1fr)] items-center gap-3 text-sm'>
                     <div className='truncate text-left text-lg font-semibold text-slate-950'>
                       {left ? (
-                        <Link href={`/player/${left.id}`} className='hover:text-sky-700 hover:underline'>
+                        <Link href={`/player/${left.playerSlug}`} className='hover:text-sky-700 hover:underline'>
                           {left.name}
                         </Link>
                       ) : (
@@ -518,7 +518,7 @@ function PreMatchInsights({ data }: { data: MatchDetailData }) {
                     </div>
                     <div className='truncate text-right text-lg font-semibold text-slate-950'>
                       {right ? (
-                        <Link href={`/player/${right.id}`} className='hover:text-sky-700 hover:underline'>
+                        <Link href={`/player/${right.playerSlug}`} className='hover:text-sky-700 hover:underline'>
                           {right.name}
                         </Link>
                       ) : (

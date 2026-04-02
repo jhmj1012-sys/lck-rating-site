@@ -5,6 +5,7 @@ import path from "node:path";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import type { StoreShape } from "@/lib/domain";
+import { buildPlayerSlug } from "@/lib/player-slug";
 import { createSeedStore } from "@/lib/seed";
 
 const dataDirectory =
@@ -220,6 +221,9 @@ function withDefaults(store: Partial<StoreShape>): StoreShape {
     (store.setParticipants ?? []).length === 0;
   const seedTeamIds = new Set(seed.teams.map((team) => team.id));
   const seedPlayerIds = new Set(seed.players.map((player) => player.id));
+  const seedRosterEntryIds = new Set(seed.teamRosterEntries.map((entry) => entry.id));
+  const seedPlayerById = new Map(seed.players.map((player) => [player.id, player]));
+  const seedTeamById = new Map(seed.teams.map((team) => [team.id, team]));
   const activeStoreItemIds = new Set(seed.profileStoreItems.map((item) => item.id));
   const legacyPointsByUser = new Map(
     (store.users ?? seed.users).map((user) => [user.id, getLegacyPoints(store, user.id)]),
@@ -337,8 +341,25 @@ function withDefaults(store: Partial<StoreShape>): StoreShape {
       : [
           ...seed.players,
           ...((store.players ?? []).filter((player) => !seedPlayerIds.has(player.id))),
-        ],
-    teamRosterEntries: store.teamRosterEntries ?? seed.teamRosterEntries,
+        ].map((player) => {
+          const seeded = seedPlayerById.get(player.id);
+          const seededTeam = seedTeamById.get(player.teamId);
+          const legacy = player as typeof player & { slug?: string };
+          const legacySlug = typeof legacy.slug === "string" ? legacy.slug : "";
+          const fallbackSlug = buildPlayerSlug(seededTeam?.code ?? "", player.name);
+
+          return {
+            ...player,
+            slug: legacySlug || seeded?.slug || fallbackSlug || player.id,
+          };
+        }),
+    teamRosterEntries:
+      store.teamRosterEntries && store.teamRosterEntries.length > 0
+        ? [
+            ...seed.teamRosterEntries,
+            ...store.teamRosterEntries.filter((entry) => !seedRosterEntryIds.has(entry.id)),
+          ]
+        : seed.teamRosterEntries,
     matches: needsScheduleRefresh ? seed.matches : (store.matches ?? seed.matches),
     matchParticipants: needsScheduleRefresh ? seed.matchParticipants : (store.matchParticipants ?? seed.matchParticipants),
     matchSets: needsScheduleRefresh || needsSeededSets ? seed.matchSets : (store.matchSets ?? seed.matchSets),
@@ -452,6 +473,12 @@ function withDefaults(store: Partial<StoreShape>): StoreShape {
   for (const user of normalized.users) {
     ensureUserCarryover(normalized, user.id, legacyPointsByUser.get(user.id) ?? 0);
   }
+
+  normalized.nextIds.players = Math.max(normalized.nextIds.players ?? 1, seed.nextIds.players ?? 1);
+  normalized.nextIds.teamRosterEntries = Math.max(
+    normalized.nextIds.teamRosterEntries ?? 1,
+    seed.nextIds.teamRosterEntries ?? 1,
+  );
 
   syncPredictionHitBonuses(normalized);
 

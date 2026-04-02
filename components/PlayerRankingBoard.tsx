@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Image from "next/image";
 import Link from "next/link";
@@ -171,7 +171,7 @@ export function PlayerRankingBoard({ data }: { data: PlayerRankingPageData }) {
                 {rankedRows.map((player) => (
                   <Link
                     key={player.playerId}
-                    href={`/player/${player.playerId}`}
+                    href={`/player/${player.playerSlug}`}
                     className="group grid grid-cols-[64px_minmax(0,1.4fr)_90px_120px_90px_94px_100px_130px] items-center bg-[#31313C] px-4 py-3 text-sm text-white transition hover:bg-[#3A3A47]"
                   >
                     <div className="font-black text-white">{player.rank}</div>

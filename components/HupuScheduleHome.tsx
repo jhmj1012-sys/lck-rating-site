@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -957,7 +957,7 @@ export default function HupuScheduleHome({
                       .map((player) => (
                         <Link
                           key={player.playerId}
-                          href={`/player/${player.playerId}`}
+                          href={`/player/${player.playerSlug}`}
                           className="grid grid-cols-[32px_minmax(0,1fr)_56px_52px] items-center rounded-xl bg-[#31313C] px-3 py-2 text-sm transition hover:bg-[#4A4A59]"
                         >
                           <div className="text-base font-black text-white">{player.rank}</div>
@@ -973,7 +973,7 @@ export default function HupuScheduleHome({
                       .map((player) => (
                         <Link
                           key={player.playerId}
-                          href={`/player/${player.playerId}`}
+                          href={`/player/${player.playerSlug}`}
                           className="grid grid-cols-[32px_minmax(0,1fr)_56px_52px] items-center rounded-xl bg-[#31313C] px-3 py-2 text-sm transition hover:bg-[#4A4A59]"
                         >
                           <div className="text-base font-black text-white">{player.rank}</div>
