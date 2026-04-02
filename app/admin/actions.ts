@@ -1,12 +1,13 @@
 ﻿'use server';
 
-import { revalidatePath } from "next/cache";
+import { refresh, revalidatePath } from "next/cache";
 
 import { requireAdmin } from "@/lib/authz";
 import {
   cancelSeasonPredictionQuestion,
   saveAdminSetRating,
   resolveSeasonPredictionQuestion,
+  syncAllMatchRostersFromTeamRosters,
   setCommentHidden,
   updateMatchRoster,
   updateSetRoster,
@@ -61,7 +62,21 @@ export async function updateMatchRosterAction(formData: FormData) {
   await updateMatchRoster(matchId, playerIds);
 
   revalidatePath("/");
+  revalidatePath(`/matches/${matchId}`);
   revalidatePath("/admin");
+  refresh();
+}
+
+export async function syncAllMatchRostersAction() {
+  await requireAdmin();
+
+  await syncAllMatchRostersFromTeamRosters();
+
+  revalidatePath("/");
+  revalidatePath("/schedule");
+  revalidatePath("/admin");
+  revalidatePath("/matches/[matchId]", "page");
+  refresh();
 }
 
 export async function updateMatchResultAction(formData: FormData) {

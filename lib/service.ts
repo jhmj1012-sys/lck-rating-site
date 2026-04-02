@@ -75,6 +75,7 @@ import type {
 
 const relativeTime = new Intl.RelativeTimeFormat("ko", { numeric: "auto" });
 const roleOrder: Record<PlayerRole, number> = { TOP: 0, JGL: 1, MID: 2, ADC: 3, SUP: 4 };
+const ROLE_SEQUENCE: PlayerRole[] = ["TOP", "JGL", "MID", "ADC", "SUP"];
 const scheduleWeekdayOrder = [4, 5, 6, 0, 1, 2, 3] as const;
 const COINS = {
   predictionSubmit: 10,
@@ -739,6 +740,30 @@ function buildRosterPlayerItems(store: StoreShape, entries: StoredTeamRosterEntr
     .sort((a, b) => a.displayOrder - b.displayOrder || roleOrder[a.role] - roleOrder[b.role]);
 }
 
+function pickDefaultLineupPlayerIds(store: StoreShape, teamId: string): string[] {
+  const rosterPlayers = buildRosterPlayerItems(store, getRosterEntriesForTeam(store, teamId));
+  const fallbackPlayers = store.players
+    .filter((player) => player.teamId === teamId)
+    .slice()
+    .sort((a, b) => roleOrder[a.role] - roleOrder[b.role]);
+  const pickedIds = new Set<string>();
+  const lineup: string[] = [];
+
+  for (const role of ROLE_SEQUENCE) {
+    const fromRoster = rosterPlayers.find((player) => player.role === role && !pickedIds.has(player.playerId));
+    const fromFallback = fallbackPlayers.find((player) => player.role === role && !pickedIds.has(player.id));
+    const pickedId = fromRoster?.playerId ?? fromFallback?.id ?? null;
+    if (!pickedId) {
+      continue;
+    }
+
+    pickedIds.add(pickedId);
+    lineup.push(pickedId);
+  }
+
+  return lineup;
+}
+
 function getUserById(store: StoreShape, userId: string) {
   return store.users.find((user) => user.id === userId) ?? null;
 }
@@ -774,21 +799,7 @@ function getMatchPlayers(store: StoreShape, matchId: string, viewerId: string | 
     participants.length > 0 || !match
       ? participants
       : [match.teamAId, match.teamBId].flatMap((teamId) => {
-          const roster = getRosterEntriesForTeam(store, teamId);
-          const rosterPlayers = buildRosterPlayerItems(store, roster);
-          const pickedPlayerIds =
-            rosterPlayers.length > 0
-              ? rosterPlayers
-                  .slice()
-                  .sort((a, b) => roleOrder[a.role] - roleOrder[b.role] || a.displayOrder - b.displayOrder)
-                  .slice(0, 5)
-                  .map((item) => item.playerId)
-              : store.players
-                  .filter((player) => player.teamId === teamId)
-                  .slice()
-                  .sort((a, b) => roleOrder[a.role] - roleOrder[b.role])
-                  .slice(0, 5)
-                  .map((player) => player.id);
+          const pickedPlayerIds = pickDefaultLineupPlayerIds(store, teamId);
 
           return pickedPlayerIds.map((playerId) => ({
             id: `fallback_${matchId}_${teamId}_${playerId}`,
@@ -3237,8 +3248,13 @@ export async function upsertMatch(input: {
 
     if (!previousTeamAId || !previousTeamBId || previousTeamAId !== teamA.id || previousTeamBId !== teamB.id) {
       store.matchParticipants = store.matchParticipants.filter((participant) => participant.matchId !== match.id);
-      const roster = store.players.filter((player) => player.teamId === teamA.id || player.teamId === teamB.id);
-      for (const player of roster) {
+      const nextPlayerIds = [teamA.id, teamB.id].flatMap((teamId) => pickDefaultLineupPlayerIds(store, teamId));
+      for (const playerId of nextPlayerIds) {
+        const player = store.players.find((item) => item.id === playerId);
+        if (!player) {
+          continue;
+        }
+
         store.matchParticipants.push({
           id: createId(store, "matchParticipants", "participant"),
           matchId: match.id,
@@ -3333,6 +3349,42 @@ export async function updateMatchRoster(matchId: string, playerIds: string[]) {
         teamId: player.teamId,
       });
     }
+  });
+}
+
+export async function syncAllMatchRostersFromTeamRosters() {
+  return mutateStore(async (store) => {
+    let updatedCount = 0;
+
+    for (const match of store.matches) {
+      const nextPlayerIds = [match.teamAId, match.teamBId].flatMap((teamId) => pickDefaultLineupPlayerIds(store, teamId));
+      const currentParticipants = store.matchParticipants.filter((participant) => participant.matchId === match.id);
+      const currentPlayerIds = currentParticipants.map((participant) => participant.playerId);
+      const isSame =
+        currentPlayerIds.length === nextPlayerIds.length && currentPlayerIds.every((playerId, index) => playerId === nextPlayerIds[index]);
+
+      if (isSame) {
+        continue;
+      }
+
+      store.matchParticipants = store.matchParticipants.filter((participant) => participant.matchId !== match.id);
+      for (const playerId of nextPlayerIds) {
+        const player = store.players.find((item) => item.id === playerId);
+        if (!player) {
+          continue;
+        }
+
+        store.matchParticipants.push({
+          id: createId(store, "matchParticipants", "participant"),
+          matchId: match.id,
+          playerId,
+          teamId: player.teamId,
+        });
+      }
+      updatedCount += 1;
+    }
+
+    return { updatedCount };
   });
 }
 

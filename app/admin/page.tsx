@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/lib/authz";
 import { getAdminPanelData } from "@/lib/service";
-import { updateMatchResultAction, updateMatchRosterAction, upsertMatchAction } from "./actions";
+import { syncAllMatchRostersAction, updateMatchResultAction, updateMatchRosterAction, upsertMatchAction } from "./actions";
 
 type AdminTab = "status" | "result" | "roster";
 const ROLE_ORDER = ["TOP", "JGL", "MID", "ADC", "SUP"] as const;
@@ -222,6 +222,22 @@ export default async function AdminPage({
 
         {currentTab === "roster" ? (
           <section className="space-y-4">
+            <form action={syncAllMatchRostersAction} className="rounded-[20px] bg-[#31313C] p-5 text-white shadow-[0_10px_24px_rgba(2,6,23,0.24)]">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.2em] text-[#B7C7FF]">AUTO SYNC</div>
+                  <div className="mt-1 text-base font-black text-white">모든 경기 로스터를 팀 로스터 기준으로 자동 동기화</div>
+                  <div className="mt-1 text-xs text-[#D4DCFF]">각 경기마다 TOP/JGL/MID/ADC/SUP 1명씩 자동 반영합니다.</div>
+                </div>
+                <button
+                  type="submit"
+                  className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#8B5CF6] px-4 text-sm font-semibold text-white transition hover:bg-[#7C3AED]"
+                >
+                  전체 경기 자동 동기화
+                </button>
+              </div>
+            </form>
+
             {data.matches.map((match) => {
               const teamA = data.teams.find((team) => team.id === match.teamAId);
               const teamB = data.teams.find((team) => team.id === match.teamBId);
@@ -269,12 +285,14 @@ export default async function AdminPage({
                         <div className="space-y-2">
                           {ROLE_ORDER.map((role) => {
                             const rolePlayers = getPlayersByTeamAndRole(teamId, role);
+                            const selectedPlayerId = getSelectedByTeamAndRole(teamId, role);
                             return (
                               <label key={`${match.id}-${teamId}-${role}`} className="grid grid-cols-[42px_minmax(0,1fr)] items-center gap-2">
                                 <span className="text-xs font-semibold text-[#D4DCFF]">{role}</span>
                                 <select
+                                  key={`${match.id}-${teamId}-${role}-${selectedPlayerId || "empty"}`}
                                   name="playerIds"
-                                  defaultValue={getSelectedByTeamAndRole(teamId, role)}
+                                  defaultValue={selectedPlayerId}
                                   className="min-h-10 rounded-lg bg-[#4A4A59] px-3 text-sm text-white outline-none"
                                 >
                                   <option value="">선택 안함</option>
