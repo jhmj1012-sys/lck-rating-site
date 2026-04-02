@@ -4,7 +4,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { startTransition, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
 import { toBlob } from 'html-to-image';
 import { COMMENT_MAX_LENGTH, COMMENT_MIN_LENGTH } from '@/lib/comment-constants';
 
@@ -15,6 +14,12 @@ import { cn, getInitials } from './utils';
 
 type DetailState = 'PRE_MATCH' | 'LIVE' | 'FINISHED';
 type CommentSort = 'latest' | 'top';
+type MatchDetailViewer = {
+  id: string | null;
+  nickname?: string | null;
+  name?: string | null;
+  hasNickname?: boolean | null;
+};
 const PREDICTION_JOIN_REWARD_COINS = 10;
 const ROLE_ORDER: Array<'TOP' | 'JGL' | 'MID' | 'ADC' | 'SUP'> = ['TOP', 'JGL', 'MID', 'ADC', 'SUP'];
 const ROLE_META: Record<'TOP' | 'JGL' | 'MID' | 'ADC' | 'SUP', { iconPath: string; label: string }> = {
@@ -1061,6 +1066,7 @@ function CommentInputBar({
   parentId,
   placeholder,
   compact = false,
+  viewer,
   onCancelReply,
   onSubmitted,
   onSubmitComment,
@@ -1069,22 +1075,17 @@ function CommentInputBar({
   parentId?: string | null;
   placeholder: string;
   compact?: boolean;
+  viewer: MatchDetailViewer;
   onCancelReply?: () => void;
   onSubmitted?: () => void;
   onSubmitComment: (input: { text: string; parentId?: string | null }) => Promise<void>;
   onError?: (message: string) => void;
 }) {
-  const { data: session, status } = useSession();
-  const [hydrated, setHydrated] = useState(false);
   const [text, setText] = useState('');
   const [pending, setPending] = useState(false);
 
-  useEffect(() => {
-    setHydrated(true);
-  }, []);
-
-  const isAuthenticated = hydrated && status === 'authenticated';
-  const hasNickname = Boolean(session?.user?.hasNickname);
+  const isAuthenticated = Boolean(viewer.id);
+  const hasNickname = Boolean(viewer.hasNickname);
   const canWrite = isAuthenticated && hasNickname;
   const avatarLabel = isAuthenticated ? '나' : '';
   const canSubmit = canWrite && !pending && text.trim().length >= COMMENT_MIN_LENGTH;
@@ -1136,15 +1137,13 @@ function CommentInputBar({
                 : '!border !border-white/15 !bg-[#2a2a3a] !text-slate-100 placeholder:!text-slate-300 focus:!border-[#8B5CF6]',
             )}
             placeholder={
-              !hydrated
-                ? placeholder
-                : status !== 'authenticated'
+              !isAuthenticated
                 ? '로그인 후 댓글을 작성할 수 있습니다.'
-                : !session?.user?.hasNickname
+                : !hasNickname
                   ? '닉네임 설정 후 댓글을 작성할 수 있습니다.'
                   : placeholder
             }
-            disabled={!hydrated || !canWrite || pending}
+            disabled={!canWrite || pending}
           />
           <div className='absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1'>
             <Button
@@ -1177,6 +1176,7 @@ function CommentInputBar({
 function CommentActions({
   comment,
   isMine,
+  isAuthenticated,
   canRecommend,
   canReply,
   onReplyToggle,
@@ -1187,6 +1187,7 @@ function CommentActions({
 }: {
   comment: MatchComment;
   isMine: boolean;
+  isAuthenticated: boolean;
   canRecommend: boolean;
   canReply: boolean;
   onReplyToggle?: () => void;
@@ -1196,7 +1197,6 @@ function CommentActions({
   disabled?: boolean;
 }) {
   const router = useRouter();
-  const { status } = useSession();
   const [likePending, setLikePending] = useState(false);
   const [deletePending, setDeletePending] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -1233,7 +1233,7 @@ function CommentActions({
               comment.likedByMe ? 'text-[#A56BFF]' : 'text-slate-400 hover:text-slate-200',
             )}
             onClick={async () => {
-              if (status !== 'authenticated') {
+              if (!isAuthenticated) {
                 router.push('/signin');
                 return;
               }
@@ -1311,6 +1311,7 @@ function CommentActions({
 function CommentBubble({
   comment,
   isMine,
+  isAuthenticated,
   canReply,
   canRecommend,
   onReplyToggle,
@@ -1325,6 +1326,7 @@ function CommentBubble({
 }: {
   comment: MatchComment;
   isMine: boolean;
+  isAuthenticated: boolean;
   canReply: boolean;
   canRecommend: boolean;
   onReplyToggle?: () => void;
@@ -1403,6 +1405,7 @@ function CommentBubble({
             <CommentActions
               comment={comment}
               isMine={isMine}
+              isAuthenticated={isAuthenticated}
               canRecommend={canRecommend}
               canReply={canReply}
               onReplyToggle={onReplyToggle}
@@ -1421,7 +1424,9 @@ function CommentBubble({
 function CommentThread({
   comment,
   replies,
+  viewer,
   viewerId,
+  isAuthenticated,
   editingCommentId,
   editDraft,
   onEditDraftChange,
@@ -1435,7 +1440,9 @@ function CommentThread({
 }: {
   comment: MatchComment;
   replies: MatchComment[];
+  viewer: MatchDetailViewer;
   viewerId: string | null;
+  isAuthenticated: boolean;
   editingCommentId: string | null;
   editDraft: string;
   onEditDraftChange: (value: string) => void;
@@ -1456,6 +1463,7 @@ function CommentThread({
       <CommentBubble
         comment={comment}
         isMine={isMine}
+        isAuthenticated={isAuthenticated}
         canReply
         canRecommend
         onReplyToggle={() => setReplyOpen((value) => !value)}
@@ -1474,6 +1482,7 @@ function CommentThread({
           parentId={comment.id}
           placeholder=''
           compact
+          viewer={viewer}
           onCancelReply={() => setReplyOpen(false)}
           onSubmitted={() => setReplyOpen(false)}
           onSubmitComment={onSubmitComment}
@@ -1490,6 +1499,7 @@ function CommentThread({
                 key={reply.id}
                 comment={reply}
                 isMine={replyIsMine}
+                isAuthenticated={isAuthenticated}
                 canReply={false}
                 canRecommend={false}
                 onToggleLike={onToggleLike}
@@ -1509,16 +1519,16 @@ function CommentThread({
   );
 }
 
-function CommentsSection({ data }: { data: MatchDetailData }) {
-  const { data: session } = useSession();
+function CommentsSection({ data, viewer }: { data: MatchDetailData; viewer: MatchDetailViewer }) {
   const [sort, setSort] = useState<CommentSort>('latest');
   const [commentItems, setCommentItems] = useState<MatchComment[]>(data.match.commentsList);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const toastTimerRef = useRef<number | null>(null);
-  const viewerId = session?.user?.id ?? null;
-  const viewerNickname = session?.user?.nickname ?? session?.user?.name ?? '나';
+  const viewerId = viewer.id;
+  const viewerNickname = viewer.nickname ?? viewer.name ?? '나';
+  const isAuthenticated = Boolean(viewer.id);
 
   useEffect(() => {
     setCommentItems(data.match.commentsList);
@@ -1745,7 +1755,7 @@ function CommentsSection({ data }: { data: MatchDetailData }) {
         </div>
 
         <div className='mx-auto max-w-6xl'>
-          <CommentInputBar placeholder='댓글을 입력하세요...' onSubmitComment={handleSubmitComment} onError={showToast} />
+          <CommentInputBar viewer={viewer} placeholder='댓글을 입력하세요...' onSubmitComment={handleSubmitComment} onError={showToast} />
         </div>
 
         <div className='rounded-[20px] border border-[#1E1E27] bg-transparent p-0'>
@@ -1758,7 +1768,9 @@ function CommentsSection({ data }: { data: MatchDetailData }) {
                   <CommentThread
                     comment={comment}
                     replies={repliesByParent.get(comment.id) ?? []}
+                    viewer={viewer}
                     viewerId={viewerId}
+                    isAuthenticated={isAuthenticated}
                     editingCommentId={editingCommentId}
                     editDraft={editDraft}
                     onEditDraftChange={setEditDraft}
@@ -1789,7 +1801,7 @@ function BottomFixedCta({ state }: { state: DetailState }) {
   return null;
 }
 
-export function MatchDetailStateView({ data }: { data: MatchDetailData }) {
+export function MatchDetailStateView({ data, viewer }: { data: MatchDetailData; viewer: MatchDetailViewer }) {
   const state = resolveDetailState(data.match);
 
   return (
@@ -1800,7 +1812,7 @@ export function MatchDetailStateView({ data }: { data: MatchDetailData }) {
       {state === 'LIVE' ? <LiveView data={data} /> : null}
       {state === 'FINISHED' ? <FinishedView data={data} /> : null}
 
-      <CommentsSection data={data} />
+      <CommentsSection data={data} viewer={viewer} />
       <BottomFixedCta state={state} />
     </div>
   );
