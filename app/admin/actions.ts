@@ -5,16 +5,13 @@ import { refresh, revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/authz";
 import {
   cancelSeasonPredictionQuestion,
-  saveAdminSetRating,
   resolveSeasonPredictionQuestion,
   syncAllMatchRostersFromTeamRosters,
   setCommentHidden,
   updateMatchRoster,
-  updateSetRoster,
   updateTeamRoster,
   upsertSeasonPredictionQuestion,
   upsertMatch,
-  upsertMatchSet,
 } from "@/lib/service";
 
 function toNumber(value: FormDataEntryValue | null) {
@@ -140,66 +137,6 @@ export async function toggleCommentVisibilityAction(formData: FormData) {
   }
 
   await setCommentHidden(commentId, formData.get("hidden") === "true");
-
-  revalidatePath("/");
-  revalidatePath("/admin");
-}
-
-export async function upsertMatchSetAction(formData: FormData) {
-  await requireAdmin();
-
-  const matchId = formData.get("matchId");
-  if (typeof matchId !== "string" || !matchId) {
-    throw new Error("경기 정보가 없습니다.");
-  }
-
-  await upsertMatchSet({
-    matchId,
-    setId: (formData.get("setId") as string) || undefined,
-    setNumber: Number(formData.get("setNumber") || 1),
-    winnerTeamCode: (formData.get("winnerTeamCode") as string) || "",
-    durationMinutes: toNumber(formData.get("durationMinutes")),
-    note: (formData.get("note") as string) || "",
-  });
-
-  revalidatePath("/");
-  revalidatePath("/admin");
-}
-
-export async function updateSetRosterAction(formData: FormData) {
-  await requireAdmin();
-
-  const setId = formData.get("setId");
-  if (typeof setId !== "string" || !setId) {
-    throw new Error("세트 정보가 없습니다.");
-  }
-
-  const playerIds = formData
-    .getAll("playerIds")
-    .filter((entry): entry is string => typeof entry === "string");
-
-  await updateSetRoster(setId, playerIds);
-
-  revalidatePath("/");
-  revalidatePath("/admin");
-}
-
-export async function saveAdminSetRatingAction(formData: FormData) {
-  const admin = await requireAdmin();
-
-  const setId = formData.get("setId");
-  const playerId = formData.get("playerId");
-  if (typeof setId !== "string" || !setId || typeof playerId !== "string" || !playerId) {
-    throw new Error("세트 또는 선수 정보가 없습니다.");
-  }
-
-  await saveAdminSetRating({
-    userId: admin.id,
-    setId,
-    playerId,
-    score: Number(formData.get("score") || 0),
-    comment: (formData.get("comment") as string) || "",
-  });
 
   revalidatePath("/");
   revalidatePath("/admin");

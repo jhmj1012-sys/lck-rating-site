@@ -8,7 +8,7 @@ import { useSession } from 'next-auth/react';
 import { toBlob } from 'html-to-image';
 import { COMMENT_MAX_LENGTH, COMMENT_MIN_LENGTH } from '@/lib/comment-constants';
 
-import type { MatchComment, MatchData, MatchDetailData, MatchSetSummary } from './types';
+import type { MatchComment, MatchData, MatchDetailData } from './types';
 import { getTeamDisplayName } from './team-branding';
 import { Avatar, Badge, Button, Card, CardContent } from './ui';
 import { cn, getInitials } from './utils';
@@ -73,15 +73,6 @@ function getWinnerTeam(match: MatchData): string | null {
   return scoreA > scoreB ? match.teamA : match.teamB;
 }
 
-function getCurrentSetLabel(sets: MatchSetSummary[]) {
-  const current = sets.find((set) => !set.isPlayed);
-  if (current) {
-    return `SET ${current.setNumber}`;
-  }
-  const lastPlayed = sets.filter((set) => set.isPlayed).at(-1);
-  return lastPlayed ? `SET ${lastPlayed.setNumber}` : 'SET -';
-}
-
 function getStatusBadge(state: DetailState) {
   if (state === 'PRE_MATCH') {
     return { label: '예정', variant: 'accent' as const };
@@ -90,14 +81,6 @@ function getStatusBadge(state: DetailState) {
     return { label: '진행중', variant: 'danger' as const };
   }
   return { label: '종료', variant: 'success' as const };
-}
-
-function getSeriesFormatLabel(sets: MatchSetSummary[]) {
-  const maxSetNumber = sets.reduce((max, set) => Math.max(max, set.setNumber), 0);
-  if (maxSetNumber >= 5) {
-    return 'BO5';
-  }
-  return 'BO3';
 }
 
 function getRatingChipTone(score: number | null, opponentScore: number | null) {
@@ -177,33 +160,48 @@ function estimateOddsPercent(sharePct: number) {
   return Math.round(clamp(120 + ((85 - sharePct) / 70) * 80, 120, 200));
 }
 
-async function postJson(url: string, body: unknown) {
+async function postJson<T = Record<string, never>>(url: string, body: unknown) {
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
 
-  const payload = (await response.json().catch(() => ({}))) as { error?: string };
+  const payload = (await response.json().catch(() => ({}))) as T & { error?: string };
   if (!response.ok) {
     throw new Error(payload.error ?? '요청을 처리하지 못했습니다.');
   }
+  return payload;
 }
 
-async function deleteJson(url: string) {
+async function patchJson<T = Record<string, never>>(url: string, body: unknown) {
+  const response = await fetch(url, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  const payload = (await response.json().catch(() => ({}))) as T & { error?: string };
+  if (!response.ok) {
+    throw new Error(payload.error ?? '요청을 처리하지 못했습니다.');
+  }
+  return payload;
+}
+
+async function deleteJson<T = Record<string, never>>(url: string) {
   const response = await fetch(url, {
     method: 'DELETE',
   });
 
-  const payload = (await response.json().catch(() => ({}))) as { error?: string };
+  const payload = (await response.json().catch(() => ({}))) as T & { error?: string };
   if (!response.ok) {
     throw new Error(payload.error ?? '요청을 처리하지 못했습니다.');
   }
+  return payload;
 }
 
 function MatchHeader({ data, state }: { data: MatchDetailData; state: DetailState }) {
   const status = getStatusBadge(state);
-  const seriesFormat = getSeriesFormatLabel(data.sets);
   const [scoreA, scoreB] =
     data.match.score === '-' || data.match.score === '0 : 0'
       ? ['', '']
@@ -245,8 +243,6 @@ function MatchHeader({ data, state }: { data: MatchDetailData; state: DetailStat
           </div>
           <div className='mt-3 flex flex-wrap items-center justify-center gap-2 text-sm text-slate-600'>
             <span>{formatDateTime(data.match.scheduledAt)}</span>
-            <span>·</span>
-            <span>{seriesFormat}</span>
           </div>
         </div>
       </CardContent>
@@ -588,10 +584,10 @@ function StarScorePicker({
             }}
             aria-label={`${index}별`}
           >
-            <span className='absolute inset-0 text-base leading-5 text-[#555569] sm:text-2xl sm:leading-7'>★</span>
-            {full ? <span className='absolute inset-0 text-base leading-5 text-slate-800 sm:text-2xl sm:leading-7'>★</span> : null}
+            <span className='absolute inset-0 text-base leading-5 text-[#3C4052] sm:text-2xl sm:leading-7'>★</span>
+            {full ? <span className='absolute inset-0 text-base leading-5 text-[#8B93AA] sm:text-2xl sm:leading-7'>★</span> : null}
             {half ? (
-              <span className='absolute inset-0 w-1/2 overflow-hidden text-base leading-5 text-slate-800 sm:text-2xl sm:leading-7'>★</span>
+              <span className='absolute inset-0 w-1/2 overflow-hidden text-base leading-5 text-[#8B93AA] sm:text-2xl sm:leading-7'>★</span>
             ) : null}
           </button>
         );
@@ -602,10 +598,10 @@ function StarScorePicker({
 
 function FinishedView({ data }: { data: MatchDetailData }) {
   const COMMENT_PAGE_SIZE = 8;
-  const router = useRouter();
   const [pendingPlayerId, setPendingPlayerId] = useState<string | null>(null);
   const [shareCopied, setShareCopied] = useState(false);
   const shareCardRef = useRef<HTMLDivElement | null>(null);
+  const ratingRequestSeqRef = useRef<Record<string, number>>({});
   const [activeCommentPlayerId, setActiveCommentPlayerId] = useState<string | null>(null);
   const [commentDraftByPlayerId, setCommentDraftByPlayerId] = useState<Record<string, string>>({});
   const [viewerScoreByPlayerId, setViewerScoreByPlayerId] = useState<Record<string, number>>({});
@@ -613,19 +609,24 @@ function FinishedView({ data }: { data: MatchDetailData }) {
   const [commentSavedByPlayerId, setCommentSavedByPlayerId] = useState<Record<string, boolean>>({});
   const [ratingCommentPage, setRatingCommentPage] = useState(1);
   const [ratingActionError, setRatingActionError] = useState<string | null>(null);
+  const [ratingComments, setRatingComments] = useState(data.match.ratingComments);
   const canWrite = true;
   const playerById = useMemo(() => new Map(data.match.players.map((player) => [player.id, player])), [data.match.players]);
-  const totalRatingCommentPages = Math.max(1, Math.ceil(data.match.ratingComments.length / COMMENT_PAGE_SIZE));
+  const totalRatingCommentPages = Math.max(1, Math.ceil(ratingComments.length / COMMENT_PAGE_SIZE));
   const pagedRatingComments = useMemo(() => {
     const startIndex = (ratingCommentPage - 1) * COMMENT_PAGE_SIZE;
-    return data.match.ratingComments.slice(startIndex, startIndex + COMMENT_PAGE_SIZE);
-  }, [data.match.ratingComments, ratingCommentPage]);
+    return ratingComments.slice(startIndex, startIndex + COMMENT_PAGE_SIZE);
+  }, [ratingComments, ratingCommentPage]);
 
   const getPlayerByTeamAndRole = (teamCode: string, role: 'TOP' | 'JGL' | 'MID' | 'ADC' | 'SUP') =>
     data.match.players
       .filter((player) => player.team === teamCode && player.role === role)
       .slice()
       .sort((a, b) => b.ratingCount - a.ratingCount)[0] ?? null;
+
+  useEffect(() => {
+    setRatingComments(data.match.ratingComments);
+  }, [data.match.ratingComments]);
 
   useEffect(() => {
     setCommentDraftByPlayerId((prev) => {
@@ -652,23 +653,44 @@ function FinishedView({ data }: { data: MatchDetailData }) {
     setRatingCommentPage((prev) => Math.min(prev, totalRatingCommentPages));
   }, [totalRatingCommentPages]);
 
+  const upsertRatingComment = (ratingComment: MatchDetailData['match']['ratingComments'][number] | null | undefined) => {
+    if (!ratingComment) {
+      return;
+    }
+    setRatingComments((current) => [ratingComment, ...current.filter((item) => item.id !== ratingComment.id)]);
+    setRatingCommentPage(1);
+  };
+
   const submitQuickRating = async (playerId: string, score: number) => {
     if (!canWrite || pendingPlayerId) {
       return;
     }
+    const requestSeq = (ratingRequestSeqRef.current[playerId] ?? 0) + 1;
+    ratingRequestSeqRef.current[playerId] = requestSeq;
+
     try {
       setRatingActionError(null);
       setPendingPlayerId(playerId);
-      const preservedComment = commentDraftByPlayerId[playerId] ?? playerById.get(playerId)?.viewerComment ?? '';
-      await postJson(`/api/matches/${data.match.id}/ratings`, { playerId, score, comment: preservedComment });
       setViewerScoreByPlayerId((prev) => ({ ...prev, [playerId]: score }));
       setActiveCommentPlayerId(playerId);
       setCommentSavedByPlayerId((prev) => ({ ...prev, [playerId]: false }));
-      startTransition(() => router.refresh());
+      const preservedComment = commentDraftByPlayerId[playerId] ?? playerById.get(playerId)?.viewerComment ?? '';
+      const payload = await postJson<{ ok: true; ratingComment?: MatchDetailData['match']['ratingComments'][number] | null }>(
+        `/api/matches/${data.match.id}/ratings`,
+        { playerId, score, comment: preservedComment },
+      );
+      if (ratingRequestSeqRef.current[playerId] !== requestSeq) {
+        return;
+      }
+      upsertRatingComment(payload.ratingComment);
     } catch (error) {
-      setRatingActionError(error instanceof Error ? error.message : '평점 저장에 실패했습니다.');
+      if (ratingRequestSeqRef.current[playerId] === requestSeq) {
+        setRatingActionError(error instanceof Error ? error.message : '평점 저장에 실패했습니다.');
+      }
     } finally {
-      setPendingPlayerId(null);
+      if (ratingRequestSeqRef.current[playerId] === requestSeq) {
+        setPendingPlayerId(null);
+      }
     }
   };
 
@@ -684,12 +706,15 @@ function FinishedView({ data }: { data: MatchDetailData }) {
       setRatingActionError(null);
       setCommentPendingByPlayerId((prev) => ({ ...prev, [playerId]: true }));
       const comment = commentDraftByPlayerId[playerId] ?? '';
-      await postJson(`/api/matches/${data.match.id}/ratings`, { playerId, score, comment });
+      const payload = await postJson<{ ok: true; ratingComment?: MatchDetailData['match']['ratingComments'][number] | null }>(
+        `/api/matches/${data.match.id}/ratings`,
+        { playerId, score, comment },
+      );
       setCommentSavedByPlayerId((prev) => ({ ...prev, [playerId]: true }));
+      upsertRatingComment(payload.ratingComment);
       window.setTimeout(() => {
         setCommentSavedByPlayerId((prev) => ({ ...prev, [playerId]: false }));
       }, 1200);
-      startTransition(() => router.refresh());
     } catch (error) {
       setRatingActionError(error instanceof Error ? error.message : '코멘트 저장에 실패했습니다.');
     } finally {
@@ -757,6 +782,8 @@ function FinishedView({ data }: { data: MatchDetailData }) {
               const rightRating = right ? Number(right.rating.toFixed(1)) : null;
               const leftViewerScore = left ? (viewerScoreByPlayerId[left.id] ?? left.viewerScore) : null;
               const rightViewerScore = right ? (viewerScoreByPlayerId[right.id] ?? right.viewerScore) : null;
+              const leftViewerScoreLabel = leftViewerScore !== null ? leftViewerScore.toFixed(1) : null;
+              const rightViewerScoreLabel = rightViewerScore !== null ? rightViewerScore.toFixed(1) : null;
               const leftRevealed = leftViewerScore !== null;
               const rightRevealed = rightViewerScore !== null;
 
@@ -768,9 +795,14 @@ function FinishedView({ data }: { data: MatchDetailData }) {
                         type='button'
                         disabled={!left || !canWrite || Boolean(pendingPlayerId)}
                         onClick={() => left && submitQuickRating(left.id, leftViewerScore ?? 8)}
-                        className='allow-disabled-cursor w-full truncate text-left text-base font-semibold text-slate-950 enabled:hover:text-sky-700 sm:text-xl'
+                        className='allow-disabled-cursor flex w-full items-center gap-1.5 text-left text-base font-semibold text-slate-950 enabled:hover:text-sky-700 sm:text-xl'
                       >
-                        {left?.name ?? '-'}
+                        <span className='truncate'>{left?.name ?? '-'}</span>
+                        {leftViewerScoreLabel ? (
+                          <span className='shrink-0 rounded bg-transparent px-1.5 py-[1px] text-[10px] font-semibold leading-none text-white'>
+                            {leftViewerScoreLabel}
+                          </span>
+                        ) : null}
                       </button>
                       <div className='mt-0.5'>
                         <StarScorePicker
@@ -806,9 +838,14 @@ function FinishedView({ data }: { data: MatchDetailData }) {
                         type='button'
                         disabled={!right || !canWrite || Boolean(pendingPlayerId)}
                         onClick={() => right && submitQuickRating(right.id, rightViewerScore ?? 8)}
-                        className='allow-disabled-cursor w-full truncate text-right text-base font-semibold text-slate-950 enabled:hover:text-sky-700 sm:text-xl'
+                        className='allow-disabled-cursor flex w-full items-center gap-1.5 text-left text-base font-semibold text-slate-950 enabled:hover:text-sky-700 sm:text-xl'
                       >
-                        {right?.name ?? '-'}
+                        <span className='truncate'>{right?.name ?? '-'}</span>
+                        {rightViewerScoreLabel ? (
+                          <span className='shrink-0 rounded bg-transparent px-1.5 py-[1px] text-[10px] font-semibold leading-none text-white'>
+                            {rightViewerScoreLabel}
+                          </span>
+                        ) : null}
                       </button>
                       <div className='mt-0.5 flex justify-end'>
                         <StarScorePicker
@@ -977,7 +1014,7 @@ function FinishedView({ data }: { data: MatchDetailData }) {
               <div className='shrink-0 text-right text-[10px] text-slate-300 sm:text-[11px]'>{formatDateTime(data.match.scheduledAt)}</div>
             </div>
             <div className='mt-2 text-center text-[11px] font-semibold tracking-[0.14em] text-slate-300 sm:mt-3 sm:text-xs sm:tracking-[0.16em]'>{data.match.league}</div>
-            <div className='mt-1 truncate text-center text-xs font-semibold text-slate-200 sm:text-sm'>{data.match.stage} · {getSeriesFormatLabel(data.sets)}</div>
+            <div className='mt-1 truncate text-center text-xs font-semibold text-slate-200 sm:text-sm'>{data.match.stage}</div>
             <div className='mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-2'>
               <div className='truncate text-center text-base font-black sm:text-lg'>{data.match.teamA}</div>
               <div className='text-center text-[28px] font-black tracking-[-0.03em] sm:text-4xl'>{data.match.score.replace(' : ', ' - ')}</div>
@@ -1021,26 +1058,26 @@ function FinishedView({ data }: { data: MatchDetailData }) {
 }
 
 function CommentInputBar({
-  matchId,
   parentId,
   placeholder,
   compact = false,
   onCancelReply,
   onSubmitted,
+  onSubmitComment,
+  onError,
 }: {
-  matchId: string;
   parentId?: string | null;
   placeholder: string;
   compact?: boolean;
   onCancelReply?: () => void;
   onSubmitted?: () => void;
+  onSubmitComment: (input: { text: string; parentId?: string | null }) => Promise<void>;
+  onError?: (message: string) => void;
 }) {
-  const router = useRouter();
   const { data: session, status } = useSession();
   const [hydrated, setHydrated] = useState(false);
   const [text, setText] = useState('');
   const [pending, setPending] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
     setHydrated(true);
@@ -1058,16 +1095,12 @@ function CommentInputBar({
     }
     try {
       setPending(true);
-      await postJson(`/api/matches/${matchId}/comments`, { text, parentId: parentId ?? null });
+      await onSubmitComment({ text, parentId: parentId ?? null });
       setText('');
-      setToastMessage(parentId ? '답글이 등록되었습니다.' : '댓글이 등록되었습니다.');
-      window.setTimeout(() => setToastMessage(null), 2000);
-      startTransition(() => router.refresh());
       onSubmitted?.();
       onCancelReply?.();
     } catch (error) {
-      setToastMessage(error instanceof Error ? error.message : '댓글 등록에 실패했습니다.');
-      window.setTimeout(() => setToastMessage(null), 2000);
+      onError?.(error instanceof Error ? error.message : '댓글 등록에 실패했습니다.');
     } finally {
       setPending(false);
     }
@@ -1137,29 +1170,30 @@ function CommentInputBar({
           </div>
         </div>
       </div>
-      {toastMessage ? (
-        <div className='pointer-events-none absolute bottom-2 right-2 rounded-lg bg-[#232633] px-3 py-1.5 text-[11px] font-medium text-slate-100 shadow-[0_8px_20px_rgba(0,0,0,0.35)]'>
-          {toastMessage}
-        </div>
-      ) : null}
     </div>
   );
 }
 
 function CommentActions({
-  matchId,
   comment,
   isMine,
   canRecommend,
   canReply,
   onReplyToggle,
+  onToggleLike,
+  onDelete,
+  onStartEdit,
+  disabled = false,
 }: {
-  matchId: string;
   comment: MatchComment;
   isMine: boolean;
   canRecommend: boolean;
   canReply: boolean;
   onReplyToggle?: () => void;
+  onToggleLike: (commentId: string) => Promise<void>;
+  onDelete: (commentId: string) => Promise<void>;
+  onStartEdit: (comment: MatchComment) => void;
+  disabled?: boolean;
 }) {
   const router = useRouter();
   const { status } = useSession();
@@ -1188,98 +1222,124 @@ function CommentActions({
   }, [menuOpen]);
 
   return (
-    <div ref={menuRef} className='relative mt-1 flex items-center justify-between gap-2 text-[12px] font-normal'>
+    <div ref={menuRef} className={cn('relative mt-1 flex items-center justify-between gap-2 text-[12px] font-normal', menuOpen ? 'z-30' : 'z-0')}>
       <div className='flex items-center gap-2'>
-      {canRecommend ? (
-        <button
-          type='button'
-          disabled={likePending}
-          className={cn(
-            'allow-disabled-cursor inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 font-normal transition',
-            comment.likedByMe ? 'text-[#A56BFF]' : 'text-slate-400 hover:text-slate-200',
-          )}
-          onClick={async () => {
-            if (status !== 'authenticated') {
-              router.push('/signin');
-              return;
-            }
-            try {
-              setLikePending(true);
-              await postJson(`/api/matches/${matchId}/comments/${comment.id}/recommend`, {});
-              startTransition(() => router.refresh());
-            } finally {
-              setLikePending(false);
-            }
-          }}
-        >
-          <span>{comment.likedByMe ? '♥' : '♡'}</span>
-          <span>{comment.likes}</span>
-        </button>
-      ) : null}
-      {canReply ? (
-        <button type='button' className='rounded-full px-1.5 py-0.5 font-normal text-slate-400 hover:text-slate-200' onClick={onReplyToggle}>
-          답글{comment.replyCount > 0 ? ` ${comment.replyCount}` : ''}
-        </button>
-      ) : null}
-      </div>
-      <button
-        type='button'
-        className='rounded-full px-1 py-0.5 text-base leading-none text-slate-500 hover:text-slate-300'
-        aria-label='더보기'
-        onClick={() => setMenuOpen((open) => !open)}
-      >
-        …
-      </button>
-      {menuOpen ? (
-        <div className='absolute right-0 top-6 z-10 min-w-[110px] rounded-xl border border-[#2A2B36] bg-[#11131A] p-1.5 shadow-[0_8px_22px_rgba(0,0,0,0.35)]'>
-          <button type='button' disabled className='block w-full rounded-lg px-2 py-1.5 text-left text-[11px] text-slate-400'>
-            수정 (준비중)
+        {canRecommend ? (
+          <button
+            type='button'
+            disabled={likePending || disabled}
+            className={cn(
+              'allow-disabled-cursor inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 font-normal transition',
+              comment.likedByMe ? 'text-[#A56BFF]' : 'text-slate-400 hover:text-slate-200',
+            )}
+            onClick={async () => {
+              if (status !== 'authenticated') {
+                router.push('/signin');
+                return;
+              }
+              try {
+                setLikePending(true);
+                await onToggleLike(comment.id);
+              } finally {
+                setLikePending(false);
+              }
+            }}
+          >
+            <span>{comment.likedByMe ? '♥' : '♡'}</span>
+            <span>{comment.likes}</span>
           </button>
-          {isMine ? (
-            <button
-              type='button'
-              disabled={deletePending}
-              className='allow-disabled-cursor block w-full rounded-lg px-2 py-1.5 text-left text-[11px] text-slate-200 hover:bg-[#1A1D27] hover:text-rose-300'
-              onClick={async () => {
-                try {
-                  setDeletePending(true);
-                  await deleteJson(`/api/matches/${matchId}/comments/${comment.id}`);
-                  startTransition(() => router.refresh());
-                } finally {
-                  setDeletePending(false);
+        ) : null}
+        {canReply ? (
+          <button type='button' className='rounded-full px-1.5 py-0.5 font-normal text-slate-400 hover:text-slate-200' onClick={onReplyToggle}>
+            답글{comment.replyCount > 0 ? ` ${comment.replyCount}` : ''}
+          </button>
+        ) : null}
+      </div>
+      {isMine ? (
+        <>
+          <button
+            type='button'
+            disabled={disabled}
+            className='rounded-full px-1 py-0.5 text-base leading-none text-slate-500 hover:text-slate-300'
+            aria-label='더보기'
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            …
+          </button>
+          {menuOpen ? (
+            <div className='absolute right-0 top-6 z-50 min-w-[110px] rounded-xl border border-[#2A2B36] bg-[#11131A] p-1.5 shadow-[0_8px_22px_rgba(0,0,0,0.35)]'>
+              <button
+                type='button'
+                disabled={disabled}
+                className='block w-full rounded-lg px-2 py-1.5 text-left text-[11px] text-slate-200 hover:bg-[#1A1D27]'
+                onClick={() => {
+                  onStartEdit(comment);
                   setMenuOpen(false);
-                }
-              }}
-            >
-              삭제
-            </button>
-          ) : (
-            <button type='button' disabled className='block w-full rounded-lg px-2 py-1.5 text-left text-[11px] text-slate-400'>
-              신고 (준비중)
-            </button>
-          )}
-        </div>
+                }}
+              >
+                수정
+              </button>
+              <button
+                type='button'
+                disabled={deletePending || disabled}
+                className='allow-disabled-cursor block w-full rounded-lg px-2 py-1.5 text-left text-[11px] text-slate-200 hover:bg-[#1A1D27] hover:text-rose-300'
+                onClick={async () => {
+                  const confirmed = window.confirm('이 댓글을 삭제할까요?');
+                  if (!confirmed) {
+                    setMenuOpen(false);
+                    return;
+                  }
+                  try {
+                    setDeletePending(true);
+                    await onDelete(comment.id);
+                  } finally {
+                    setDeletePending(false);
+                    setMenuOpen(false);
+                  }
+                }}
+              >
+                삭제
+              </button>
+            </div>
+          ) : null}
+        </>
       ) : null}
     </div>
   );
 }
 
 function CommentBubble({
-  matchId,
   comment,
   isMine,
   canReply,
   canRecommend,
   onReplyToggle,
+  onToggleLike,
+  onDelete,
+  onStartEdit,
+  isEditing,
+  editDraft,
+  onEditDraftChange,
+  onSaveEdit,
+  onCancelEdit,
 }: {
-  matchId: string;
   comment: MatchComment;
   isMine: boolean;
   canReply: boolean;
   canRecommend: boolean;
   onReplyToggle?: () => void;
+  onToggleLike: (commentId: string) => Promise<void>;
+  onDelete: (commentId: string) => Promise<void>;
+  onStartEdit: (comment: MatchComment) => void;
+  isEditing: boolean;
+  editDraft: string;
+  onEditDraftChange: (value: string) => void;
+  onSaveEdit: (commentId: string) => Promise<void>;
+  onCancelEdit: () => void;
 }) {
   const isReply = !canReply;
+  const trimmedDraft = editDraft.trim();
+  const canSaveEdit = trimmedDraft.length >= COMMENT_MIN_LENGTH && trimmedDraft.length <= COMMENT_MAX_LENGTH && !comment.pending;
 
   return (
     <div className='group flex w-full min-w-0 justify-start gap-3'>
@@ -1299,36 +1359,125 @@ function CommentBubble({
             </div>
             <div className='shrink-0 text-[12px] font-normal text-slate-400'>{comment.createdLabel}</div>
           </div>
-          <p className={cn('whitespace-pre-wrap break-words [overflow-wrap:anywhere] font-normal leading-[1.6]', isReply ? 'text-[13px]' : 'text-[14px]')}>
-            {comment.text}
-          </p>
+          {isEditing ? (
+            <div className='space-y-2'>
+              <input
+                type='text'
+                value={editDraft}
+                onChange={(event) => onEditDraftChange(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' && canSaveEdit) {
+                    event.preventDefault();
+                    void onSaveEdit(comment.id);
+                  }
+                  if (event.key === 'Escape') {
+                    event.preventDefault();
+                    onCancelEdit();
+                  }
+                }}
+                maxLength={COMMENT_MAX_LENGTH}
+                className='block h-10 w-full rounded-[12px] border border-white/15 bg-[#262638] px-3 text-[13px] text-slate-100 outline-none transition focus:border-[#8B5CF6] sm:text-[14px]'
+                autoFocus
+              />
+              <div className='flex justify-end gap-1'>
+                <button type='button' className='rounded-[8px] px-2 py-1 text-[10px] font-semibold text-slate-300 hover:text-white' onClick={onCancelEdit}>
+                  취소
+                </button>
+                <Button
+                  disabled={!canSaveEdit}
+                  className={cn('h-6 rounded-[8px] px-2 text-[10px] font-semibold text-white', canSaveEdit ? 'bg-[#3E365F] opacity-100' : 'bg-[#3E365F] opacity-30')}
+                  onClick={() => void onSaveEdit(comment.id)}
+                >
+                  저장
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <p className={cn('whitespace-pre-wrap break-words [overflow-wrap:anywhere] font-normal leading-[1.6]', isReply ? 'text-[13px]' : 'text-[14px]', comment.pending ? 'opacity-70' : '')}>
+              {comment.text}
+            </p>
+          )}
         </div>
-        <div className='mt-[2px] w-full px-1'>
-          <CommentActions matchId={matchId} comment={comment} isMine={isMine} canRecommend={canRecommend} canReply={canReply} onReplyToggle={onReplyToggle} />
-        </div>
+        {!isEditing ? (
+          <div className='mt-[2px] w-full px-1'>
+            <CommentActions
+              comment={comment}
+              isMine={isMine}
+              canRecommend={canRecommend}
+              canReply={canReply}
+              onReplyToggle={onReplyToggle}
+              onToggleLike={onToggleLike}
+              onDelete={onDelete}
+              onStartEdit={onStartEdit}
+              disabled={Boolean(comment.pending)}
+            />
+          </div>
+        ) : null}
       </div>
     </div>
   );
 }
 
-function CommentThread({ matchId, comment, replies }: { matchId: string; comment: MatchComment; replies: MatchComment[] }) {
-  const { data: session } = useSession();
+function CommentThread({
+  comment,
+  replies,
+  viewerId,
+  editingCommentId,
+  editDraft,
+  onEditDraftChange,
+  onSaveEdit,
+  onCancelEdit,
+  onStartEdit,
+  onToggleLike,
+  onDelete,
+  onSubmitComment,
+  onError,
+}: {
+  comment: MatchComment;
+  replies: MatchComment[];
+  viewerId: string | null;
+  editingCommentId: string | null;
+  editDraft: string;
+  onEditDraftChange: (value: string) => void;
+  onSaveEdit: (commentId: string) => Promise<void>;
+  onCancelEdit: () => void;
+  onStartEdit: (comment: MatchComment) => void;
+  onToggleLike: (commentId: string) => Promise<void>;
+  onDelete: (commentId: string) => Promise<void>;
+  onSubmitComment: (input: { text: string; parentId?: string | null }) => Promise<void>;
+  onError: (message: string) => void;
+}) {
   const [replyOpen, setReplyOpen] = useState(false);
-  const viewerId = session?.user?.id ?? null;
   const isMine = Boolean(viewerId && comment.userId && viewerId === comment.userId);
   const orderedReplies = replies.slice().reverse();
 
   return (
     <div className='space-y-2'>
-      <CommentBubble matchId={matchId} comment={comment} isMine={isMine} canReply canRecommend onReplyToggle={() => setReplyOpen((value) => !value)} />
+      <CommentBubble
+        comment={comment}
+        isMine={isMine}
+        canReply
+        canRecommend
+        onReplyToggle={() => setReplyOpen((value) => !value)}
+        onToggleLike={onToggleLike}
+        onDelete={onDelete}
+        onStartEdit={onStartEdit}
+        isEditing={editingCommentId === comment.id}
+        editDraft={editingCommentId === comment.id ? editDraft : comment.text}
+        onEditDraftChange={onEditDraftChange}
+        onSaveEdit={onSaveEdit}
+        onCancelEdit={onCancelEdit}
+      />
 
       {replyOpen ? (
         <CommentInputBar
-          matchId={matchId}
           parentId={comment.id}
           placeholder=''
           compact
           onCancelReply={() => setReplyOpen(false)}
+          onSubmitted={() => setReplyOpen(false)}
+          onSubmitComment={onSubmitComment}
+          onError={onError}
         />
       ) : null}
 
@@ -1336,7 +1485,23 @@ function CommentThread({ matchId, comment, replies }: { matchId: string; comment
         <div className='ml-6 space-y-2 border-l border-[#3A3342] pl-3 sm:ml-10 sm:pl-4'>
           {orderedReplies.map((reply) => {
             const replyIsMine = Boolean(viewerId && reply.userId && viewerId === reply.userId);
-            return <CommentBubble key={reply.id} matchId={matchId} comment={reply} isMine={replyIsMine} canReply={false} canRecommend={false} />;
+            return (
+              <CommentBubble
+                key={reply.id}
+                comment={reply}
+                isMine={replyIsMine}
+                canReply={false}
+                canRecommend={false}
+                onToggleLike={onToggleLike}
+                onDelete={onDelete}
+                onStartEdit={onStartEdit}
+                isEditing={editingCommentId === reply.id}
+                editDraft={editingCommentId === reply.id ? editDraft : reply.text}
+                onEditDraftChange={onEditDraftChange}
+                onSaveEdit={onSaveEdit}
+                onCancelEdit={onCancelEdit}
+              />
+            );
           })}
         </div>
       ) : null}
@@ -1345,19 +1510,47 @@ function CommentThread({ matchId, comment, replies }: { matchId: string; comment
 }
 
 function CommentsSection({ data }: { data: MatchDetailData }) {
+  const { data: session } = useSession();
   const [sort, setSort] = useState<CommentSort>('latest');
+  const [commentItems, setCommentItems] = useState<MatchComment[]>(data.match.commentsList);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState('');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const toastTimerRef = useRef<number | null>(null);
+  const viewerId = session?.user?.id ?? null;
+  const viewerNickname = session?.user?.nickname ?? session?.user?.name ?? '나';
+
+  useEffect(() => {
+    setCommentItems(data.match.commentsList);
+  }, [data.match.commentsList]);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) {
+        window.clearTimeout(toastTimerRef.current);
+      }
+    };
+  }, []);
+
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    if (toastTimerRef.current) {
+      window.clearTimeout(toastTimerRef.current);
+    }
+    toastTimerRef.current = window.setTimeout(() => setToastMessage(null), 2000);
+  };
 
   const rootComments = useMemo(() => {
-    const roots = data.match.commentsList.filter((comment) => !comment.parentId);
+    const roots = commentItems.filter((comment) => !comment.parentId);
     if (sort === 'top') {
       return roots.slice().sort((a, b) => b.likes - a.likes);
     }
     return roots;
-  }, [data.match.commentsList, sort]);
+  }, [commentItems, sort]);
 
   const repliesByParent = useMemo(() => {
     const map = new Map<string, MatchComment[]>();
-    for (const comment of data.match.commentsList) {
+    for (const comment of commentItems) {
       if (!comment.parentId) {
         continue;
       }
@@ -1366,10 +1559,163 @@ function CommentsSection({ data }: { data: MatchDetailData }) {
       map.set(comment.parentId, list);
     }
     return map;
-  }, [data.match.commentsList]);
+  }, [commentItems]);
+
+  const handleSubmitComment = async ({ text, parentId }: { text: string; parentId?: string | null }) => {
+    if (!viewerId) {
+      throw new Error('로그인이 필요합니다.');
+    }
+
+    const optimisticId = `temp_comment_${crypto.randomUUID()}`;
+    const optimisticComment: MatchComment = {
+      id: optimisticId,
+      userId: viewerId,
+      parentId: parentId ?? null,
+      user: viewerNickname,
+      userSummary: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      createdLabel: '방금 전',
+      likes: 0,
+      likedByMe: false,
+      replyCount: 0,
+      text: text.trim(),
+      tag: '',
+      pending: true,
+      isOptimistic: true,
+    };
+
+    setCommentItems((current) => {
+      const next = [optimisticComment, ...current];
+      if (!parentId) {
+        return next;
+      }
+      return next.map((item) => (item.id === parentId ? { ...item, replyCount: item.replyCount + 1 } : item));
+    });
+
+    try {
+      const payload = await postJson<{ ok: true; comment: MatchComment }>(`/api/matches/${data.match.id}/comments`, {
+        text,
+        parentId: parentId ?? null,
+      });
+      setCommentItems((current) => current.map((item) => (item.id === optimisticId ? payload.comment : item)));
+    } catch (error) {
+      setCommentItems((current) => {
+        const filtered = current.filter((item) => item.id !== optimisticId);
+        if (!parentId) {
+          return filtered;
+        }
+        return filtered.map((item) => (item.id === parentId ? { ...item, replyCount: Math.max(0, item.replyCount - 1) } : item));
+      });
+      throw error;
+    }
+  };
+
+  const handleToggleLike = async (commentId: string) => {
+    const target = commentItems.find((item) => item.id === commentId);
+    if (!target) {
+      return;
+    }
+    const previousLiked = target.likedByMe;
+    const previousLikes = target.likes;
+
+    setCommentItems((current) =>
+      current.map((item) =>
+        item.id === commentId
+          ? { ...item, likedByMe: !item.likedByMe, likes: Math.max(0, item.likes + (item.likedByMe ? -1 : 1)) }
+          : item,
+      ),
+    );
+
+    try {
+      const payload = await postJson<{ ok: true; likedByMe: boolean; likes: number }>(
+        `/api/matches/${data.match.id}/comments/${commentId}/recommend`,
+        {},
+      );
+      setCommentItems((current) => current.map((item) => (item.id === commentId ? { ...item, likedByMe: payload.likedByMe, likes: payload.likes } : item)));
+    } catch (error) {
+      setCommentItems((current) => current.map((item) => (item.id === commentId ? { ...item, likedByMe: previousLiked, likes: previousLikes } : item)));
+      showToast(error instanceof Error ? error.message : '좋아요 처리에 실패했습니다.');
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    const snapshot = commentItems;
+    const target = snapshot.find((item) => item.id === commentId);
+    if (!target) {
+      return;
+    }
+
+    const deletedIds = new Set<string>([commentId]);
+    if (!target.parentId) {
+      for (const item of snapshot) {
+        if (item.parentId === commentId) {
+          deletedIds.add(item.id);
+        }
+      }
+    }
+
+    setCommentItems((current) => {
+      const filtered = current.filter((item) => !deletedIds.has(item.id));
+      if (!target.parentId) {
+        return filtered;
+      }
+      return filtered.map((item) => (item.id === target.parentId ? { ...item, replyCount: Math.max(0, item.replyCount - 1) } : item));
+    });
+    if (editingCommentId && deletedIds.has(editingCommentId)) {
+      setEditingCommentId(null);
+      setEditDraft('');
+    }
+
+    try {
+      await deleteJson<{ ok: true; commentId: string }>(`/api/matches/${data.match.id}/comments/${commentId}`);
+    } catch (error) {
+      setCommentItems(snapshot);
+      showToast(error instanceof Error ? error.message : '댓글 삭제에 실패했습니다.');
+    }
+  };
+
+  const handleStartEdit = (comment: MatchComment) => {
+    setEditingCommentId(comment.id);
+    setEditDraft(comment.text);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCommentId(null);
+    setEditDraft('');
+  };
+
+  const handleSaveEdit = async (commentId: string) => {
+    const trimmed = editDraft.trim();
+    if (trimmed.length < COMMENT_MIN_LENGTH) {
+      showToast(`댓글은 ${COMMENT_MIN_LENGTH}자 이상 작성해 주세요.`);
+      return;
+    }
+
+    const target = commentItems.find((item) => item.id === commentId);
+    if (!target) {
+      return;
+    }
+    const previousText = target.text;
+    const previousUpdatedAt = target.updatedAt;
+
+    setCommentItems((current) => current.map((item) => (item.id === commentId ? { ...item, text: trimmed, updatedAt: new Date().toISOString() } : item)));
+    setEditingCommentId(null);
+    setEditDraft('');
+
+    try {
+      const payload = await patchJson<{ ok: true; comment: MatchComment }>(`/api/matches/${data.match.id}/comments/${commentId}`, { text: trimmed });
+      setCommentItems((current) => current.map((item) => (item.id === commentId ? payload.comment : item)));
+    } catch (error) {
+      setCommentItems((current) => current.map((item) => (item.id === commentId ? { ...item, text: previousText, updatedAt: previousUpdatedAt } : item)));
+      setEditingCommentId(commentId);
+      setEditDraft(previousText);
+      showToast(error instanceof Error ? error.message : '댓글 수정에 실패했습니다.');
+    }
+  };
 
   return (
-    <Card className='overflow-hidden border border-[#1E1E27] bg-[#07080D]'>
+    <Card className='overflow-visible border border-[#1E1E27] bg-[#07080D]'>
       <CardContent className='space-y-4 px-4 pb-5 pt-6 text-[#E5E7EB] sm:px-6 sm:pb-6'>
         <div className='flex items-end justify-between gap-3'>
           <div className='flex items-center gap-3 text-[13px] text-slate-300'>
@@ -1399,7 +1745,7 @@ function CommentsSection({ data }: { data: MatchDetailData }) {
         </div>
 
         <div className='mx-auto max-w-6xl'>
-          <CommentInputBar matchId={data.match.id} placeholder='댓글을 입력하세요...' />
+          <CommentInputBar placeholder='댓글을 입력하세요...' onSubmitComment={handleSubmitComment} onError={showToast} />
         </div>
 
         <div className='rounded-[20px] border border-[#1E1E27] bg-transparent p-0'>
@@ -1409,12 +1755,31 @@ function CommentsSection({ data }: { data: MatchDetailData }) {
             <div className='mx-auto max-w-6xl space-y-4'>
               {rootComments.map((comment) => (
                 <div key={comment.id} className='border-b border-[rgba(255,255,255,0.06)] pb-4 last:border-b-0'>
-                  <CommentThread matchId={data.match.id} comment={comment} replies={repliesByParent.get(comment.id) ?? []} />
+                  <CommentThread
+                    comment={comment}
+                    replies={repliesByParent.get(comment.id) ?? []}
+                    viewerId={viewerId}
+                    editingCommentId={editingCommentId}
+                    editDraft={editDraft}
+                    onEditDraftChange={setEditDraft}
+                    onSaveEdit={handleSaveEdit}
+                    onCancelEdit={handleCancelEdit}
+                    onStartEdit={handleStartEdit}
+                    onToggleLike={handleToggleLike}
+                    onDelete={handleDeleteComment}
+                    onSubmitComment={handleSubmitComment}
+                    onError={showToast}
+                  />
                 </div>
               ))}
             </div>
           )}
         </div>
+        {toastMessage ? (
+          <div className='pointer-events-none fixed bottom-6 right-6 z-[80] rounded-lg bg-[#232633] px-3 py-1.5 text-[11px] font-medium text-slate-100 shadow-[0_8px_20px_rgba(0,0,0,0.35)]'>
+            {toastMessage}
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   );

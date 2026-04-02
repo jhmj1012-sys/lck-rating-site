@@ -64,12 +64,16 @@ export interface MatchComment {
   parentId: string | null;
   user: string;
   userSummary: PublicUserSummary | null;
+  createdAt: string;
+  updatedAt: string;
   createdLabel: string;
   likes: number;
   likedByMe: boolean;
   replyCount: number;
   text: string;
   tag: string;
+  pending?: boolean;
+  isOptimistic?: boolean;
 }
 
 export interface PredictionSummary {
@@ -287,7 +291,6 @@ export interface SetDetailData {
 
 export interface MatchDetailData {
   match: MatchData;
-  sets: MatchSetSummary[];
   preMatchInsights: PreMatchInsights;
 }
 

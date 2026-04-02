@@ -13,7 +13,7 @@ export async function POST(
     const { matchId } = await params;
     const body = (await request.json()) as { text?: string; parentId?: string | null };
 
-    await submitComment({
+    const comment = await submitComment({
       viewerId: user.id,
       matchId,
       text: body.text ?? "",
@@ -23,7 +23,7 @@ export async function POST(
     revalidatePath("/");
     revalidatePath("/me");
     revalidatePath(`/matches/${matchId}`);
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, comment });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "댓글 등록에 실패했습니다." },

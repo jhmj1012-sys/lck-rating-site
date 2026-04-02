@@ -322,6 +322,14 @@ function getUserPointBalance(store: StoreShape, userId: string) {
     .at(-1)?.balanceAfter ?? 0;
 }
 
+function isGuestUser(user: StoredUser | null | undefined) {
+  return Boolean(user?.email?.toLowerCase().endsWith("@guest.local"));
+}
+
+function isGuestUserId(store: StoreShape, userId: string) {
+  return isGuestUser(store.users.find((user) => user.id === userId));
+}
+
 function appendPointLedgerEntry(
   store: StoreShape,
   input: Omit<StoredPointLedgerEntry, "id" | "createdAt" | "balanceAfter">,
@@ -392,7 +400,7 @@ function settlePredictionForMatch(store: StoreShape, match: StoredMatch) {
       const existingLedger = store.pointLedger.some(
         (entry) => entry.referenceType === "prediction_settlement" && entry.referenceId === ledgerReferenceId,
       );
-      if (!existingLedger) {
+      if (!existingLedger && !isGuestUserId(store, prediction.userId)) {
         appendPointLedgerEntry(store, {
           userId: prediction.userId,
           type: "earn",
@@ -402,22 +410,24 @@ function settlePredictionForMatch(store: StoreShape, match: StoredMatch) {
           referenceId: ledgerReferenceId,
         });
       }
-      createNotification(store, {
-        userId: prediction.userId,
-        type: "prediction_hit",
-        title: `${teamA.code} vs ${teamB.code} 예측 적중`,
-        body: `${pickedTeamCode} 적중. 마감 기준 배당 ${appliedSide.oddsPercent}%가 적용되어 +${appliedSide.hitBonusCoins} Coin을 획득했습니다.`,
-        relatedMatchId: match.id,
-        isRead: false,
-        rewardCoins: appliedSide.hitBonusCoins,
-        appliedOddsPercent: appliedSide.oddsPercent,
-        metadata: {
-          pickedTeam: pickedTeamCode,
-          winnerTeam: winnerTeamCode,
-          sharePct: pickedShare,
-        },
-        createdAt: timestamp,
-      });
+      if (!isGuestUserId(store, prediction.userId)) {
+        createNotification(store, {
+          userId: prediction.userId,
+          type: "prediction_hit",
+          title: `${teamA.code} vs ${teamB.code} 예측 적중`,
+          body: `${pickedTeamCode} 적중. 마감 기준 배당 ${appliedSide.oddsPercent}%가 적용되어 +${appliedSide.hitBonusCoins} Coin을 획득했습니다.`,
+          relatedMatchId: match.id,
+          isRead: false,
+          rewardCoins: appliedSide.hitBonusCoins,
+          appliedOddsPercent: appliedSide.oddsPercent,
+          metadata: {
+            pickedTeam: pickedTeamCode,
+            winnerTeam: winnerTeamCode,
+            sharePct: pickedShare,
+          },
+          createdAt: timestamp,
+        });
+      }
     } else {
       prediction.settlementCoins = 0;
       createNotification(store, {
@@ -940,23 +950,49 @@ function buildComments(store: StoreShape, matchId: string, viewerId: string | nu
   return store.comments
     .filter((comment) => comment.matchId === matchId && !comment.hidden)
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .map((comment) => {
-      const author = getUserById(store, comment.userId);
-      const recommendationCount = comment.recommendUserIds.length;
-      return {
-        id: comment.id,
-        userId: author?.id ?? null,
-        parentId: comment.parentId,
-        user: getPublicName(author),
-        userSummary: buildPublicUserSummary(store, author?.id ?? null),
-        createdLabel: formatCommentCreatedLabel(comment.createdAt),
-        likes: recommendationCount,
-        likedByMe: viewerId ? comment.recommendUserIds.includes(viewerId) : false,
-        replyCount: replyCountByParent.get(comment.id) ?? 0,
-        text: comment.text,
-        tag: "반응",
-      };
-    });
+    .map((comment) => buildMatchCommentView(store, comment.id, viewerId, replyCountByParent))
+    .filter((comment): comment is MatchComment => comment !== null);
+}
+
+function buildMatchCommentView(
+  store: StoreShape,
+  commentId: string,
+  viewerId: string | null,
+  replyCountByParent?: Map<string, number>,
+): MatchComment | null {
+  const comment = store.comments.find((item) => item.id === commentId && !item.hidden);
+  if (!comment) {
+    return null;
+  }
+
+  const author = getUserById(store, comment.userId);
+  const recommendationCount = comment.recommendUserIds.length;
+  const replyCounts = replyCountByParent ?? (() => {
+    const map = new Map<string, number>();
+    for (const item of store.comments) {
+      if (item.matchId !== comment.matchId || item.hidden || !item.parentId) {
+        continue;
+      }
+      map.set(item.parentId, (map.get(item.parentId) ?? 0) + 1);
+    }
+    return map;
+  })();
+
+  return {
+    id: comment.id,
+    userId: author?.id ?? null,
+    parentId: comment.parentId,
+    user: getPublicName(author),
+    userSummary: buildPublicUserSummary(store, author?.id ?? null),
+    createdAt: comment.createdAt,
+    updatedAt: comment.updatedAt ?? comment.createdAt,
+    createdLabel: formatCommentCreatedLabel(comment.createdAt),
+    likes: recommendationCount,
+    likedByMe: viewerId ? comment.recommendUserIds.includes(viewerId) : false,
+    replyCount: replyCounts.get(comment.id) ?? 0,
+    text: comment.text,
+    tag: "반응",
+  };
 }
 
 function buildMatchRatingComments(store: StoreShape, matchId: string): MatchRatingComment[] {
@@ -965,21 +1001,34 @@ function buildMatchRatingComments(store: StoreShape, matchId: string): MatchRati
     .filter((rating) => rating.comment.trim().length > 0)
     .slice()
     .sort((a, b) => new Date(b.updatedAt ?? b.createdAt).getTime() - new Date(a.updatedAt ?? a.createdAt).getTime())
-    .map((rating) => {
-      const author = getUserById(store, rating.userId);
-      const player = store.players.find((item) => item.id === rating.playerId);
-      const teamCode = player ? getTeamById(store, player.teamId)?.code ?? "-" : "-";
+    .map((rating) => buildMatchRatingCommentView(store, rating.id))
+    .filter((value): value is MatchRatingComment => value !== null);
+}
 
-      return {
-        id: rating.id,
-        user: getPublicName(author),
-        playerName: player?.name ?? rating.playerId,
-        team: teamCode,
-        score: rating.score,
-        text: rating.comment.trim(),
-        createdLabel: formatRelativeLabel(rating.updatedAt ?? rating.createdAt),
-      } satisfies MatchRatingComment;
-    });
+function buildMatchRatingCommentView(store: StoreShape, ratingId: string): MatchRatingComment | null {
+  const rating = store.playerRatings.find((item) => item.id === ratingId);
+  if (!rating) {
+    return null;
+  }
+
+  const trimmedComment = rating.comment.trim();
+  if (!trimmedComment) {
+    return null;
+  }
+
+  const author = getUserById(store, rating.userId);
+  const player = store.players.find((item) => item.id === rating.playerId);
+  const teamCode = player ? getTeamById(store, player.teamId)?.code ?? "-" : "-";
+
+  return {
+    id: rating.id,
+    user: getPublicName(author),
+    playerName: player?.name ?? rating.playerId,
+    team: teamCode,
+    score: rating.score,
+    text: trimmedComment,
+    createdLabel: formatRelativeLabel(rating.updatedAt ?? rating.createdAt),
+  } satisfies MatchRatingComment;
 }
 
 function buildMvp(players: PlayerRating[]) {
@@ -1417,7 +1466,7 @@ function buildTeamStandings(store: StoreShape): TeamStandingItem[] {
 
 function buildPredictionLeaderboard(store: StoreShape): PredictionLeaderboardItem[] {
   return store.users
-    .filter((user) => Boolean(user.nickname))
+    .filter((user) => Boolean(user.nickname) && !isGuestUser(user))
     .map((user) => {
       const predictions = store.predictions.filter((prediction) => prediction.userId === user.id);
       const resolved = predictions.filter((prediction) => {
@@ -2482,11 +2531,9 @@ export async function getMatchDetailData(matchId: string, viewerId: string | nul
   if (!match) {
     throw new Error("경기를 찾을 수 없습니다.");
   }
-  const sets = getMatchSets(store, matchId);
 
   return {
     match: buildMatchView(store, match, viewerId),
-    sets: sets.map((set) => buildSetSummary(store, set, viewerId)),
     preMatchInsights: buildPreMatchInsights(store, match),
   };
 }
@@ -2896,29 +2943,31 @@ export async function submitPrediction(input: {
       wasUnderdogPick: null,
     });
 
-    appendPointLedgerEntry(store, {
-      userId: input.viewerId,
-      type: "earn",
-      amount: COINS.predictionSubmit,
-      reason: "경기 예측 참여 코인",
-      referenceType: "prediction_submit",
-      referenceId: predictionId,
-    });
+    if (!isGuestUserId(store, input.viewerId)) {
+      appendPointLedgerEntry(store, {
+        userId: input.viewerId,
+        type: "earn",
+        amount: COINS.predictionSubmit,
+        reason: "경기 예측 참여 코인",
+        referenceType: "prediction_submit",
+        referenceId: predictionId,
+      });
 
-    createNotification(store, {
-      userId: input.viewerId,
-      type: "prediction_joined",
-      title: `${teamA?.code ?? "TBD"} vs ${teamB?.code ?? "TBD"} 예측 참여 완료`,
-      body: `${selectedTeam.code} 선택이 저장되어 +${COINS.predictionSubmit} Coin을 획득했습니다.`,
-      relatedMatchId: match.id,
-      isRead: false,
-      rewardCoins: COINS.predictionSubmit,
-      appliedOddsPercent: null,
-      metadata: {
-        selectedTeam: selectedTeam.code,
-      },
-      createdAt: now,
-    });
+      createNotification(store, {
+        userId: input.viewerId,
+        type: "prediction_joined",
+        title: `${teamA?.code ?? "TBD"} vs ${teamB?.code ?? "TBD"} 예측 참여 완료`,
+        body: `${selectedTeam.code} 선택이 저장되어 +${COINS.predictionSubmit} Coin을 획득했습니다.`,
+        relatedMatchId: match.id,
+        isRead: false,
+        rewardCoins: COINS.predictionSubmit,
+        appliedOddsPercent: null,
+        metadata: {
+          selectedTeam: selectedTeam.code,
+        },
+        createdAt: now,
+      });
+    }
   });
 }
 
@@ -2950,7 +2999,9 @@ export async function submitPlayerRating(input: {
       existing.score = clampScore(input.score);
       existing.comment = input.comment.trim();
       existing.updatedAt = new Date().toISOString();
-      return;
+      return {
+        ratingComment: buildMatchRatingCommentView(store, existing.id),
+      };
     }
 
     const ratingId = createId(store, "playerRatings", "rating");
@@ -2965,14 +3016,20 @@ export async function submitPlayerRating(input: {
       updatedAt: new Date().toISOString(),
     });
 
-    appendPointLedgerEntry(store, {
-      userId: input.viewerId,
-      type: "earn",
-      amount: COINS.legacyRatingSubmit,
-      reason: "경기 평점 참여 코인",
-      referenceType: "player_rating_submit",
-      referenceId: ratingId,
-    });
+    if (!isGuestUserId(store, input.viewerId)) {
+      appendPointLedgerEntry(store, {
+        userId: input.viewerId,
+        type: "earn",
+        amount: COINS.legacyRatingSubmit,
+        reason: "경기 평점 참여 코인",
+        referenceType: "player_rating_submit",
+        referenceId: ratingId,
+      });
+    }
+
+    return {
+      ratingComment: buildMatchRatingCommentView(store, ratingId),
+    };
   });
 }
 
@@ -3033,7 +3090,7 @@ export async function submitSetPlayerRatings(input: {
       });
     }
 
-    if (changedCount > 0) {
+    if (changedCount > 0 && !isGuestUserId(store, input.viewerId)) {
       appendPointLedgerEntry(store, {
         userId: input.viewerId,
         type: "earn",
@@ -3087,14 +3144,18 @@ export async function submitComment(input: {
       updatedAt: new Date().toISOString(),
     });
 
-    appendPointLedgerEntry(store, {
-      userId: input.viewerId,
-      type: "earn",
-      amount: COINS.commentSubmit,
-      reason: "경기 댓글 참여 코인",
-      referenceType: "comment_submit",
-      referenceId: commentId,
-    });
+    if (!isGuestUserId(store, input.viewerId)) {
+      appendPointLedgerEntry(store, {
+        userId: input.viewerId,
+        type: "earn",
+        amount: COINS.commentSubmit,
+        reason: "경기 댓글 참여 코인",
+        referenceType: "comment_submit",
+        referenceId: commentId,
+      });
+    }
+
+    return buildMatchCommentView(store, commentId, input.viewerId);
   });
 }
 
@@ -3116,6 +3177,42 @@ export async function toggleCommentRecommendation(input: {
       comment.recommendUserIds = [...comment.recommendUserIds, input.viewerId];
     }
     comment.updatedAt = new Date().toISOString();
+
+    return {
+      likedByMe: !alreadyRecommended,
+      likes: comment.recommendUserIds.length,
+    };
+  });
+}
+
+export async function updateCommentByOwner(input: {
+  viewerId: string;
+  matchId: string;
+  commentId: string;
+  text: string;
+}) {
+  return mutateStore(async (store) => {
+    const comment = store.comments.find(
+      (item) => item.id === input.commentId && item.matchId === input.matchId && !item.hidden,
+    );
+    if (!comment) {
+      throw new Error("댓글을 찾을 수 없습니다.");
+    }
+    if (comment.userId !== input.viewerId) {
+      throw new Error("내 댓글만 수정할 수 있습니다.");
+    }
+
+    const text = input.text.trim();
+    if (text.length < COMMENT_MIN_LENGTH) {
+      throw new Error("댓글은 두 글자 이상 입력해 주세요.");
+    }
+    if (text.length > COMMENT_MAX_LENGTH) {
+      throw new Error(`댓글은 최대 ${COMMENT_MAX_LENGTH}자까지 입력할 수 있습니다.`);
+    }
+
+    comment.text = text;
+    comment.updatedAt = new Date().toISOString();
+    return buildMatchCommentView(store, comment.id, input.viewerId);
   });
 }
 
@@ -3562,6 +3659,7 @@ export async function deleteCommentByOwner(input: { viewerId: string; matchId: s
     }
 
     comment.hidden = true;
+    return { commentId: comment.id };
   });
 }
 

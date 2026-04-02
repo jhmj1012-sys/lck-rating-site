@@ -7,7 +7,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "LOL PRO RATING",
-  description: "LCK 일정, 경기 예측, 세트 평점과 반응을 한곳에서 보는 참여형 서비스",
+  description: "LCK 일정, 경기 예측, 경기 평점과 반응을 한곳에서 보는 참여형 서비스",
 };
 
 export default function RootLayout({

@@ -23,7 +23,7 @@ export async function POST(
       return NextResponse.json({ error: "선수와 점수를 모두 입력해 주세요." }, { status: 400 });
     }
 
-    await submitPlayerRating({
+    const result = await submitPlayerRating({
       viewerId: actor.user.id,
       matchId,
       playerId: body.playerId,
@@ -34,7 +34,7 @@ export async function POST(
     revalidatePath("/");
     revalidatePath("/me");
     revalidatePath(`/matches/${matchId}`);
-    const response = NextResponse.json({ ok: true });
+    const response = NextResponse.json({ ok: true, ...result });
     if (actor.isGuest && actor.guestToken) {
       response.cookies.set(GUEST_USER_COOKIE, actor.guestToken, {
         httpOnly: true,

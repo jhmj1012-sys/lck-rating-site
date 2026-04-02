@@ -12,7 +12,7 @@ export async function POST(
     const user = await requireNamedUser();
     const { matchId, commentId } = await params;
 
-    await toggleCommentRecommendation({
+    const result = await toggleCommentRecommendation({
       viewerId: user.id,
       matchId,
       commentId,
@@ -21,7 +21,7 @@ export async function POST(
     revalidatePath("/");
     revalidatePath("/me");
     revalidatePath(`/matches/${matchId}`);
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, ...result });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "댓글 추천 처리에 실패했습니다." },
