@@ -528,7 +528,6 @@ function PastMatchCard({ match, revealSpoiler }: { match: MatchData; revealSpoil
           <div className={cn("mt-3 flex items-center justify-between gap-3 rounded-2xl bg-[#31313C] px-3 py-2.5 transition", revealSpoiler ? "" : "blur-[6px] opacity-75 select-none")}>
             <div className="min-w-0">
               <div className="truncate font-semibold text-white">{topPlayer.name}</div>
-              <div className="text-[12px] text-[#d6d6e5]">{topPlayer.team}</div>
             </div>
             <div className="text-lg font-black text-white">{topPlayer.rating.toFixed(1)}</div>
           </div>
@@ -640,10 +639,13 @@ export default function HupuScheduleHome({
           className="inline-flex items-center gap-1.5 rounded-full bg-transparent px-1 py-0.5 text-[10px] font-semibold text-white"
         >
           <span>스포일러 방지</span>
+          <span className="inline-flex w-[2.2rem] justify-center text-[10px] font-bold text-[#FFFFFF]">
+            {revealScheduleSpoilers ? "OFF" : "ON"}
+          </span>
           <span
             className={cn(
               "relative h-4 w-8 rounded-full transition",
-              revealScheduleSpoilers ? "bg-slate-500/70" : "bg-sky-400",
+              revealScheduleSpoilers ? "bg-slate-500/70" : "bg-[#8B5CF6]",
             )}
           >
             <span
@@ -920,10 +922,13 @@ export default function HupuScheduleHome({
                     style={{ color: "#FFFFFF" }}
                   >
                     <span style={{ color: "#FFFFFF", fontSize: "0.8rem" }}>스포일러 방지</span>
+                    <span className="inline-flex w-[2.2rem] justify-center text-[11px] font-bold text-[#FFFFFF]">
+                      {revealPastSpoilers ? "OFF" : "ON"}
+                    </span>
                     <span
                       className={cn(
                         "relative h-5 w-10 rounded-full transition",
-                        revealPastSpoilers ? "bg-slate-500/70" : "bg-sky-400",
+                        revealPastSpoilers ? "bg-slate-500/70" : "bg-[#8B5CF6]",
                       )}
                     >
                       <span

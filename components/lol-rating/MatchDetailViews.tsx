@@ -800,11 +800,11 @@ function FinishedView({ data }: { data: MatchDetailData }) {
                         type='button'
                         disabled={!left || !canWrite || Boolean(pendingPlayerId)}
                         onClick={() => left && submitQuickRating(left.id, leftViewerScore ?? 8)}
-                        className='allow-disabled-cursor flex w-full items-center gap-1.5 text-left text-base font-semibold text-slate-950 enabled:hover:text-sky-700 sm:text-xl'
+                        className='allow-disabled-cursor relative flex w-[108px] items-center text-left text-base font-semibold text-slate-950 enabled:hover:text-sky-700 sm:w-[156px] sm:text-xl'
                       >
-                        <span className='truncate'>{left?.name ?? '-'}</span>
+                        <span className='min-w-0 truncate pr-9'>{left?.name ?? '-'}</span>
                         {leftViewerScoreLabel ? (
-                          <span className='shrink-0 rounded bg-transparent px-1.5 py-[1px] text-[10px] font-semibold leading-none text-white'>
+                          <span className='absolute right-0 top-1/2 -translate-y-1/2 rounded bg-transparent px-1.5 py-[1px] text-[10px] font-semibold leading-none text-white'>
                             {leftViewerScoreLabel}
                           </span>
                         ) : null}
@@ -843,11 +843,11 @@ function FinishedView({ data }: { data: MatchDetailData }) {
                         type='button'
                         disabled={!right || !canWrite || Boolean(pendingPlayerId)}
                         onClick={() => right && submitQuickRating(right.id, rightViewerScore ?? 8)}
-                        className='allow-disabled-cursor flex w-full items-center gap-1.5 text-left text-base font-semibold text-slate-950 enabled:hover:text-sky-700 sm:text-xl'
+                        className='allow-disabled-cursor relative flex w-full items-center justify-end text-right text-base font-semibold text-slate-950 enabled:hover:text-sky-700 sm:text-xl'
                       >
-                        <span className='truncate'>{right?.name ?? '-'}</span>
+                        <span className='inline-block w-[108px] truncate text-left sm:w-[156px]'>{right?.name ?? '-'}</span>
                         {rightViewerScoreLabel ? (
-                          <span className='shrink-0 rounded bg-transparent px-1.5 py-[1px] text-[10px] font-semibold leading-none text-white'>
+                          <span className='absolute right-0 top-1/2 -translate-y-1/2 rounded bg-transparent px-1.5 py-[1px] text-[10px] font-semibold leading-none text-white'>
                             {rightViewerScoreLabel}
                           </span>
                         ) : null}
