@@ -560,6 +560,20 @@ function LiveView({ data }: { data: MatchDetailData }) {
   );
 }
 
+const SCORE_LABEL_BY_POINT: Record<number, string> = {
+  0: '평가 전',
+  1: '최악이었어',
+  2: '너무 아쉬워',
+  3: '기대 이하였다',
+  4: '아쉬운 경기',
+  5: '무난했어',
+  6: '괜찮았어',
+  7: '좋았어',
+  8: '정말 잘했어',
+  9: '압도적이었어',
+  10: '완벽한 경기!',
+};
+
 function StarScorePicker({
   value,
   disabled,
@@ -569,34 +583,148 @@ function StarScorePicker({
   disabled?: boolean;
   onChange: (score: number) => void;
 }) {
-  const current = value ?? 0;
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const latestClientXRef = useRef<number | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [liveScore, setLiveScore] = useState(value ?? 0);
+
+  useEffect(() => {
+    if (!isDragging) {
+      setLiveScore(value ?? 0);
+    }
+  }, [value, isDragging]);
+
+  const updateScoreByClientX = (clientX: number, commit: boolean) => {
+    if (!trackRef.current || disabled) {
+      return;
+    }
+
+    const rect = trackRef.current.getBoundingClientRect();
+    if (rect.width <= 0) {
+      return;
+    }
+
+    const clampedRatio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    const snappedStars = Math.round(clampedRatio * 5 * 2) / 2;
+    const nextScore = Math.round(snappedStars * 2);
+
+    setLiveScore(nextScore);
+    if (commit) {
+      onChange(nextScore);
+    }
+  };
+
+  const startMouseDrag = (clientX: number) => {
+    setIsDragging(true);
+    latestClientXRef.current = clientX;
+    updateScoreByClientX(clientX, false);
+
+    const handleMouseMove = (event: MouseEvent) => {
+      latestClientXRef.current = event.clientX;
+      updateScoreByClientX(event.clientX, false);
+    };
+
+    const handleMouseUp = (event: MouseEvent) => {
+      const commitX = latestClientXRef.current ?? event.clientX;
+      updateScoreByClientX(commitX, true);
+      setIsDragging(false);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const startTouchDrag = (clientX: number) => {
+    setIsDragging(true);
+    latestClientXRef.current = clientX;
+    updateScoreByClientX(clientX, false);
+
+    const handleTouchMove = (event: TouchEvent) => {
+      const touch = event.touches[0];
+      if (!touch) {
+        return;
+      }
+      latestClientXRef.current = touch.clientX;
+      updateScoreByClientX(touch.clientX, false);
+      event.preventDefault();
+    };
+
+    const handleTouchEnd = (event: TouchEvent) => {
+      const touch = event.changedTouches[0];
+      const commitX = touch?.clientX ?? latestClientXRef.current;
+      if (typeof commitX === 'number') {
+        updateScoreByClientX(commitX, true);
+      }
+      setIsDragging(false);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('touchcancel', handleTouchEnd);
+    };
+
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd);
+    window.addEventListener('touchcancel', handleTouchEnd);
+  };
+
+  const fillPercent = (liveScore / 10) * 100;
+  const scoreLabel = SCORE_LABEL_BY_POINT[liveScore] ?? SCORE_LABEL_BY_POINT[0];
+
   return (
-    <div className='flex items-center gap-0.5 sm:gap-1'>
-      {[1, 2, 3, 4, 5].map((index) => {
-        const full = current >= index * 2;
-        const half = !full && current === index * 2 - 1;
-        return (
-          <button
-            key={index}
-            type='button'
-            disabled={disabled}
-            className='allow-disabled-cursor relative h-5 w-5 rounded-sm transition hover:scale-105 disabled:hover:scale-100 sm:h-7 sm:w-7'
-            onClick={(event) => {
-              const rect = event.currentTarget.getBoundingClientRect();
-              const isLeftHalf = event.clientX - rect.left < rect.width / 2;
-              const score = index * 2 - (isLeftHalf ? 1 : 0);
-              onChange(score);
-            }}
-            aria-label={`${index}별`}
-          >
-            <span className='absolute inset-0 text-base leading-5 text-[#3C4052] sm:text-2xl sm:leading-7'>★</span>
-            {full ? <span className='absolute inset-0 text-base leading-5 text-[#8B93AA] sm:text-2xl sm:leading-7'>★</span> : null}
-            {half ? (
-              <span className='absolute inset-0 w-1/2 overflow-hidden text-base leading-5 text-[#8B93AA] sm:text-2xl sm:leading-7'>★</span>
-            ) : null}
-          </button>
-        );
-      })}
+    <div className='space-y-1'>
+      <div
+        ref={trackRef}
+        role='slider'
+        aria-label='별점 선택'
+        aria-valuemin={0}
+        aria-valuemax={10}
+        aria-valuenow={liveScore}
+        tabIndex={disabled ? -1 : 0}
+        className={cn(
+          'relative select-none leading-none',
+          disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
+        )}
+        onMouseDown={(event) => {
+          if (disabled) {
+            return;
+          }
+          startMouseDrag(event.clientX);
+        }}
+        onTouchStart={(event) => {
+          if (disabled) {
+            return;
+          }
+          const touch = event.touches[0];
+          if (!touch) {
+            return;
+          }
+          startTouchDrag(touch.clientX);
+        }}
+        onKeyDown={(event) => {
+          if (disabled) {
+            return;
+          }
+          if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
+            event.preventDefault();
+            const nextScore = Math.min(10, liveScore + 1);
+            setLiveScore(nextScore);
+            onChange(nextScore);
+          }
+          if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') {
+            event.preventDefault();
+            const nextScore = Math.max(0, liveScore - 1);
+            setLiveScore(nextScore);
+            onChange(nextScore);
+          }
+        }}
+      >
+        <div className='text-base tracking-[0.1em] text-[#3C4052] sm:text-2xl'>★★★★★</div>
+        <div className='pointer-events-none absolute inset-0 overflow-hidden' style={{ width: `${fillPercent}%` }}>
+          <div className='text-base tracking-[0.1em] text-[#8B5CF6] sm:text-2xl'>★★★★★</div>
+        </div>
+      </div>
+      <div className='text-[11px] font-semibold text-[#8793B4] sm:text-xs'>{scoreLabel}</div>
     </div>
   );
 }
@@ -606,8 +734,7 @@ function FinishedView({ data }: { data: MatchDetailData }) {
   const [pendingPlayerId, setPendingPlayerId] = useState<string | null>(null);
   const [shareCopied, setShareCopied] = useState(false);
   const shareCardRef = useRef<HTMLDivElement | null>(null);
-  const ratingRequestSeqRef = useRef<Record<string, number>>({});
-  const [activeCommentPlayerId, setActiveCommentPlayerId] = useState<string | null>(null);
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [commentDraftByPlayerId, setCommentDraftByPlayerId] = useState<Record<string, string>>({});
   const [viewerScoreByPlayerId, setViewerScoreByPlayerId] = useState<Record<string, number>>({});
   const [commentPendingByPlayerId, setCommentPendingByPlayerId] = useState<Record<string, boolean>>({});
@@ -628,6 +755,24 @@ function FinishedView({ data }: { data: MatchDetailData }) {
       .filter((player) => player.team === teamCode && player.role === role)
       .slice()
       .sort((a, b) => b.ratingCount - a.ratingCount)[0] ?? null;
+
+  const orderedSelectablePlayers = useMemo(() => {
+    const seen = new Set<string>();
+    const ordered: MatchDetailData['match']['players'] = [];
+    for (const role of ROLE_ORDER) {
+      const left = getPlayerByTeamAndRole(data.match.teamA, role);
+      const right = getPlayerByTeamAndRole(data.match.teamB, role);
+      if (left && !seen.has(left.id)) {
+        seen.add(left.id);
+        ordered.push(left);
+      }
+      if (right && !seen.has(right.id)) {
+        seen.add(right.id);
+        ordered.push(right);
+      }
+    }
+    return ordered;
+  }, [data.match.teamA, data.match.teamB, data.match.players]);
 
   useEffect(() => {
     setRatingComments(data.match.ratingComments);
@@ -658,6 +803,13 @@ function FinishedView({ data }: { data: MatchDetailData }) {
     setRatingCommentPage((prev) => Math.min(prev, totalRatingCommentPages));
   }, [totalRatingCommentPages]);
 
+  useEffect(() => {
+    if (selectedPlayerId && playerById.has(selectedPlayerId)) {
+      return;
+    }
+    setSelectedPlayerId(orderedSelectablePlayers[0]?.id ?? null);
+  }, [orderedSelectablePlayers, playerById, selectedPlayerId]);
+
   const upsertRatingComment = (ratingComment: MatchDetailData['match']['ratingComments'][number] | null | undefined) => {
     if (!ratingComment) {
       return;
@@ -666,40 +818,11 @@ function FinishedView({ data }: { data: MatchDetailData }) {
     setRatingCommentPage(1);
   };
 
-  const submitQuickRating = async (playerId: string, score: number) => {
-    if (!canWrite || pendingPlayerId) {
+  const savePlayerComment = async () => {
+    const playerId = selectedPlayerId;
+    if (!playerId) {
       return;
     }
-    const requestSeq = (ratingRequestSeqRef.current[playerId] ?? 0) + 1;
-    ratingRequestSeqRef.current[playerId] = requestSeq;
-
-    try {
-      setRatingActionError(null);
-      setPendingPlayerId(playerId);
-      setViewerScoreByPlayerId((prev) => ({ ...prev, [playerId]: score }));
-      setActiveCommentPlayerId(playerId);
-      setCommentSavedByPlayerId((prev) => ({ ...prev, [playerId]: false }));
-      const preservedComment = commentDraftByPlayerId[playerId] ?? playerById.get(playerId)?.viewerComment ?? '';
-      const payload = await postJson<{ ok: true; ratingComment?: MatchDetailData['match']['ratingComments'][number] | null }>(
-        `/api/matches/${data.match.id}/ratings`,
-        { playerId, score, comment: preservedComment },
-      );
-      if (ratingRequestSeqRef.current[playerId] !== requestSeq) {
-        return;
-      }
-      upsertRatingComment(payload.ratingComment);
-    } catch (error) {
-      if (ratingRequestSeqRef.current[playerId] === requestSeq) {
-        setRatingActionError(error instanceof Error ? error.message : '평점 저장에 실패했습니다.');
-      }
-    } finally {
-      if (ratingRequestSeqRef.current[playerId] === requestSeq) {
-        setPendingPlayerId(null);
-      }
-    }
-  };
-
-  const savePlayerComment = async (playerId: string) => {
     if (!canWrite || pendingPlayerId || commentPendingByPlayerId[playerId]) {
       return;
     }
@@ -760,21 +883,14 @@ function FinishedView({ data }: { data: MatchDetailData }) {
   return (
     <div className='space-y-5'>
       <Card>
-        <CardContent
-          className={cn(
-            'relative space-y-4 px-5 pt-5 sm:px-6 sm:pt-6',
-            activeCommentPlayerId
-              ? 'pb-[calc(7.25rem+env(safe-area-inset-bottom))] sm:pb-[calc(6.75rem+env(safe-area-inset-bottom))]'
-              : 'pb-5 sm:pb-6',
-          )}
-        >
+        <CardContent className='relative space-y-4 px-5 pb-[calc(7.25rem+env(safe-area-inset-bottom))] pt-5 sm:px-6 sm:pb-[calc(6.75rem+env(safe-area-inset-bottom))] sm:pt-6'>
           <div className='flex flex-wrap items-center justify-between gap-3'>
             <h2 className='text-2xl font-black tracking-[-0.03em] text-slate-950'>선수 별 평점</h2>
-            <div className='text-xs text-slate-500'>선수 아래 별을 눌러 바로 평점을 남기세요.</div>
+            <div className='text-xs text-slate-500'>선수명을 선택한 뒤, 하단 패널에서 별점과 코멘트를 저장하세요.</div>
           </div>
           {ratingActionError ? <div className='text-sm font-medium text-rose-600'>{ratingActionError}</div> : null}
           {(() => {
-            const activePlayer = activeCommentPlayerId ? playerById.get(activeCommentPlayerId) ?? null : null;
+            const activePlayer = selectedPlayerId ? playerById.get(selectedPlayerId) ?? null : null;
             const activePlayerScore =
               activePlayer ? (viewerScoreByPlayerId[activePlayer.id] ?? activePlayer.viewerScore ?? null) : null;
             return (
@@ -798,9 +914,12 @@ function FinishedView({ data }: { data: MatchDetailData }) {
                     <div className='min-w-0'>
                       <button
                         type='button'
-                        disabled={!left || !canWrite || Boolean(pendingPlayerId)}
-                        onClick={() => left && submitQuickRating(left.id, leftViewerScore ?? 8)}
-                        className='allow-disabled-cursor relative flex w-[108px] items-center text-left text-base font-semibold text-slate-950 enabled:hover:text-sky-700 sm:w-[156px] sm:text-xl'
+                        disabled={!left}
+                        onClick={() => left && setSelectedPlayerId(left.id)}
+                        className={cn(
+                          'allow-disabled-cursor relative flex w-[108px] items-center text-left text-base font-semibold text-slate-950 enabled:hover:text-sky-700 sm:w-[156px] sm:text-xl',
+                          left && selectedPlayerId === left.id ? 'text-[#8B5CF6]' : '',
+                        )}
                       >
                         <span className='min-w-0 truncate pr-9'>{left?.name ?? '-'}</span>
                         {leftViewerScoreLabel ? (
@@ -809,13 +928,6 @@ function FinishedView({ data }: { data: MatchDetailData }) {
                           </span>
                         ) : null}
                       </button>
-                      <div className='mt-0.5'>
-                        <StarScorePicker
-                          value={leftViewerScore}
-                          disabled={!left || !canWrite || Boolean(pendingPlayerId)}
-                          onChange={(score) => left && submitQuickRating(left.id, score)}
-                        />
-                      </div>
                     </div>
                     <div
                       className={cn(
@@ -841,9 +953,12 @@ function FinishedView({ data }: { data: MatchDetailData }) {
                     <div className='min-w-0'>
                       <button
                         type='button'
-                        disabled={!right || !canWrite || Boolean(pendingPlayerId)}
-                        onClick={() => right && submitQuickRating(right.id, rightViewerScore ?? 8)}
-                        className='allow-disabled-cursor relative flex w-full items-center justify-end text-right text-base font-semibold text-slate-950 enabled:hover:text-sky-700 sm:text-xl'
+                        disabled={!right}
+                        onClick={() => right && setSelectedPlayerId(right.id)}
+                        className={cn(
+                          'allow-disabled-cursor relative flex w-full items-center justify-end text-right text-base font-semibold text-slate-950 enabled:hover:text-sky-700 sm:text-xl',
+                          right && selectedPlayerId === right.id ? 'text-[#8B5CF6]' : '',
+                        )}
                       >
                         <span className='inline-block w-[108px] truncate text-left sm:w-[156px]'>{right?.name ?? '-'}</span>
                         {rightViewerScoreLabel ? (
@@ -852,68 +967,69 @@ function FinishedView({ data }: { data: MatchDetailData }) {
                           </span>
                         ) : null}
                       </button>
-                      <div className='mt-0.5 flex justify-end'>
-                        <StarScorePicker
-                          value={rightViewerScore}
-                          disabled={!right || !canWrite || Boolean(pendingPlayerId)}
-                          onChange={(score) => right && submitQuickRating(right.id, score)}
-                        />
-                      </div>
                     </div>
                   </div>
                 </div>
               );
             })}
           </div>
-                {activePlayer ? (
-                  <div className='absolute bottom-3 left-5 right-5 z-20 sm:bottom-4 sm:left-6 sm:right-6'>
-                    <div className='rounded-[14px] border border-slate-200 bg-white/95 px-3 py-2 shadow-[0_8px_24px_rgba(15,23,42,0.08)] backdrop-blur supports-[backdrop-filter]:bg-white/85'>
-                      <div className='flex flex-wrap items-center gap-2 text-xs text-slate-500'>
-                        <span className='font-semibold text-slate-700'>
-                          {activePlayer.name} · {activePlayer.team}
-                        </span>
-                        <span className='rounded-full bg-slate-100 px-2 py-0.5 font-semibold text-slate-700'>
-                          {activePlayerScore !== null ? `${activePlayerScore.toFixed(1)}점` : '별점 미선택'}
-                        </span>
-                        {commentSavedByPlayerId[activePlayer.id] ? <span className='text-slate-500'>저장됨</span> : null}
-                      </div>
-                      <div className='mt-1.5 flex items-center gap-2'>
-                        <input
-                          type='text'
-                          value={commentDraftByPlayerId[activePlayer.id] ?? activePlayer.viewerComment ?? ''}
-                          onChange={(event) =>
-                            setCommentDraftByPlayerId((prev) => ({
-                              ...prev,
-                              [activePlayer.id]: event.target.value,
-                            }))
-                          }
-                          placeholder='간단 코멘트를 남겨보세요 (선택)'
-                          className='h-10 min-w-0 flex-1 rounded-[10px] border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none focus:border-sky-300'
-                          disabled={!canWrite || Boolean(commentPendingByPlayerId[activePlayer.id])}
+                <div className='absolute bottom-3 left-5 right-5 z-20 sm:bottom-4 sm:left-6 sm:right-6'>
+                  <div className='rounded-[14px] border border-slate-200 bg-white/95 px-3 py-2 shadow-[0_8px_24px_rgba(15,23,42,0.08)] backdrop-blur supports-[backdrop-filter]:bg-white/85'>
+                    <div className='flex flex-wrap items-center gap-2 text-xs text-slate-500'>
+                      <span className='font-semibold text-slate-700'>
+                        {activePlayer ? `${activePlayer.name} · ${activePlayer.team}` : '선수를 선택하세요'}
+                      </span>
+                      <span className='rounded-full bg-slate-100 px-2 py-0.5 font-semibold text-slate-700'>
+                        {activePlayerScore !== null ? `${activePlayerScore.toFixed(1)}점` : '별점 미선택'}
+                      </span>
+                      {activePlayer && commentSavedByPlayerId[activePlayer.id] ? <span className='text-slate-500'>저장됨</span> : null}
+                    </div>
+                    <div className='mt-1.5 flex items-center gap-3'>
+                      <div className='shrink-0'>
+                        <StarScorePicker
+                          value={activePlayerScore}
+                          disabled={!activePlayer || !canWrite || Boolean(commentPendingByPlayerId[activePlayer.id])}
+                          onChange={(score) => {
+                            if (!activePlayer) {
+                              return;
+                            }
+                            setViewerScoreByPlayerId((prev) => ({ ...prev, [activePlayer.id]: score }));
+                            setCommentSavedByPlayerId((prev) => ({ ...prev, [activePlayer.id]: false }));
+                          }}
                         />
-                        <button
-                          type='button'
-                          className='rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:border-slate-300'
-                          onClick={() => setActiveCommentPlayerId(null)}
-                        >
-                          닫기
-                        </button>
-                        <button
-                          type='button'
-                          className='rounded-full border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 hover:bg-sky-100 disabled:opacity-60'
-                          onClick={() => savePlayerComment(activePlayer.id)}
-                          disabled={
-                            !canWrite ||
-                            Boolean(commentPendingByPlayerId[activePlayer.id]) ||
-                            (viewerScoreByPlayerId[activePlayer.id] ?? activePlayer.viewerScore ?? null) === null
-                          }
-                        >
-                          {commentPendingByPlayerId[activePlayer.id] ? '저장 중...' : '저장'}
-                        </button>
                       </div>
+                      <input
+                        type='text'
+                        value={activePlayer ? (commentDraftByPlayerId[activePlayer.id] ?? activePlayer.viewerComment ?? '') : ''}
+                        onChange={(event) => {
+                          if (!activePlayer) {
+                            return;
+                          }
+                          setCommentDraftByPlayerId((prev) => ({
+                            ...prev,
+                            [activePlayer.id]: event.target.value,
+                          }));
+                        }}
+                        placeholder='간단 코멘트를 남겨보세요 (선택)'
+                        className='h-10 min-w-0 flex-1 rounded-[10px] border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none focus:border-sky-300'
+                        disabled={!activePlayer || !canWrite || Boolean(commentPendingByPlayerId[activePlayer.id])}
+                      />
+                      <button
+                        type='button'
+                        className='rounded-full border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 hover:bg-sky-100 disabled:opacity-60'
+                        onClick={() => savePlayerComment()}
+                        disabled={
+                          !activePlayer ||
+                          !canWrite ||
+                          Boolean(commentPendingByPlayerId[activePlayer.id]) ||
+                          (viewerScoreByPlayerId[activePlayer.id] ?? activePlayer.viewerScore ?? null) === null
+                        }
+                      >
+                        {activePlayer && commentPendingByPlayerId[activePlayer.id] ? '저장 중...' : '저장'}
+                      </button>
                     </div>
                   </div>
-                ) : null}
+                </div>
               </>
             );
           })()}
