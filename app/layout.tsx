@@ -1,17 +1,16 @@
 import type { Metadata } from "next";
-import { Noto_Sans_KR } from "next/font/google";
+import localFont from "next/font/local";
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
 import { AuthSessionProvider } from "@/components/AuthSessionProvider";
 import { SiteFooter } from "@/components/SiteFooter";
 import "./globals.css";
 
-const notoSansKr = Noto_Sans_KR({
-  subsets: ["latin"],
+const pretendard = localFont({
+  src: "../public/fonts/PretendardVariable.woff2",
   display: "swap",
-  variable: "--font-noto-sans-kr",
-  weight: ["400", "500", "600", "700", "800"],
-  fallback: ["Pretendard", "Pretendard Variable", "SUIT Variable", "Segoe UI", "sans-serif"],
+  variable: "--font-pretendard",
+  fallback: ["Pretendard Variable", "SUIT Variable", "Noto Sans KR", "Segoe UI", "sans-serif"],
 });
 
 export const metadata: Metadata = {
@@ -25,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ko" className={`h-full antialiased ${notoSansKr.variable}`}>
+    <html lang="ko" className={`h-full antialiased ${pretendard.variable}`}>
       <body className="min-h-full" suppressHydrationWarning>
         <AuthSessionProvider>
           <div className="flex min-h-screen flex-col">
