@@ -1256,7 +1256,7 @@ function FinishedView({ data }: { data: MatchDetailData }) {
           <div data-share-card='true' ref={shareCardRef} className='mx-auto w-full max-w-[392px] aspect-[4/5] overflow-hidden rounded-[22px] border border-slate-200 bg-[#1C1C1F] p-3.5 text-white sm:p-5'>
             <div className='flex items-center justify-between gap-3'>
               <div className='inline-flex min-w-0 items-center gap-2'>
-                <span className='inline-flex h-8 w-8 items-center justify-center rounded-xl bg-[#8B5CF6] text-[11px] font-black tracking-[-0.03em] text-white sm:h-9 sm:w-9 sm:text-xs'>LPR</span>
+                <span className='inline-flex h-8 w-8 items-center justify-center rounded-xl bg-[#7C3AED] text-[11px] font-black tracking-[-0.03em] text-white sm:h-9 sm:w-9 sm:text-xs'>LPR</span>
                 <span className='truncate text-xs font-bold text-slate-100 sm:text-sm'>LOL PRO RATING</span>
               </div>
               <div className='shrink-0 text-right text-[10px] text-slate-300 sm:text-[11px]'>{formatDateTime(data.match.scheduledAt)}</div>

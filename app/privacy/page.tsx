@@ -3,7 +3,7 @@ import Link from "next/link";
 export default async function PrivacyPage() {
   return (
     <div className="min-h-screen bg-[#1C1C1F]">
-      <div className="border-b border-[#6D28D9] bg-[#8B5CF6]">
+      <div className="bg-[#7C3AED]">
         <nav className="mx-auto flex max-w-5xl items-center gap-1 px-4 sm:px-6">
           <Link href="/" className="relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] text-[#F5F3FF]">
             홈

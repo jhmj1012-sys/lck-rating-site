@@ -143,8 +143,8 @@ export function PlayerRankingBoard({ data }: { data: PlayerRankingPageData }) {
                     style={{ color: "#FFFFFF" }}
                   >
                     <option value="rating" style={{ color: "#FFFFFF", backgroundColor: "#31313C" }}>평점순</option>
-                    <option value="form" style={{ color: "#FFFFFF", backgroundColor: "#31313C" }}>최근폼</option>
-                    <option value="participation" style={{ color: "#FFFFFF", backgroundColor: "#31313C" }}>참여수</option>
+                    <option value="form" style={{ color: "#FFFFFF", backgroundColor: "#31313C" }}>최근순</option>
+                    <option value="participation" style={{ color: "#FFFFFF", backgroundColor: "#31313C" }}>참여순</option>
                   </select>
                 </label>
               </div>
@@ -157,27 +157,27 @@ export function PlayerRankingBoard({ data }: { data: PlayerRankingPageData }) {
             </div>
           ) : (
             <div>
-              <div className="grid grid-cols-[64px_minmax(0,1.4fr)_90px_120px_90px_94px_100px_130px] bg-[#3A3A47] px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-[#d6d6e5]">
+              <div className="grid grid-cols-[44px_minmax(0,1fr)_56px_88px] bg-[#3A3A47] px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-[#d6d6e5] md:grid-cols-[64px_minmax(0,1.4fr)_90px_120px_90px_94px_100px_130px]">
                 <div>순위</div>
                 <div>선수명</div>
                 <div>팀</div>
                 <div>평균 평점</div>
-                <div>경기 수</div>
-                <div title="참여수 = 평점 참여 인원">참여수</div>
-                <div title="최근폼 = 최근 5경기 평균">최근폼</div>
-                <div className="text-right">상세</div>
+                <div className="hidden md:block">경기 수</div>
+                <div className="hidden md:block" title="참여수 = 평점 참여 인원">참여수</div>
+                <div className="hidden md:block" title="최근폼 = 최근 5경기 평균">최근폼</div>
+                <div className="hidden text-right md:block">상세</div>
               </div>
               <div className="divide-y divide-[#474756]">
                 {rankedRows.map((player) => (
                   <Link
                     key={player.playerId}
                     href={`/player/${player.playerSlug}`}
-                    className="group grid grid-cols-[64px_minmax(0,1.4fr)_90px_120px_90px_94px_100px_130px] items-center bg-[#31313C] px-4 py-3 text-sm text-white transition hover:bg-[#3A3A47]"
+                    className="group grid grid-cols-[44px_minmax(0,1fr)_56px_88px] items-center bg-[#31313C] px-4 py-3 text-sm text-white transition hover:bg-[#3A3A47] md:grid-cols-[64px_minmax(0,1.4fr)_90px_120px_90px_94px_100px_130px]"
                   >
                     <div className="font-black text-white">{player.rank}</div>
                     <div className="min-w-0">
                       <div className="truncate font-bold text-white">{player.playerName}</div>
-                      <div className="mt-0.5 inline-flex items-center gap-1 text-xs text-[#d6d6e5]">
+                      <div className="mt-0.5 hidden items-center gap-1 text-xs text-[#d6d6e5] md:inline-flex">
                         <Image src={ROLE_ICON[player.role]} alt={player.role} width={18} height={18} className="h-[18px] w-[18px] object-contain brightness-125" />
                       </div>
                     </div>
@@ -185,10 +185,10 @@ export function PlayerRankingBoard({ data }: { data: PlayerRankingPageData }) {
                     <div className="font-black">
                       <RatingValue value={player.averageRating} />
                     </div>
-                    <div className="font-semibold text-[#d6d6e5]">{player.matchCount}</div>
-                    <div className="font-semibold text-[#d6d6e5]">{player.participationCount}</div>
-                    <div className="font-semibold text-[#8EADEF]">{player.recentForm.toFixed(1)}</div>
-                    <div className="text-right text-xs font-semibold text-[#d6d6e5] transition group-hover:text-white">선수 상세 보기</div>
+                    <div className="hidden font-semibold text-[#d6d6e5] md:block">{player.matchCount}</div>
+                    <div className="hidden font-semibold text-[#d6d6e5] md:block">{player.participationCount}</div>
+                    <div className="hidden font-semibold text-[#8EADEF] md:block">{player.recentForm.toFixed(1)}</div>
+                    <div className="hidden text-right text-xs font-semibold text-[#d6d6e5] transition group-hover:text-white md:block">선수 상세 보기</div>
                   </Link>
                 ))}
               </div>

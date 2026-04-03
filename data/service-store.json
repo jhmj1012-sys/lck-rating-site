@@ -12,7 +12,7 @@
       "role": "admin",
       "selectedProfileTheme": null,
       "createdAt": "2026-04-02T15:51:13.829Z",
-      "updatedAt": "2026-04-02T15:51:13.829Z"
+      "updatedAt": "2026-04-03T15:14:32.428Z"
     }
   ],
   "teams": [
@@ -2343,12 +2343,12 @@
       "league": "LCK 2026",
       "stage": "정규시즌 1R",
       "patch": "15.7",
-      "status": "scheduled",
+      "status": "finished",
       "scheduledAt": "2026-04-03T19:00:00+09:00",
       "teamAId": "team_bfx",
       "teamBId": "team_bro",
-      "scoreA": null,
-      "scoreB": null,
+      "scoreA": 0,
+      "scoreB": 2,
       "predictionLocked": true,
       "predictionLockedAt": "2026-04-03T09:50:00.000Z",
       "lockedDistribution": {
@@ -2366,9 +2366,9 @@
           "hitBonusCoins": 40
         }
       },
-      "predictionSettledAt": null,
+      "predictionSettledAt": "2026-04-03T12:50:03.717Z",
       "createdAt": "2026-03-27T10:00:00+09:00",
-      "updatedAt": "2026-04-03T11:41:06.298Z"
+      "updatedAt": "2026-04-03T12:50:03.682Z"
     },
     {
       "id": "match_7",
@@ -15944,7 +15944,22 @@
       "teamId": "team_ns"
     }
   ],
-  "predictions": [],
+  "predictions": [
+    {
+      "id": "prediction_1",
+      "userId": "user_1",
+      "matchId": "match_7",
+      "teamId": "team_t1",
+      "createdAt": "2026-04-03T15:15:11.571Z",
+      "updatedAt": "2026-04-03T15:15:11.571Z",
+      "joinedRewardGrantedAt": "2026-04-03T15:15:11.571Z",
+      "settledAt": null,
+      "settlementResult": null,
+      "settlementCoins": 0,
+      "appliedOddsPercent": null,
+      "wasUnderdogPick": null
+    }
+  ],
   "seasonPredictionQuestions": [
     {
       "id": "season_question_1",
@@ -16167,7 +16182,78 @@
     }
   ],
   "seasonPredictionEntries": [],
-  "playerRatings": [],
+  "playerRatings": [
+    {
+      "id": "rating_1",
+      "userId": "user_1",
+      "matchId": "match_5",
+      "playerId": "player_gen_1",
+      "score": 2,
+      "comment": "",
+      "createdAt": "2026-04-03T12:55:02.131Z",
+      "updatedAt": "2026-04-03T12:55:02.131Z"
+    },
+    {
+      "id": "rating_2",
+      "userId": "user_1",
+      "matchId": "match_1",
+      "playerId": "player_hle_1",
+      "score": 1,
+      "comment": "",
+      "createdAt": "2026-04-03T13:46:24.620Z",
+      "updatedAt": "2026-04-03T13:46:24.620Z"
+    },
+    {
+      "id": "rating_3",
+      "userId": "user_1",
+      "matchId": "match_1",
+      "playerId": "player_hle_3",
+      "score": 1,
+      "comment": "",
+      "createdAt": "2026-04-03T13:46:30.044Z",
+      "updatedAt": "2026-04-03T13:46:30.044Z"
+    },
+    {
+      "id": "rating_4",
+      "userId": "user_1",
+      "matchId": "match_1",
+      "playerId": "player_hle_5",
+      "score": 1,
+      "comment": "",
+      "createdAt": "2026-04-03T13:46:31.909Z",
+      "updatedAt": "2026-04-03T13:46:31.909Z"
+    },
+    {
+      "id": "rating_5",
+      "userId": "user_1",
+      "matchId": "match_1",
+      "playerId": "player_hle_8",
+      "score": 1,
+      "comment": "",
+      "createdAt": "2026-04-03T13:46:40.282Z",
+      "updatedAt": "2026-04-03T13:46:40.283Z"
+    },
+    {
+      "id": "rating_6",
+      "userId": "user_1",
+      "matchId": "match_6",
+      "playerId": "player_bfx_1",
+      "score": 1,
+      "comment": "",
+      "createdAt": "2026-04-03T14:09:03.709Z",
+      "updatedAt": "2026-04-03T14:09:03.709Z"
+    },
+    {
+      "id": "rating_7",
+      "userId": "user_1",
+      "matchId": "match_4",
+      "playerId": "player_krx_3",
+      "score": 1,
+      "comment": "",
+      "createdAt": "2026-04-03T14:09:16.565Z",
+      "updatedAt": "2026-04-03T14:09:16.565Z"
+    }
+  ],
   "comments": [],
   "pointLedger": [
     {
@@ -16180,9 +16266,113 @@
       "referenceId": "user_1",
       "createdAt": "2026-04-03T11:41:06.286Z",
       "balanceAfter": 0
+    },
+    {
+      "id": "ledger_2",
+      "userId": "user_1",
+      "type": "earn",
+      "amount": 8,
+      "reason": "경기 평점 참여 코인",
+      "referenceType": "player_rating_submit",
+      "referenceId": "rating_1",
+      "createdAt": "2026-04-03T12:55:02.131Z",
+      "balanceAfter": 8
+    },
+    {
+      "id": "ledger_3",
+      "userId": "user_1",
+      "type": "earn",
+      "amount": 8,
+      "reason": "경기 평점 참여 코인",
+      "referenceType": "player_rating_submit",
+      "referenceId": "rating_2",
+      "createdAt": "2026-04-03T13:46:24.621Z",
+      "balanceAfter": 16
+    },
+    {
+      "id": "ledger_4",
+      "userId": "user_1",
+      "type": "earn",
+      "amount": 8,
+      "reason": "경기 평점 참여 코인",
+      "referenceType": "player_rating_submit",
+      "referenceId": "rating_3",
+      "createdAt": "2026-04-03T13:46:30.044Z",
+      "balanceAfter": 24
+    },
+    {
+      "id": "ledger_5",
+      "userId": "user_1",
+      "type": "earn",
+      "amount": 8,
+      "reason": "경기 평점 참여 코인",
+      "referenceType": "player_rating_submit",
+      "referenceId": "rating_4",
+      "createdAt": "2026-04-03T13:46:31.909Z",
+      "balanceAfter": 32
+    },
+    {
+      "id": "ledger_6",
+      "userId": "user_1",
+      "type": "earn",
+      "amount": 8,
+      "reason": "경기 평점 참여 코인",
+      "referenceType": "player_rating_submit",
+      "referenceId": "rating_5",
+      "createdAt": "2026-04-03T13:46:40.283Z",
+      "balanceAfter": 40
+    },
+    {
+      "id": "ledger_7",
+      "userId": "user_1",
+      "type": "earn",
+      "amount": 8,
+      "reason": "경기 평점 참여 코인",
+      "referenceType": "player_rating_submit",
+      "referenceId": "rating_6",
+      "createdAt": "2026-04-03T14:09:03.709Z",
+      "balanceAfter": 48
+    },
+    {
+      "id": "ledger_8",
+      "userId": "user_1",
+      "type": "earn",
+      "amount": 8,
+      "reason": "경기 평점 참여 코인",
+      "referenceType": "player_rating_submit",
+      "referenceId": "rating_7",
+      "createdAt": "2026-04-03T14:09:16.565Z",
+      "balanceAfter": 56
+    },
+    {
+      "id": "ledger_9",
+      "userId": "user_1",
+      "type": "earn",
+      "amount": 10,
+      "reason": "경기 예측 참여 코인",
+      "referenceType": "prediction_submit",
+      "referenceId": "prediction_1",
+      "createdAt": "2026-04-03T15:15:11.571Z",
+      "balanceAfter": 66
     }
   ],
-  "notifications": [],
+  "notifications": [
+    {
+      "id": "notification_1",
+      "userId": "user_1",
+      "type": "prediction_joined",
+      "title": "T1 vs HLE 예측 참여 완료",
+      "body": "T1 선택이 저장되어 +10 Coin을 획득했습니다.",
+      "relatedMatchId": "match_7",
+      "createdAt": "2026-04-03T15:15:11.571Z",
+      "isRead": false,
+      "rewardCoins": 10,
+      "appliedOddsPercent": null,
+      "metadata": {
+        "selectedTeam": "T1"
+      }
+    }
+  ],
   "profileStoreItems": [
     {
       "id": "store_title_shotcaller",
@@ -16217,14 +16407,14 @@
     "teamRosterEntries": 111,
     "matches": 96,
     "matchParticipants": 1981,
-    "predictions": 1,
+    "predictions": 2,
     "seasonPredictionQuestions": 4,
     "seasonPredictionOptions": 23,
     "seasonPredictionEntries": 1,
-    "playerRatings": 1,
+    "playerRatings": 8,
     "comments": 1,
-    "pointLedger": 2,
-    "notifications": 1,
+    "pointLedger": 10,
+    "notifications": 2,
     "profileStoreItems": 4,
     "userInventory": 1
   }

@@ -159,7 +159,7 @@ function getKickoffLabel(match: MatchData) {
 
 function getStatusTone(status: MatchData["status"] | MatchListItem["status"], liveLike = false) {
   if (status === "finished") {
-    return "bg-[#4A4A59] text-white";
+    return "bg-[#4A4A59] text-[#E2E8F0]";
   }
 
   return liveLike ? "bg-[#6a4b1f] text-white" : "bg-[#4A5978] text-white";
@@ -234,20 +234,20 @@ function ActionPanel({ data }: { data: ScheduleHubData }) {
       <section className="rounded-[24px] bg-[#31313C] p-3 text-white shadow-[0_12px_30px_rgba(2,6,23,0.28)]">
         <h3 className="text-lg font-black text-white">{LABELS.standingsTitle}</h3>
         <div className="mt-3 overflow-hidden rounded-2xl">
-          <div className="grid grid-cols-[34px_1fr_70px] bg-[#3A3A47] px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-white">
+          <div className="grid grid-cols-[34px_1fr_70px] bg-[#3A3A47] px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#E2E8F0]">
             <div>{LABELS.rank}</div>
             <div>{LABELS.team}</div>
             <div className="text-right">{LABELS.record}</div>
           </div>
           <div className="divide-y divide-[#474756]">
             {standings.map((team) => (
-              <div key={team.teamCode} className="grid grid-cols-[34px_1fr_70px] items-center px-3 py-2.5 text-sm text-white">
-                <div className="font-black text-white">{team.rank}</div>
+              <div key={team.teamCode} className="grid grid-cols-[34px_1fr_70px] items-center px-3 py-2.5 text-sm text-[#E2E8F0]">
+                <div className="font-black text-[#E2E8F0]">{team.rank}</div>
                 <div className="flex min-w-0 items-center gap-2">
                   <TeamLogo team={team.teamCode} size={33} imageClassName="p-1" />
-                  <div className="font-bold text-white">{team.teamCode}</div>
+                  <div className="font-bold text-[#E2E8F0]">{team.teamCode}</div>
                 </div>
-                <div className="text-right font-semibold text-white">
+                <div className="text-right font-semibold text-[#E2E8F0]">
                   {team.wins}/{team.losses}
                 </div>
               </div>
@@ -314,8 +314,8 @@ function ScheduleRow({ match, revealSpoiler }: { match: MatchListItem; revealSpo
       <div className="rounded-[24px] bg-[#31313C] px-4 py-4">
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:hidden">
           <div className="flex min-w-0 flex-col items-center gap-2">
-            <TeamLogo team={match.teamA} size={32} />
-            <span className="truncate text-center text-[17px] font-black leading-none tracking-[-0.02em] text-white">{match.teamA}</span>
+            <TeamLogo team={match.teamA} size={40} />
+            <span className="truncate text-center text-[17px] font-black leading-none tracking-[-0.02em] text-[#E2E8F0]">{match.teamA}</span>
           </div>
           <span
             className={cn(
@@ -326,8 +326,8 @@ function ScheduleRow({ match, revealSpoiler }: { match: MatchListItem; revealSpo
             {mobileCenterLabel}
           </span>
           <div className="flex min-w-0 flex-col items-center gap-2">
-            <TeamLogo team={match.teamB} size={32} />
-            <span className="truncate text-center text-[17px] font-black leading-none tracking-[-0.02em] text-white">{match.teamB}</span>
+            <TeamLogo team={match.teamB} size={40} />
+            <span className="truncate text-center text-[17px] font-black leading-none tracking-[-0.02em] text-[#E2E8F0]">{match.teamB}</span>
           </div>
         </div>
         <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:hidden">
@@ -346,8 +346,8 @@ function ScheduleRow({ match, revealSpoiler }: { match: MatchListItem; revealSpo
           <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-5">
             <span className="shrink-0 text-[13px] font-semibold text-[#d6d6e5]">{match.predictionRateA}%</span>
             <div className="flex min-w-0 flex-col items-center justify-center gap-2">
-              <TeamLogo team={match.teamA} size={34} />
-              <span className="truncate text-center text-[18px] font-black leading-none tracking-[-0.03em] text-white">{match.teamA}</span>
+              <TeamLogo team={match.teamA} size={44} />
+              <span className="truncate text-center text-[18px] font-black leading-none tracking-[-0.03em] text-[#E2E8F0]">{match.teamA}</span>
             </div>
             <span
               className={cn(
@@ -377,8 +377,8 @@ function ScheduleRow({ match, revealSpoiler }: { match: MatchListItem; revealSpo
               {rightScore}
             </span>
             <div className="flex min-w-0 flex-col items-center justify-center gap-2">
-              <TeamLogo team={match.teamB} size={34} />
-              <span className="truncate text-center text-[18px] font-black leading-none tracking-[-0.03em] text-white">{match.teamB}</span>
+              <TeamLogo team={match.teamB} size={44} />
+              <span className="truncate text-center text-[18px] font-black leading-none tracking-[-0.03em] text-[#E2E8F0]">{match.teamB}</span>
             </div>
             <span className="shrink-0 text-[13px] font-semibold text-[#d6d6e5]">{match.predictionRateB}%</span>
           </div>
@@ -430,7 +430,7 @@ function TodayMatchCard({ match, forcePredictCta = false }: { match: MatchData; 
             <div className="truncate text-[20px] font-black leading-none tracking-[-0.045em] text-[#E2E8F0] sm:text-[24px]">{match.teamA}</div>
           </div>
         </div>
-        <div className="px-2 text-[24px] font-black tracking-[-0.04em] text-white sm:text-[28px]">VS</div>
+        <div className="px-2 text-[24px] font-black tracking-[-0.04em] text-[#E2E8F0] sm:text-[28px]">VS</div>
         <div className="min-w-0 text-center">
           <div className="flex flex-col items-center gap-3">
             <TeamLogo team={match.teamB} size={56} imageClassName="p-2" priority />
@@ -505,11 +505,7 @@ function PastMatchCard({ match, revealSpoiler }: { match: MatchData; revealSpoil
   const scoreLabel = getDisplayScore(match);
 
   return (
-    <Link
-      href={`/matches/${match.id}`}
-      aria-label={`${match.teamA} vs ${match.teamB} 경기 상세 보기`}
-      className="block rounded-[28px] bg-[#31313C] p-5 text-white shadow-[0_12px_32px_rgba(2,6,23,0.28)] transition-[background,box-shadow] hover:bg-[#3A3A47] hover:shadow-[0_16px_40px_rgba(2,6,23,0.34)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200 focus-visible:ring-offset-2"
-    >
+    <article className="rounded-[28px] bg-[#31313C] p-5 text-white shadow-[0_12px_32px_rgba(2,6,23,0.28)]">
       <div className="flex items-center justify-end">
         <div className="text-[12px] text-[#d6d6e5]">{match.date}</div>
       </div>
@@ -526,17 +522,6 @@ function PastMatchCard({ match, revealSpoiler }: { match: MatchData; revealSpoil
           <div className="truncate text-center text-[13px] font-black text-[#E2E8F0] sm:text-[14px]">{match.teamB}</div>
         </div>
       </div>
-      <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-        <div className="rounded-2xl bg-[#3A3A47] px-3 py-3 text-center">
-          <div className="text-[11px] text-[#d6d6e5]">평점 참여</div>
-          <div className="mt-1 font-bold text-white">{match.totalRatings}</div>
-        </div>
-        <div className="rounded-2xl bg-[#3A3A47] px-3 py-3 text-center">
-          <div className="text-[11px] text-[#d6d6e5]">{LABELS.comments}</div>
-          <div className="mt-1 font-bold text-white">{match.comments}</div>
-        </div>
-      </div>
-
       <div className="mt-4 rounded-[24px] bg-[#3A3A47] px-4 py-4">
         <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#d6d6e5]">최고 평점 선수</div>
         {topPlayer ? (
@@ -550,10 +535,14 @@ function PastMatchCard({ match, revealSpoiler }: { match: MatchData; revealSpoil
           <div className="mt-3 rounded-2xl bg-[#31313C] px-3 py-3 text-sm font-semibold text-white">-</div>
         )}
       </div>
-      <div className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-[#8B5CF6] px-4 text-base font-normal text-white shadow-[0_10px_24px_rgba(139,92,246,0.22)] transition group-hover:bg-[#7C3AED]">
+      <Link
+        href={`/matches/${match.id}`}
+        aria-label={`${match.teamA} vs ${match.teamB} 경기 상세 보기`}
+        className="mt-4 inline-flex min-h-12 w-full items-center justify-center rounded-[12px] border border-[#5B21B6] bg-[#7C3AED] px-4 text-[22px] font-semibold text-white shadow-[0_4px_0_#5B21B6] transition-all duration-150 hover:translate-y-[2px] hover:shadow-[0_2px_0_#5B21B6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A78BFA] focus-visible:ring-offset-2 focus-visible:ring-offset-[#31313C]"
+      >
         평점 확인하기
-      </div>
-    </Link>
+      </Link>
+    </article>
   );
 }
 
@@ -699,7 +688,7 @@ export default function HupuScheduleHome({
           notifications={initialData.notifications}
           unreadNotificationCount={initialData.unreadNotificationCount}
         />
-      <div className="border-b border-[#6D28D9] bg-[#8B5CF6]">
+      <div className="bg-[#7C3AED]">
         <div className="mobile-tab-scroll mx-auto max-w-5xl px-4 sm:px-6">
         <nav className="flex min-w-max items-center gap-1 whitespace-nowrap">
           <Link
@@ -717,7 +706,7 @@ export default function HupuScheduleHome({
             }}
           >
             홈
-            {!isSchedulePage ? <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-white sm:inset-x-4" /> : null}
+            {!isSchedulePage ? <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-[#C4B5FD] sm:inset-x-4" /> : null}
           </Link>
           <Link
             href="/schedule"
@@ -734,7 +723,7 @@ export default function HupuScheduleHome({
             }}
           >
             경기일정
-            {isSchedulePage ? <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-white sm:inset-x-4" /> : null}
+            {isSchedulePage ? <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-[#C4B5FD] sm:inset-x-4" /> : null}
           </Link>
           <Link
             href="/ratings"
@@ -880,13 +869,13 @@ export default function HupuScheduleHome({
                   <h2 className="text-[22px] font-black tracking-[-0.035em] text-white sm:text-[24px]">
                     15달러 챌린지
                   </h2>
-                  <p className="mt-2 text-sm leading-6 text-white">
+                  <p className="mt-2 text-sm leading-6 text-[#E2E8F0]">
                     15달러 예산 안에서 나만의 베스트 팀을 완성해보세요.
                   </p>
                 </div>
                 <Link
                   href="/games/15-dollar-challenge"
-                  className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-[#8B5CF6] px-4 text-sm font-semibold text-white transition hover:bg-[#7C3AED]"
+                  className="inline-flex min-h-12 items-center justify-center rounded-[12px] border border-[#5B21B6] bg-[#7C3AED] px-4 text-[22px] font-semibold text-white shadow-[0_4px_0_#5B21B6] transition-all duration-150 hover:translate-y-[2px] hover:shadow-[0_2px_0_#5B21B6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A78BFA] focus-visible:ring-offset-2 focus-visible:ring-offset-[#31313C]"
                 >
                   15달러 챌린지 하러가기
                 </Link>

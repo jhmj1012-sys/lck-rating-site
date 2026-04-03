@@ -25,7 +25,7 @@ export function TopSiteNav({
         notifications={notifications}
         unreadNotificationCount={unreadNotificationCount}
       />
-      <div className="border-b border-[#6D28D9] bg-[#8B5CF6]">
+      <div className="bg-[#7C3AED]">
         <div className={cn("mobile-tab-scroll mx-auto px-4 sm:px-6", maxWidthClass)}>
         <nav className="flex min-w-max items-center gap-1 whitespace-nowrap">
           <Link
@@ -43,7 +43,7 @@ export function TopSiteNav({
             }}
           >
             홈
-            {active === "match" ? <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-white sm:inset-x-4" /> : null}
+            {active === "match" ? <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-[#C4B5FD] sm:inset-x-4" /> : null}
           </Link>
           <Link
             href="/schedule"
@@ -60,7 +60,7 @@ export function TopSiteNav({
             }}
           >
             경기일정
-            {active === "schedule" ? <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-white sm:inset-x-4" /> : null}
+            {active === "schedule" ? <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-[#C4B5FD] sm:inset-x-4" /> : null}
           </Link>
           <Link
             href="/ratings"
@@ -77,7 +77,7 @@ export function TopSiteNav({
             }}
           >
             평점순위
-            {active === "ratings" ? <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-white sm:inset-x-4" /> : null}
+            {active === "ratings" ? <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-[#C4B5FD] sm:inset-x-4" /> : null}
           </Link>
           <Link
             href="/season-predictions"
@@ -94,7 +94,7 @@ export function TopSiteNav({
             }}
           >
             시즌예측
-            {active === "season" ? <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-white sm:inset-x-4" /> : null}
+            {active === "season" ? <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-[#C4B5FD] sm:inset-x-4" /> : null}
           </Link>
           <Link
             href="/games/15-dollar-challenge"
@@ -111,7 +111,7 @@ export function TopSiteNav({
             }}
           >
             게임
-            {active === "games" ? <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-white sm:inset-x-4" /> : null}
+            {active === "games" ? <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-[#C4B5FD] sm:inset-x-4" /> : null}
           </Link>
         </nav>
         </div>

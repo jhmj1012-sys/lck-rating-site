@@ -456,7 +456,7 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
         <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-center justify-between gap-2.5">
             <Link href="/" className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] bg-gradient-to-br from-[#8B5CF6] to-[#6D4BC4] text-[20px] font-black tracking-[-0.03em] text-white shadow-[0_10px_24px_rgba(139,92,246,0.24)]">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] bg-[#7C3AED] text-[20px] font-black tracking-[-0.03em] text-white shadow-[0_10px_24px_rgba(124,58,237,0.24)]">
                 LPR
               </div>
               <div className="min-w-0">
