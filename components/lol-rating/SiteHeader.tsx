@@ -124,7 +124,6 @@ function AccountEntryButton({
             <Link
               href="/me"
               className="flex min-h-10 items-center rounded-xl px-3 !text-[14px] !font-medium !text-[#FFFFFF] transition hover:bg-[#3A3A47]"
-              style={{ fontFamily: "Pretendard, Pretendard Variable, SUIT Variable, Noto Sans KR, Segoe UI, sans-serif" }}
               onClick={() => setOpen(false)}
             >
               {HEADER_LABELS.mypage}
@@ -133,7 +132,6 @@ function AccountEntryButton({
               type="button"
               onClick={() => signOut({ callbackUrl: "/" })}
               className="flex min-h-10 w-full items-center rounded-xl px-3 text-left !text-[14px] !font-medium !text-[#FFFFFF] transition hover:bg-[#3A3A47]"
-              style={{ fontFamily: "Pretendard, Pretendard Variable, SUIT Variable, Noto Sans KR, Segoe UI, sans-serif" }}
             >
               로그아웃
             </button>

@@ -1,9 +1,18 @@
 import type { Metadata } from "next";
+import { Noto_Sans_KR } from "next/font/google";
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
 import { AuthSessionProvider } from "@/components/AuthSessionProvider";
 import { SiteFooter } from "@/components/SiteFooter";
 import "./globals.css";
+
+const notoSansKr = Noto_Sans_KR({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-noto-sans-kr",
+  weight: ["400", "500", "600", "700", "800"],
+  fallback: ["Pretendard", "Pretendard Variable", "SUIT Variable", "Segoe UI", "sans-serif"],
+});
 
 export const metadata: Metadata = {
   title: "LOL PRO RATING",
@@ -16,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ko" className="h-full antialiased">
+    <html lang="ko" className={`h-full antialiased ${notoSansKr.variable}`}>
       <body className="min-h-full" suppressHydrationWarning>
         <AuthSessionProvider>
           <div className="flex min-h-screen flex-col">
