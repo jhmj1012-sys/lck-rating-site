@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { toBlob } from 'html-to-image';
 import { COMMENT_MAX_LENGTH, COMMENT_MIN_LENGTH } from '@/lib/comment-constants';
 
+import { TeamLogo } from './TeamLogo';
 import type { MatchComment, MatchData, MatchDetailData } from './types';
 import { getTeamDisplayName } from './team-branding';
 import { Avatar, Badge, Button, Card, CardContent } from './ui';
@@ -228,7 +229,10 @@ function MatchHeader({ data, state }: { data: MatchDetailData; state: DetailStat
           </div>
           <div className='mx-auto mt-3 grid max-w-[860px] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 rounded-[20px] border border-slate-200 bg-white px-5 py-5 sm:px-8'>
             <div className='text-center'>
-              <div className='text-2xl font-black tracking-[-0.03em] text-slate-950 sm:text-3xl'>{getTeamDisplayName(data.match.teamA)}</div>
+              <div className='flex flex-col items-center gap-3'>
+                <TeamLogo team={data.match.teamA} size={52} imageClassName='p-2' priority />
+                <div className='text-2xl font-black tracking-[-0.03em] text-slate-950 sm:text-3xl'>{getTeamDisplayName(data.match.teamA)}</div>
+              </div>
             </div>
 
             <div className='min-w-[180px] text-center'>
@@ -243,7 +247,10 @@ function MatchHeader({ data, state }: { data: MatchDetailData; state: DetailStat
             </div>
 
             <div className='text-center'>
-              <div className='text-2xl font-black tracking-[-0.03em] text-slate-950 sm:text-3xl'>{getTeamDisplayName(data.match.teamB)}</div>
+              <div className='flex flex-col items-center gap-3'>
+                <TeamLogo team={data.match.teamB} size={52} imageClassName='p-2' priority />
+                <div className='text-2xl font-black tracking-[-0.03em] text-slate-950 sm:text-3xl'>{getTeamDisplayName(data.match.teamB)}</div>
+              </div>
             </div>
           </div>
           <div className='mt-3 flex flex-wrap items-center justify-center gap-2 text-sm text-slate-600'>
@@ -305,7 +312,10 @@ function PredictionGamePanel({ match }: { match: MatchData }) {
             : 'border-slate-200 bg-slate-50 hover:bg-white',
         )}
       >
-        <div className='truncate text-2xl font-black text-slate-950'>{getTeamDisplayName(team)}</div>
+        <div className='flex flex-col items-center gap-2'>
+          <TeamLogo team={team} size={40} imageClassName='p-1.5' />
+          <div className='truncate text-2xl font-black text-slate-950'>{getTeamDisplayName(team)}</div>
+        </div>
       </button>
     );
   };
@@ -398,9 +408,15 @@ function PreMatchInsights({ data }: { data: MatchDetailData }) {
 
         <div className='mt-4 space-y-3'>
           <div className='grid grid-cols-[minmax(0,1fr)_100px_minmax(0,1fr)] items-center gap-3 rounded-[20px] border border-slate-200 bg-slate-50 p-4'>
-            <div className='text-right text-lg font-black text-slate-950'>{match.teamA}</div>
+            <div className='flex items-center justify-end gap-3'>
+              <TeamLogo team={match.teamA} size={34} imageClassName='p-1.5' />
+              <div className='text-right text-lg font-black text-slate-950'>{match.teamA}</div>
+            </div>
             <div className='text-center text-xs font-semibold uppercase tracking-[0.16em] text-slate-500'>VS</div>
-            <div className='text-left text-lg font-black text-slate-950'>{match.teamB}</div>
+            <div className='flex items-center gap-3'>
+              <div className='text-left text-lg font-black text-slate-950'>{match.teamB}</div>
+              <TeamLogo team={match.teamB} size={34} imageClassName='p-1.5' />
+            </div>
           </div>
 
           <div className='rounded-[20px] border border-slate-200 bg-white p-4'>

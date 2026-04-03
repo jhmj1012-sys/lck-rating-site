@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/auth";
+import { TeamLogo } from "@/components/lol-rating/TeamLogo";
 import { TopSiteNav } from "@/components/TopSiteNav";
 import { getScheduleHubData, getTeamRosterDetailData } from "@/lib/service";
 
@@ -54,10 +55,13 @@ export default async function TeamRosterDetailPage({
 
           <section className="rounded-[28px] bg-[#31313C] p-6">
             <div className="flex flex-wrap items-start justify-between gap-6">
-              <div>
-                <div className="text-xs font-medium uppercase tracking-[0.22em] text-[#AFC1F7]">{data.teamCode}</div>
-                <h1 className="mt-1 text-[30px] font-semibold tracking-tight text-[#FFFFFF]">{data.teamName}</h1>
-                <p className="mt-2 text-sm text-[#D4DCFF]">{data.rosterLabel}</p>
+              <div className="flex items-start gap-4">
+                <TeamLogo team={data.teamCode} size={72} imageClassName="p-2.5" priority />
+                <div>
+                  <div className="text-xs font-medium uppercase tracking-[0.22em] text-[#AFC1F7]">{data.teamCode}</div>
+                  <h1 className="mt-1 text-[30px] font-semibold tracking-tight text-[#FFFFFF]">{data.teamName}</h1>
+                  <p className="mt-2 text-sm text-[#D4DCFF]">{data.rosterLabel}</p>
+                </div>
               </div>
               <div className="rounded-2xl bg-[#3A3A47] px-4 py-3 text-sm text-[#D4DCFF]">
                 <div>최근 반영: {formatUpdatedAt(data.updatedAt)}</div>
@@ -92,8 +96,14 @@ export default async function TeamRosterDetailPage({
                   href={`/matches/${match.id}`}
                   className="flex flex-wrap items-center justify-between gap-3 rounded-[24px] bg-[#3A3A47] px-4 py-4 text-sm text-[#D4DCFF] transition hover:bg-[#424254]"
                 >
-                  <div>
-                    <div className="font-medium text-[#FFFFFF]">{match.teamA} vs {match.teamB}</div>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 font-medium text-[#FFFFFF]">
+                      <TeamLogo team={match.teamA} size={26} imageClassName="p-1" />
+                      <span>{match.teamA}</span>
+                      <span className="text-[#C2CCEC]">vs</span>
+                      <span>{match.teamB}</span>
+                      <TeamLogo team={match.teamB} size={26} imageClassName="p-1" />
+                    </div>
                     <div className="mt-1 text-xs text-[#C2CCEC]">{match.dateLabel} / {match.timeLabel} / {match.stage}</div>
                   </div>
                   <div className="flex items-center gap-5 text-xs text-[#D4DCFF] sm:text-sm">

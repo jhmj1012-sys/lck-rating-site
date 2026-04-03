@@ -1,5 +1,6 @@
-'use client';
+﻿'use client';
 
+import { TeamLogo } from "@/components/lol-rating/TeamLogo";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
@@ -242,7 +243,8 @@ function ActionPanel({ data }: { data: ScheduleHubData }) {
             {standings.map((team) => (
               <div key={team.teamCode} className="grid grid-cols-[34px_1fr_70px] items-center px-3 py-2.5 text-sm text-white">
                 <div className="font-black text-white">{team.rank}</div>
-                <div className="min-w-0">
+                <div className="flex min-w-0 items-center gap-2">
+                  <TeamLogo team={team.teamCode} size={33} imageClassName="p-1" />
                   <div className="font-bold text-white">{team.teamCode}</div>
                 </div>
                 <div className="text-right font-semibold text-white">
@@ -311,7 +313,10 @@ function ScheduleRow({ match, revealSpoiler }: { match: MatchListItem; revealSpo
       </div>
       <div className="rounded-[24px] bg-[#31313C] px-4 py-4">
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:hidden">
-          <span className="truncate text-center text-[17px] font-black leading-none tracking-[-0.02em] text-white">{match.teamA}</span>
+          <div className="flex min-w-0 flex-col items-center gap-2">
+            <TeamLogo team={match.teamA} size={32} />
+            <span className="truncate text-center text-[17px] font-black leading-none tracking-[-0.02em] text-white">{match.teamA}</span>
+          </div>
           <span
             className={cn(
               "px-2 text-[17px] font-black leading-none tracking-[-0.02em] text-white",
@@ -320,7 +325,10 @@ function ScheduleRow({ match, revealSpoiler }: { match: MatchListItem; revealSpo
           >
             {mobileCenterLabel}
           </span>
-          <span className="truncate text-center text-[17px] font-black leading-none tracking-[-0.02em] text-white">{match.teamB}</span>
+          <div className="flex min-w-0 flex-col items-center gap-2">
+            <TeamLogo team={match.teamB} size={32} />
+            <span className="truncate text-center text-[17px] font-black leading-none tracking-[-0.02em] text-white">{match.teamB}</span>
+          </div>
         </div>
         <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:hidden">
           <span className="text-left text-[12px] font-semibold text-[#d6d6e5]">{match.predictionRateA}%</span>
@@ -337,7 +345,10 @@ function ScheduleRow({ match, revealSpoiler }: { match: MatchListItem; revealSpo
         <div className="hidden min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center sm:grid">
           <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-5">
             <span className="shrink-0 text-[13px] font-semibold text-[#d6d6e5]">{match.predictionRateA}%</span>
-            <span className="truncate text-center text-[21px] font-black leading-none tracking-[-0.03em] text-white">{match.teamA}</span>
+            <div className="flex min-w-0 flex-col items-center justify-center gap-2">
+              <TeamLogo team={match.teamA} size={34} />
+              <span className="truncate text-center text-[18px] font-black leading-none tracking-[-0.03em] text-white">{match.teamA}</span>
+            </div>
             <span
               className={cn(
                 "w-9 text-center text-[26px] font-black leading-none tracking-[-0.03em] text-white",
@@ -365,7 +376,10 @@ function ScheduleRow({ match, revealSpoiler }: { match: MatchListItem; revealSpo
             >
               {rightScore}
             </span>
-            <span className="truncate text-center text-[21px] font-black leading-none tracking-[-0.03em] text-white">{match.teamB}</span>
+            <div className="flex min-w-0 flex-col items-center justify-center gap-2">
+              <TeamLogo team={match.teamB} size={34} />
+              <span className="truncate text-center text-[18px] font-black leading-none tracking-[-0.03em] text-white">{match.teamB}</span>
+            </div>
             <span className="shrink-0 text-[13px] font-semibold text-[#d6d6e5]">{match.predictionRateB}%</span>
           </div>
         </div>
@@ -384,7 +398,7 @@ function scoreLabelForMobile(leftScore: string, rightScore: string) {
 
 function getDefaultMonthId(months: MatchMonthGroup[], fallbackId?: string) {
   const monthNumber = new Date().getMonth() + 1;
-  const current = months.find((month) => month.label.includes(`${monthNumber}월`));
+  const current = months.find((month) => month.label.includes(`${monthNumber}`));
   return current?.id ?? fallbackId ?? months[0]?.id ?? "";
 }
 
@@ -395,14 +409,10 @@ function TodayMatchCard({ match, forcePredictCta = false }: { match: MatchData; 
   const isFinished = match.status === "finished";
 
   return (
-    <Link
-      href={`/matches/${match.id}`}
-      className="group block rounded-[30px] bg-[#31313C] px-5 py-5 text-white shadow-[0_16px_40px_rgba(2,6,23,0.28)] transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[0_22px_54px_rgba(2,6,23,0.34)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200 focus-visible:ring-offset-2"
-    >
+    <article className="rounded-[30px] bg-[#31313C] px-5 py-5 text-white shadow-[0_16px_40px_rgba(2,6,23,0.28)]">
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="text-[13px] font-semibold tracking-[-0.02em] text-[#d6d6e5]">{formatMatchTime(match.scheduledAt)}</div>
-          <div className="mt-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white">{match.stage}</div>
         </div>
         {liveLike ? (
           <LiveBadge />
@@ -415,25 +425,21 @@ function TodayMatchCard({ match, forcePredictCta = false }: { match: MatchData; 
 
       <div className="mt-8 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
         <div className="min-w-0 text-center">
-          <div className="truncate text-[28px] font-black leading-none tracking-[-0.045em] text-white sm:text-[34px]">{match.teamA}</div>
+          <div className="flex flex-col items-center gap-3">
+            <TeamLogo team={match.teamA} size={56} imageClassName="p-2" priority />
+            <div className="truncate text-[20px] font-black leading-none tracking-[-0.045em] text-[#E2E8F0] sm:text-[24px]">{match.teamA}</div>
+          </div>
         </div>
         <div className="px-2 text-[24px] font-black tracking-[-0.04em] text-white sm:text-[28px]">VS</div>
         <div className="min-w-0 text-center">
-          <div className="truncate text-[28px] font-black leading-none tracking-[-0.045em] text-white sm:text-[34px]">{match.teamB}</div>
+          <div className="flex flex-col items-center gap-3">
+            <TeamLogo team={match.teamB} size={56} imageClassName="p-2" priority />
+            <div className="truncate text-[20px] font-black leading-none tracking-[-0.045em] text-[#E2E8F0] sm:text-[24px]">{match.teamB}</div>
+          </div>
         </div>
       </div>
 
         <div className="mt-6 rounded-[24px] bg-[#31313C] px-5 py-5">
-        <div className="flex items-center justify-between gap-3">
-          <span className="inline-flex rounded-full border border-[#5b5b6c] bg-[#4A4A59] px-3 py-1 text-[11px] font-bold tracking-[-0.01em] text-white">
-            {LABELS.fanPredictionCurrent}
-          </span>
-        </div>
-        <div className="mt-4 flex items-center justify-between">
-          <div className="text-[30px] font-black tracking-[-0.04em] text-white">{match.predictionSummary.teamA}%</div>
-          <div className="text-[30px] font-black tracking-[-0.04em] text-white">{match.predictionSummary.teamB}%</div>
-        </div>
-        <div className="mt-3 text-[11px] font-semibold tracking-[0.08em] text-[#d6d6e5]">승부예측</div>
         <div className="relative mt-2 h-[11px] w-full overflow-hidden rounded-[5px] bg-[#2A2A34]">
           <div
             className="h-full w-full"
@@ -442,17 +448,20 @@ function TodayMatchCard({ match, forcePredictCta = false }: { match: MatchData; 
             }}
           />
         </div>
-        <div className="mt-2 flex items-center justify-between text-[12px] font-semibold text-[#d6d6e5]">
-          <span>{match.predictionSummary.teamA}%</span>
-          <span>{match.predictionSummary.teamB}%</span>
+        <div className="mt-2 grid grid-cols-[1fr_auto_1fr] items-center text-[12px] font-semibold text-[#d6d6e5]">
+          <span className="text-left tracking-[-0.02em]">{match.predictionSummary.teamA}%</span>
+          <span className="px-2 text-center text-[11px] tracking-[0.08em]">승부예측</span>
+          <span className="text-right tracking-[-0.02em]">{match.predictionSummary.teamB}%</span>
         </div>
         <div className="mt-3 flex items-center justify-between text-sm text-[#d6d6e5]">
           <span>{LABELS.voteCount} {match.predictionSummary.totalVotes}</span>
-          {match.status !== "finished" ? <span>{liveLike ? LABELS.inProgress : LABELS.scheduledMatch}</span> : null}
         </div>
-        <div className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-[22px] bg-[#8B5CF6] px-4 text-lg font-normal text-white shadow-[0_12px_26px_rgba(139,92,246,0.24)] transition group-hover:bg-[#7C3AED]">
+        <Link
+          href={`/matches/${match.id}`}
+          className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-[12px] border border-[#5B21B6] bg-[#7C3AED] px-4 text-[22px] font-semibold text-white shadow-[0_4px_0_#5B21B6] transition-all duration-150 hover:translate-y-[2px] hover:shadow-[0_2px_0_#5B21B6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A78BFA] focus-visible:ring-offset-2 focus-visible:ring-offset-[#31313C]"
+        >
           {forcePredictCta ? "승부예측하기" : getPrimaryActionLabel(match)}
-        </div>
+        </Link>
         <div className="mt-4 rounded-2xl bg-[#3A3A47] px-4 py-3">
           <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#d6d6e5]">
             {isFinished ? LABELS.latestRatingComments : LABELS.latestMatchComments}
@@ -483,7 +492,7 @@ function TodayMatchCard({ match, forcePredictCta = false }: { match: MatchData; 
           </div>
         </div>
       </div>
-    </Link>
+    </article>
   );
 }
 
@@ -505,11 +514,17 @@ function PastMatchCard({ match, revealSpoiler }: { match: MatchData; revealSpoil
         <div className="text-[12px] text-[#d6d6e5]">{match.date}</div>
       </div>
       <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
-        <div className="truncate text-[20px] font-black text-white sm:text-[22px]">{match.teamA}</div>
+        <div className="flex min-w-0 flex-col items-center gap-2">
+          <TeamLogo team={match.teamA} size={36} />
+          <div className="truncate text-center text-[13px] font-black text-[#E2E8F0] sm:text-[14px]">{match.teamA}</div>
+        </div>
         <div className={cn("text-[20px] font-black tracking-[-0.03em] text-white transition sm:text-[24px]", revealSpoiler ? "" : "blur-[6px] opacity-75 select-none")}>
           {scoreLabel}
         </div>
-        <div className="truncate text-right text-[17px] font-black text-white sm:text-[18px]">{match.teamB}</div>
+        <div className="flex min-w-0 flex-col items-center gap-2">
+          <TeamLogo team={match.teamB} size={36} />
+          <div className="truncate text-center text-[13px] font-black text-[#E2E8F0] sm:text-[14px]">{match.teamB}</div>
+        </div>
       </div>
       <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
         <div className="rounded-2xl bg-[#3A3A47] px-3 py-3 text-center">
@@ -536,7 +551,7 @@ function PastMatchCard({ match, revealSpoiler }: { match: MatchData; revealSpoil
         )}
       </div>
       <div className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-[#8B5CF6] px-4 text-base font-normal text-white shadow-[0_10px_24px_rgba(139,92,246,0.22)] transition group-hover:bg-[#7C3AED]">
-        평점확인하기
+        평점 확인하기
       </div>
     </Link>
   );
@@ -554,10 +569,10 @@ function SeasonPredictionPreviewCard({ item }: { item: SeasonPredictionQuestionC
       <div className="mt-4 space-y-2 text-sm text-slate-500">
         <div>{item.season}</div>
         <div>참여 {item.totalEntries}명</div>
-        <div>{item.mySelectionLabel ? `내 선택: ${item.mySelectionLabel}` : "아직 선택하지 않음"}</div>
+        <div>{item.mySelectionLabel ? `선택: ${item.mySelectionLabel}` : "아직 선택하지 않음"}</div>
       </div>
       <Link href={`/season-predictions/${item.id}`} className="mt-5 inline-flex min-h-10 items-center justify-center rounded-2xl bg-sky-500 px-4 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(14,165,233,0.18)] transition hover:bg-sky-600">
-        {item.isParticipating ? "내 예측 보기" : "선택하기"}
+        {item.isParticipating ? "예측 보기" : "선택하기"}
       </Link>
     </article>
   );
@@ -635,7 +650,7 @@ export default function HupuScheduleHome({
         <button
           type="button"
           onClick={() => setRevealScheduleSpoilers((current) => !current)}
-          aria-label="일정 스코어 스포일러 방지 토글"
+          aria-label="스포일러 방지 토글"
           className="inline-flex items-center gap-1.5 rounded-full bg-transparent px-1 py-0.5 text-[10px] font-semibold text-white"
         >
           <span>스포일러 방지</span>
@@ -873,7 +888,7 @@ export default function HupuScheduleHome({
                   href="/games/15-dollar-challenge"
                   className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-[#8B5CF6] px-4 text-sm font-semibold text-white transition hover:bg-[#7C3AED]"
                 >
-                  챌린지 하러가기
+                  15달러 챌린지 하러가기
                 </Link>
               </div>
             </section>
@@ -895,7 +910,7 @@ export default function HupuScheduleHome({
                 </div>
                 {initialData.seasonPredictionPreview.length === 0 ? (
                   <div className="rounded-[28px] border border-dashed border-slate-200 bg-slate-50 px-5 py-10 text-sm text-slate-500">
-                    지금 노출 중인 시즌예측이 없습니다.
+                    지금 참여 중인 시즌예측이 없습니다.
                   </div>
                 ) : null}
               </section>
@@ -903,8 +918,8 @@ export default function HupuScheduleHome({
 
             {predictionTab === "betting" ? (
               <section className="rounded-[18px] border border-[#dfe3ea] bg-white p-6 shadow-[0_10px_24px_rgba(32,45,55,0.08)]">
-                <h2 className="text-[22px] font-black text-slate-950">배팅 기능 준비 중</h2>
-                <p className="mt-3 text-sm leading-6 text-slate-600">시즌예측과 경기예측 흐름을 먼저 안정화한 뒤 다음 단계에서 확장합니다.</p>
+                <h2 className="text-[22px] font-black text-slate-950">베팅 기능 준비 중</h2>
+                <p className="mt-3 text-sm leading-6 text-slate-600">시즌예측과 경기예측 사이를 더 안정적으로 연결한 뒤 이 영역을 다시 열 예정입니다.</p>
               </section>
             ) : null}
 
@@ -950,7 +965,7 @@ export default function HupuScheduleHome({
 
             {predictionTab === "match" ? <section className="hidden md:block">
               <div className="rounded-[18px] bg-[#31313C] p-5 text-white shadow-[0_10px_24px_rgba(2,6,23,0.28)]">
-                <h2 className="text-[22px] font-black tracking-[-0.035em] text-white sm:text-[24px]">실시간 평점 랭킹</h2>
+                <h2 className="text-[22px] font-black tracking-[-0.035em] text-white sm:text-[24px]">실시간 평점 결산</h2>
                 <div className="mt-5 rounded-[24px] bg-[#3A3A47] px-3 py-4 sm:px-4">
                   <div className="space-y-2">
                     {initialData.playerLeaderboard
@@ -1008,6 +1023,11 @@ export default function HupuScheduleHome({
     </div>
   );
 }
+
+
+
+
+
 
 
 

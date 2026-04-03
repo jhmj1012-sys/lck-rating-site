@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/auth";
+import { TeamLogo } from "@/components/lol-rating/TeamLogo";
 import { TopSiteNav } from "@/components/TopSiteNav";
 import type { PlayerRole, TeamRosterSummary } from "@/components/lol-rating/types";
 import { getScheduleHubData, getTeamRosterHubData } from "@/lib/service";
@@ -139,9 +140,12 @@ export default async function TeamsPage({
 
           <section className="rounded-[28px] bg-[#31313C] p-5 sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <div className="text-xs font-medium uppercase tracking-[0.2em] text-[#D4DCFF]">{selectedTeam.teamCode}</div>
-                <h2 className="mt-1 text-2xl font-semibold text-[#FFFFFF]">{selectedTeam.teamName}</h2>
+              <div className="flex items-center gap-4">
+                <TeamLogo team={selectedTeam.teamCode} size={64} imageClassName="p-2" priority />
+                <div>
+                  <div className="text-xs font-medium uppercase tracking-[0.2em] text-[#D4DCFF]">{selectedTeam.teamCode}</div>
+                  <h2 className="mt-1 text-2xl font-semibold text-[#FFFFFF]">{selectedTeam.teamName}</h2>
+                </div>
               </div>
               <a
                 href={selectedTeam.sourceUrl}

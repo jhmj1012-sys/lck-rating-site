@@ -2183,12 +2183,12 @@
       "league": "LCK 2026",
       "stage": "정규시즌 1R",
       "patch": "15.7",
-      "status": "scheduled",
+      "status": "finished",
       "scheduledAt": "2026-04-01T17:00:00+09:00",
       "teamAId": "team_hle",
       "teamBId": "team_bro",
-      "scoreA": null,
-      "scoreB": null,
+      "scoreA": 2,
+      "scoreB": 0,
       "predictionLocked": true,
       "predictionLockedAt": "2026-04-01T07:50:00.000Z",
       "lockedDistribution": {
@@ -2206,21 +2206,21 @@
           "hitBonusCoins": 40
         }
       },
-      "predictionSettledAt": null,
+      "predictionSettledAt": "2026-04-03T12:03:07.438Z",
       "createdAt": "2026-03-27T10:00:00+09:00",
-      "updatedAt": "2026-04-02T15:49:03.015Z"
+      "updatedAt": "2026-04-03T12:03:07.404Z"
     },
     {
       "id": "match_2",
       "league": "LCK 2026",
       "stage": "정규시즌 1R",
       "patch": "15.7",
-      "status": "scheduled",
+      "status": "finished",
       "scheduledAt": "2026-04-01T19:00:00+09:00",
       "teamAId": "team_t1",
       "teamBId": "team_kt",
-      "scoreA": null,
-      "scoreB": null,
+      "scoreA": 0,
+      "scoreB": 2,
       "predictionLocked": true,
       "predictionLockedAt": "2026-04-01T09:50:00.000Z",
       "lockedDistribution": {
@@ -2238,21 +2238,21 @@
           "hitBonusCoins": 40
         }
       },
-      "predictionSettledAt": null,
+      "predictionSettledAt": "2026-04-03T12:03:06.607Z",
       "createdAt": "2026-03-27T10:00:00+09:00",
-      "updatedAt": "2026-04-02T15:49:03.015Z"
+      "updatedAt": "2026-04-03T12:03:06.571Z"
     },
     {
       "id": "match_3",
       "league": "LCK 2026",
       "stage": "정규시즌 1R",
       "patch": "15.7",
-      "status": "scheduled",
+      "status": "finished",
       "scheduledAt": "2026-04-02T17:00:00+09:00",
       "teamAId": "team_dk",
       "teamBId": "team_ns",
-      "scoreA": null,
-      "scoreB": null,
+      "scoreA": 0,
+      "scoreB": 2,
       "predictionLocked": true,
       "predictionLockedAt": "2026-04-02T07:50:00.000Z",
       "lockedDistribution": {
@@ -2270,21 +2270,21 @@
           "hitBonusCoins": 40
         }
       },
-      "predictionSettledAt": null,
+      "predictionSettledAt": "2026-04-03T12:03:05.683Z",
       "createdAt": "2026-03-27T10:00:00+09:00",
-      "updatedAt": "2026-04-02T15:49:03.015Z"
+      "updatedAt": "2026-04-03T12:03:05.645Z"
     },
     {
       "id": "match_4",
       "league": "LCK 2026",
       "stage": "정규시즌 1R",
       "patch": "15.7",
-      "status": "scheduled",
+      "status": "finished",
       "scheduledAt": "2026-04-02T19:00:00+09:00",
       "teamAId": "team_drx",
       "teamBId": "team_dns",
-      "scoreA": null,
-      "scoreB": null,
+      "scoreA": 0,
+      "scoreB": 2,
       "predictionLocked": true,
       "predictionLockedAt": "2026-04-02T09:50:00.000Z",
       "lockedDistribution": {
@@ -2302,28 +2302,41 @@
           "hitBonusCoins": 40
         }
       },
-      "predictionSettledAt": null,
+      "predictionSettledAt": "2026-04-03T12:03:04.916Z",
       "createdAt": "2026-03-27T10:00:00+09:00",
-      "updatedAt": "2026-04-02T15:49:03.015Z"
+      "updatedAt": "2026-04-03T12:03:04.873Z"
     },
     {
       "id": "match_5",
       "league": "LCK 2026",
       "stage": "정규시즌 1R",
       "patch": "15.7",
-      "status": "scheduled",
+      "status": "finished",
       "scheduledAt": "2026-04-03T17:00:00+09:00",
       "teamAId": "team_gen",
       "teamBId": "team_kt",
-      "scoreA": null,
-      "scoreB": null,
-      "predictionLocked": false,
-      "predictionLockedAt": null,
-      "lockedDistribution": null,
-      "lockedOdds": null,
-      "predictionSettledAt": null,
+      "scoreA": 1,
+      "scoreB": 2,
+      "predictionLocked": true,
+      "predictionLockedAt": "2026-04-03T07:50:00.000Z",
+      "lockedDistribution": {
+        "teamA": 50,
+        "teamB": 50,
+        "totalVotes": 0
+      },
+      "lockedOdds": {
+        "teamA": {
+          "oddsPercent": 160,
+          "hitBonusCoins": 40
+        },
+        "teamB": {
+          "oddsPercent": 160,
+          "hitBonusCoins": 40
+        }
+      },
+      "predictionSettledAt": "2026-04-03T12:03:04.176Z",
       "createdAt": "2026-03-27T10:00:00+09:00",
-      "updatedAt": "2026-03-27T10:00:00+09:00"
+      "updatedAt": "2026-04-03T12:03:04.129Z"
     },
     {
       "id": "match_6",
@@ -2336,13 +2349,26 @@
       "teamBId": "team_bro",
       "scoreA": null,
       "scoreB": null,
-      "predictionLocked": false,
-      "predictionLockedAt": null,
-      "lockedDistribution": null,
-      "lockedOdds": null,
+      "predictionLocked": true,
+      "predictionLockedAt": "2026-04-03T09:50:00.000Z",
+      "lockedDistribution": {
+        "teamA": 50,
+        "teamB": 50,
+        "totalVotes": 0
+      },
+      "lockedOdds": {
+        "teamA": {
+          "oddsPercent": 160,
+          "hitBonusCoins": 40
+        },
+        "teamB": {
+          "oddsPercent": 160,
+          "hitBonusCoins": 40
+        }
+      },
       "predictionSettledAt": null,
       "createdAt": "2026-03-27T10:00:00+09:00",
-      "updatedAt": "2026-03-27T10:00:00+09:00"
+      "updatedAt": "2026-04-03T11:41:06.298Z"
     },
     {
       "id": "match_7",
@@ -16143,7 +16169,19 @@
   "seasonPredictionEntries": [],
   "playerRatings": [],
   "comments": [],
-  "pointLedger": [],
+  "pointLedger": [
+    {
+      "id": "ledger_1",
+      "userId": "user_1",
+      "type": "earn",
+      "amount": 0,
+      "reason": "기존 활동 코인 이관",
+      "referenceType": "migration",
+      "referenceId": "user_1",
+      "createdAt": "2026-04-03T11:41:06.286Z",
+      "balanceAfter": 0
+    }
+  ],
   "notifications": [],
   "profileStoreItems": [
     {
@@ -16185,7 +16223,7 @@
     "seasonPredictionEntries": 1,
     "playerRatings": 1,
     "comments": 1,
-    "pointLedger": 1,
+    "pointLedger": 2,
     "notifications": 1,
     "profileStoreItems": 4,
     "userInventory": 1
