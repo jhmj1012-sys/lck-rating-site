@@ -69,9 +69,18 @@ export function SeasonPredictionEntryForm({
             >
               <div className="flex flex-wrap items-center gap-2">
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-base font-normal text-[#FFFFFF]">{option.label}</div>
-                  <div className="mt-1 text-xs text-[#D4DCFF]">
-                    {votes.toLocaleString()}명 선택 · {percent}%
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="truncate text-base font-semibold text-white">{option.label}</div>
+                    <span className="shrink-0 text-base font-black text-white">{percent}%</span>
+                  </div>
+                  <div className="mt-1.5 h-1 w-full rounded-full bg-[#474756]">
+                    <div
+                      className={`h-1 rounded-full transition-all ${isMine ? "bg-[#8B5CF6]" : "bg-[#6B7A99]"}`}
+                      style={{ width: `${Math.max(percent, percent > 0 ? 2 : 0)}%` }}
+                    />
+                  </div>
+                  <div className="mt-1 text-xs text-[#d6d6e5]">
+                    {votes.toLocaleString()}명 선택
                   </div>
                 </div>
                 <button

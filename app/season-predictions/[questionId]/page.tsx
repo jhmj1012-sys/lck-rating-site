@@ -24,6 +24,11 @@ function getStatusLabel(status: string) {
   return status;
 }
 
+function getStatusBadgeClass(status: string) {
+  if (status === "open") return "bg-[#8B5CF6] text-white";
+  return "bg-[#4A4A59] text-[#d6d6e5]";
+}
+
 export default async function SeasonPredictionDetailPage({
   params,
 }: {
@@ -58,20 +63,20 @@ export default async function SeasonPredictionDetailPage({
 
           <section className="rounded-[30px] bg-[#31313C] p-6 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="rounded-full bg-[#4A4A59] px-3 py-1 text-xs font-semibold text-[#FFFFFF]">{detail.category}</div>
-              <div className="rounded-full bg-[#4A4A59] px-3 py-1 text-xs font-semibold text-[#FFFFFF]">{getStatusLabel(detail.status)}</div>
+              <div className="rounded-full bg-[#4A4A59] px-3 py-1 text-xs font-semibold text-[#d6d6e5]">{detail.category}</div>
+              <div className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusBadgeClass(detail.status)}`}>{getStatusLabel(detail.status)}</div>
             </div>
-            <h1 className="mt-4 text-3xl font-black text-[#FFFFFF]">{detail.title}</h1>
+            <h1 className="mt-4 text-3xl font-black text-white">{detail.title}</h1>
 
             <div className="mt-3 flex flex-wrap gap-2 sm:hidden">
-              <div className="rounded-full bg-[#3A3A47] px-3 py-1 text-xs font-medium text-[#FFFFFF]">{detail.season}</div>
-              <div className="rounded-full bg-[#3A3A47] px-3 py-1 text-xs font-medium text-[#FFFFFF]">참여 {detail.totalEntries}명</div>
-              <div className="rounded-full bg-[#3A3A47] px-3 py-1 text-xs font-medium text-[#FFFFFF]">마감 {formatDate(detail.closeAt)}</div>
+              <div className="rounded-full bg-[#3A3A47] px-3 py-1 text-xs font-medium text-[#d6d6e5]">{detail.season}</div>
+              <div className="rounded-full bg-[#3A3A47] px-3 py-1 text-xs font-medium text-[#d6d6e5]">참여 {detail.totalEntries}명</div>
+              <div className="rounded-full bg-[#3A3A47] px-3 py-1 text-xs font-medium text-[#d6d6e5]">마감 {formatDate(detail.closeAt)}</div>
             </div>
 
-            <p className="mt-3 hidden text-sm leading-7 text-[#D4DCFF] sm:block">{detail.description}</p>
+            <p className="mt-3 hidden text-sm leading-7 text-[#d6d6e5] sm:block">{detail.description}</p>
 
-            <div className="mt-4 rounded-2xl bg-[#3A3A47] px-4 py-3 text-sm text-[#D4DCFF]">
+            <div className="mt-4 rounded-2xl bg-[#3A3A47] px-4 py-3 text-sm text-[#d6d6e5]">
               {detail.canSubmit
                 ? `마감까지 ${detail.countdownLabel}`
                 : detail.status === "resolved"
@@ -80,8 +85,8 @@ export default async function SeasonPredictionDetailPage({
             </div>
 
             {detail.myEntry ? (
-              <div className="mt-3 rounded-2xl bg-[#3A3A47] px-4 py-3 text-sm text-[#FFFFFF]">
-                현재 내 선택: {detail.myEntry.selectedOptionLabel}
+              <div className="mt-3 rounded-2xl bg-[#3A3A47] px-4 py-3 text-sm text-[#d6d6e5]">
+                현재 내 선택: <span className="font-semibold text-white">{detail.myEntry.selectedOptionLabel}</span>
               </div>
             ) : null}
 
@@ -90,17 +95,17 @@ export default async function SeasonPredictionDetailPage({
             </div>
 
             <div className="mt-5 hidden gap-3 sm:grid sm:grid-cols-3">
-              <div className="rounded-2xl bg-[#3A3A47] px-4 py-3 text-sm text-[#FFFFFF]">
-                <div className="text-xs text-[#D4DCFF]">시즌</div>
-                <div className="mt-1 font-semibold text-[#FFFFFF]">{detail.season}</div>
+              <div className="rounded-2xl bg-[#3A3A47] px-4 py-3 text-sm">
+                <div className="text-xs text-[#d6d6e5]">시즌</div>
+                <div className="mt-1 font-semibold text-white">{detail.season}</div>
               </div>
-              <div className="rounded-2xl bg-[#3A3A47] px-4 py-3 text-sm text-[#FFFFFF]">
-                <div className="text-xs text-[#D4DCFF]">마감 시각</div>
-                <div className="mt-1 font-semibold text-[#FFFFFF]">{formatDate(detail.closeAt)}</div>
+              <div className="rounded-2xl bg-[#3A3A47] px-4 py-3 text-sm">
+                <div className="text-xs text-[#d6d6e5]">마감 시각</div>
+                <div className="mt-1 font-semibold text-white">{formatDate(detail.closeAt)}</div>
               </div>
-              <div className="rounded-2xl bg-[#3A3A47] px-4 py-3 text-sm text-[#FFFFFF]">
-                <div className="text-xs text-[#D4DCFF]">참여자</div>
-                <div className="mt-1 font-semibold text-[#FFFFFF]">{detail.totalEntries}명</div>
+              <div className="rounded-2xl bg-[#3A3A47] px-4 py-3 text-sm">
+                <div className="text-xs text-[#d6d6e5]">참여자</div>
+                <div className="mt-1 font-semibold text-white">{detail.totalEntries}명</div>
               </div>
             </div>
           </section>
