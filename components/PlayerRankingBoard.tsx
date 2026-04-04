@@ -154,31 +154,31 @@ export function PlayerRankingBoard({ data }: { data: PlayerRankingPageData }) {
             </div>
           ) : (
             <div>
-              <div className="grid grid-cols-[44px_minmax(0,1fr)_56px_88px] bg-[#3A3A47] px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-[#d6d6e5] md:grid-cols-[64px_minmax(0,1.4fr)_90px_120px_90px_100px]">
+              <div className="grid grid-cols-[40px_minmax(0,1fr)_56px_80px] bg-[#3A3A47] px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-[#d6d6e5] md:grid-cols-[48px_minmax(0,1fr)_72px_96px_72px_72px]">
                 <div>순위</div>
                 <div>선수명</div>
                 <div>팀</div>
-                <div className="text-right pr-2">평균 평점</div>
-                <div className="hidden md:block">경기 수</div>
-                <div className="hidden md:block" title="최근폼 = 최근 5경기 평균">최근폼</div>
+                <div className="text-right">평균 평점</div>
+                <div className="hidden text-right md:block">경기 수</div>
+                <div className="hidden text-right md:block" title="최근폼 = 최근 5경기 평균">최근폼</div>
               </div>
               <div className="divide-y divide-[#474756]">
                 {rankedRows.map((player) => (
                   <Link
                     key={player.playerId}
                     href={`/player/${player.playerSlug}`}
-                    className="group grid grid-cols-[44px_minmax(0,1fr)_56px_88px] items-center bg-[#31313C] px-4 py-3 text-sm text-white transition hover:bg-[#3A3A47] md:grid-cols-[64px_minmax(0,1.4fr)_90px_120px_90px_100px]"
+                    className="group grid grid-cols-[40px_minmax(0,1fr)_56px_80px] items-center bg-[#31313C] px-4 py-3 text-sm text-white transition hover:bg-[#3A3A47] md:grid-cols-[48px_minmax(0,1fr)_72px_96px_72px_72px]"
                   >
                     <div className="font-black text-white">{player.rank}</div>
                     <div className="min-w-0">
                       <div className="truncate font-bold text-white">{player.playerName}</div>
                     </div>
                     <div className="font-semibold text-white">{player.teamCode}</div>
-                    <div className="font-black flex justify-end pr-2">
+                    <div className="font-black flex justify-end">
                       <RatingValue value={player.averageRating} />
                     </div>
-                    <div className="hidden font-semibold text-[#d6d6e5] md:block">{player.matchCount}</div>
-                    <div className="hidden font-semibold text-[#8EADEF] md:block">{player.recentForm.toFixed(1)}</div>
+                    <div className="hidden text-right font-semibold text-[#d6d6e5] md:block">{player.matchCount}</div>
+                    <div className="hidden text-right font-semibold text-[#8EADEF] md:block">{player.recentForm.toFixed(1)}</div>
                   </Link>
                 ))}
               </div>
