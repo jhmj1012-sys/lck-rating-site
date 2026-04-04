@@ -129,11 +129,11 @@ export function PlayerRankingBoard({ data }: { data: PlayerRankingPageData }) {
                   <select
                     value={season}
                     onChange={(event) => startTransition(() => setSeason(event.target.value))}
-                    className="h-8 w-full rounded-lg border-0 bg-[#31313C] px-2.5 text-sm !text-[#FFFFFF] outline-none transition focus:ring-0"
-                    style={{ color: "#FFFFFF" }}
+                    className="h-8 w-full rounded-lg border-0 bg-[#31313C] px-2.5 text-sm !text-[#d6d6e5] outline-none transition focus:ring-0"
+                    style={{ color: "#d6d6e5" }}
                   >
                     {data.seasonOptions.map((item) => (
-                      <option key={item} value={item} style={{ color: "#FFFFFF", backgroundColor: "#31313C" }}>
+                      <option key={item} value={item} style={{ color: "#d6d6e5", backgroundColor: "#31313C" }}>
                         {item}
                       </option>
                     ))}
@@ -144,12 +144,12 @@ export function PlayerRankingBoard({ data }: { data: PlayerRankingPageData }) {
                   <select
                     value={sortKey}
                     onChange={(event) => startTransition(() => setSortKey(event.target.value as SortKey))}
-                    className="h-8 w-full rounded-lg border-0 bg-[#31313C] px-2.5 text-sm !text-[#FFFFFF] outline-none transition focus:ring-0"
-                    style={{ color: "#FFFFFF" }}
+                    className="h-8 w-full rounded-lg border-0 bg-[#31313C] px-2.5 text-sm !text-[#d6d6e5] outline-none transition focus:ring-0"
+                    style={{ color: "#d6d6e5" }}
                   >
-                    <option value="rating" style={{ color: "#FFFFFF", backgroundColor: "#31313C" }}>평점순</option>
-                    <option value="form" style={{ color: "#FFFFFF", backgroundColor: "#31313C" }}>최근순</option>
-                    <option value="participation" style={{ color: "#FFFFFF", backgroundColor: "#31313C" }}>참여순</option>
+                    <option value="rating" style={{ color: "#d6d6e5", backgroundColor: "#31313C" }}>평점순</option>
+                    <option value="form" style={{ color: "#d6d6e5", backgroundColor: "#31313C" }}>최근순</option>
+                    <option value="participation" style={{ color: "#d6d6e5", backgroundColor: "#31313C" }}>참여순</option>
                   </select>
                 </label>
               </div>
