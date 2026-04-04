@@ -122,9 +122,9 @@ export function SeasonPredictionEntryForm({
         })}
       </div>
 
-      {showMyEntry && detail.myEntry ? (
-        <div className="rounded-2xl bg-[#3A3A47] px-4 py-3 text-sm text-[#FFFFFF]">
-          현재 내 선택: {detail.myEntry.selectedOptionLabel}
+      {showMyEntry && optimisticSelectedId ? (
+        <div className="rounded-2xl bg-[#3A3A47] px-4 py-3 text-sm text-[#d6d6e5]">
+          현재 내 선택: <span className="font-semibold text-white">{detail.options.find((o) => o.id === optimisticSelectedId)?.label ?? detail.myEntry?.selectedOptionLabel}</span>
         </div>
       ) : null}
 
