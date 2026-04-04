@@ -397,9 +397,10 @@ function scoreLabelForMobile(leftScore: string, rightScore: string) {
 }
 
 function getDefaultMonthId(months: MatchMonthGroup[], fallbackId?: string) {
+  if (fallbackId) return fallbackId;
   const monthNumber = new Date().getMonth() + 1;
   const current = months.find((month) => month.label.includes(`${monthNumber}`));
-  return current?.id ?? fallbackId ?? months[0]?.id ?? "";
+  return current?.id ?? months[0]?.id ?? "";
 }
 
 function TodayMatchCard({ match, forcePredictCta = false }: { match: MatchData; forcePredictCta?: boolean }) {
