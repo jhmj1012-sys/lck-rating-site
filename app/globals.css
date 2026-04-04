@@ -417,7 +417,7 @@ button.allow-disabled-cursor:disabled {
     height: 36px;
     padding-left: 0.55rem;
     padding-right: 0.55rem;
-    border-radius: 9999px;
+    border-radius: 10px;
   }
 
   .mobile-account-label {

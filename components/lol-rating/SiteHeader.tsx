@@ -88,7 +88,7 @@ function AccountEntryButton({
         href="/signin"
         aria-label={HEADER_LABELS.signin}
         className={cn(
-          "mobile-account-button inline-flex h-10 items-center gap-1.5 rounded-full bg-[#424254] text-sm font-semibold !text-[#FFFFFF] shadow-[0_8px_20px_rgba(2,6,23,0.28)] transition hover:bg-[#505063] hover:!text-[#FFFFFF]",
+          "mobile-account-button inline-flex h-10 items-center gap-1.5 rounded-xl bg-[#424254] text-sm font-semibold !text-[#FFFFFF] shadow-[0_8px_20px_rgba(2,6,23,0.28)] transition hover:bg-[#505063] hover:!text-[#FFFFFF]",
           compact ? "px-2.5 text-[13px]" : "px-3.5",
         )}
       >
@@ -105,7 +105,7 @@ function AccountEntryButton({
         aria-label={HEADER_LABELS.mypage}
         onClick={() => setOpen((current) => !current)}
         className={cn(
-          "mobile-account-button inline-flex h-10 items-center gap-1.5 rounded-full bg-[#424254] text-sm font-semibold text-white transition hover:bg-[#505063]",
+          "mobile-account-button inline-flex h-10 items-center gap-1.5 rounded-xl bg-[#424254] text-sm font-semibold text-white transition hover:bg-[#505063]",
           compact ? "px-2.5 text-[13px]" : "px-3.5",
         )}
       >
