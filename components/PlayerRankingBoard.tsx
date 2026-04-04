@@ -154,7 +154,7 @@ export function PlayerRankingBoard({ data }: { data: PlayerRankingPageData }) {
             </div>
           ) : (
             <div>
-              <div className="grid grid-cols-[40px_minmax(0,1fr)_56px_80px] bg-[#3A3A47] px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-[#d6d6e5] md:grid-cols-[48px_minmax(0,1fr)_72px_96px_72px_72px]">
+              <div className="grid grid-cols-[40px_minmax(0,1fr)_56px_80px] bg-[#3A3A47] px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-[#d6d6e5] md:grid-cols-[48px_minmax(0,180px)_72px_96px_72px_72px]">
                 <div>순위</div>
                 <div>선수명</div>
                 <div>팀</div>
@@ -167,7 +167,7 @@ export function PlayerRankingBoard({ data }: { data: PlayerRankingPageData }) {
                   <Link
                     key={player.playerId}
                     href={`/player/${player.playerSlug}`}
-                    className="group grid grid-cols-[40px_minmax(0,1fr)_56px_80px] items-center bg-[#31313C] px-4 py-3 text-sm text-white transition hover:bg-[#3A3A47] md:grid-cols-[48px_minmax(0,1fr)_72px_96px_72px_72px]"
+                    className="group grid grid-cols-[40px_minmax(0,1fr)_56px_80px] items-center bg-[#31313C] px-4 py-3 text-sm text-white transition hover:bg-[#3A3A47] md:grid-cols-[48px_minmax(0,180px)_72px_96px_72px_72px]"
                   >
                     <div className="font-black text-white">{player.rank}</div>
                     <div className="min-w-0">
