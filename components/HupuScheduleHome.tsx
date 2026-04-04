@@ -308,7 +308,7 @@ function ScheduleRow({ match, revealSpoiler }: { match: MatchListItem; revealSpo
       className="grid gap-3 border-b border-[#474756] px-5 py-4 transition hover:bg-[#3A3A47] sm:grid-cols-[80px_minmax(0,1fr)] sm:items-stretch sm:px-6"
     >
       <div className="flex flex-col justify-start pt-1">
-        <div className="text-[13px] font-bold leading-none tracking-[-0.02em] text-white sm:text-[14px]">{match.timeLabel}</div>
+        <div className="text-[13px] font-bold leading-none tracking-[-0.02em] text-[#d6d6e5] sm:text-[14px]">{match.timeLabel}</div>
         <div className="mt-2 text-[11px] font-medium leading-5 text-[#d6d6e5]">{match.stage}</div>
       </div>
       <div className="rounded-[24px] bg-[#31313C] px-4 py-4">
@@ -641,10 +641,10 @@ export default function HupuScheduleHome({
           type="button"
           onClick={() => setRevealScheduleSpoilers((current) => !current)}
           aria-label="스포일러 방지 토글"
-          className="inline-flex items-center gap-1.5 rounded-full bg-transparent px-1 py-0.5 text-[10px] font-semibold text-white"
+          className="inline-flex items-center gap-1.5 rounded-full bg-transparent px-1 py-0.5 text-[10px] font-semibold text-[#d6d6e5]"
         >
           <span>스포일러 방지</span>
-          <span className="inline-flex w-[2.2rem] justify-center text-[10px] font-bold text-[#FFFFFF]">
+          <span className="inline-flex w-[2.2rem] justify-center text-[10px] font-bold text-[#d6d6e5]">
             {revealScheduleSpoilers ? "OFF" : "ON"}
           </span>
           <span
@@ -667,7 +667,7 @@ export default function HupuScheduleHome({
         {selectedWeek && visibleWeekDates.length > 0 ? (
           visibleWeekDates.map((group) => (
             <div key={group.id}>
-              <div className="bg-[#3A3A47] px-5 py-3 text-sm font-bold text-white sm:px-6">{group.label}</div>
+              <div className="bg-[#3A3A47] px-5 py-3 text-sm font-bold text-[#d6d6e5] sm:px-6">{group.label}</div>
               <div>
                 {group.matches.map((match) => (
                   <ScheduleRow key={match.id} match={match} revealSpoiler={revealScheduleSpoilers} />
@@ -924,10 +924,10 @@ export default function HupuScheduleHome({
                     onClick={() => setRevealPastSpoilers((current) => !current)}
                     aria-label="스포일러 방지 토글"
                     className="inline-flex items-center gap-2 rounded-full !border-0 bg-transparent px-2.5 py-1.5 text-xs font-semibold !shadow-none transition hover:bg-transparent"
-                    style={{ color: "#FFFFFF" }}
+                    style={{ color: "#d6d6e5" }}
                   >
-                    <span style={{ color: "#FFFFFF", fontSize: "0.8rem" }}>스포일러 방지</span>
-                    <span className="inline-flex w-[2.2rem] justify-center text-[11px] font-bold text-[#FFFFFF]">
+                    <span style={{ color: "#d6d6e5", fontSize: "0.8rem" }}>스포일러 방지</span>
+                    <span className="inline-flex w-[2.2rem] justify-center text-[11px] font-bold text-[#d6d6e5]">
                       {revealPastSpoilers ? "OFF" : "ON"}
                     </span>
                     <span
