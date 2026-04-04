@@ -18,6 +18,14 @@ const ROLE_ICON: Record<PlayerRole, string> = {
   SUP: "/icons/positions/icon-position-utility-disabled.png",
 };
 
+const ROLE_LABEL: Record<PlayerRole, string> = {
+  TOP: "탑",
+  JGL: "정글",
+  MID: "미드",
+  ADC: "원딜",
+  SUP: "서포터",
+};
+
 function getRatingTone(value: number) {
   void value;
   return "text-white";
@@ -154,9 +162,10 @@ export function PlayerRankingBoard({ data }: { data: PlayerRankingPageData }) {
             </div>
           ) : (
             <div>
-              <div className="grid grid-cols-[40px_minmax(0,1fr)_56px_80px] bg-[#3A3A47] px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-[#d6d6e5] md:grid-cols-[48px_minmax(0,180px)_72px_96px_72px_72px]">
+              <div className="grid grid-cols-[40px_minmax(0,1fr)_56px_80px] bg-[#3A3A47] px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-[#d6d6e5] md:grid-cols-[48px_minmax(0,1fr)_72px_72px_96px_72px_72px]">
                 <div>순위</div>
                 <div>선수명</div>
+                <div className="hidden md:block">포지션</div>
                 <div>팀</div>
                 <div className="text-right">평균 평점</div>
                 <div className="hidden text-right md:block">경기 수</div>
@@ -167,12 +176,13 @@ export function PlayerRankingBoard({ data }: { data: PlayerRankingPageData }) {
                   <Link
                     key={player.playerId}
                     href={`/player/${player.playerSlug}`}
-                    className="group grid grid-cols-[40px_minmax(0,1fr)_56px_80px] items-center bg-[#31313C] px-4 py-3 text-sm text-white transition hover:bg-[#3A3A47] md:grid-cols-[48px_minmax(0,180px)_72px_96px_72px_72px]"
+                    className="group grid grid-cols-[40px_minmax(0,1fr)_56px_80px] items-center bg-[#31313C] px-4 py-3 text-sm text-white transition hover:bg-[#3A3A47] md:grid-cols-[48px_minmax(0,1fr)_72px_72px_96px_72px_72px]"
                   >
                     <div className="font-black text-white">{player.rank}</div>
                     <div className="min-w-0">
                       <div className="truncate font-bold text-white">{player.playerName}</div>
                     </div>
+                    <div className="hidden font-semibold text-[#d6d6e5] md:block">{ROLE_LABEL[player.role]}</div>
                     <div className="font-semibold text-white">{player.teamCode}</div>
                     <div className="font-black flex justify-end">
                       <RatingValue value={player.averageRating} />
