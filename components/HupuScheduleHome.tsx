@@ -955,47 +955,59 @@ export default function HupuScheduleHome({
 
             {predictionTab === "match" ? <section className="hidden md:block">
               <div className="rounded-[18px] bg-[#31313C] p-5 text-white shadow-[0_10px_24px_rgba(2,6,23,0.28)]">
-                <h2 className="text-[22px] font-black tracking-[-0.035em] text-white sm:text-[24px]">실시간 평점 결산</h2>
-                <div className="mt-5 rounded-[24px] bg-[#3A3A47] px-3 py-4 sm:px-4">
-                  <div className="space-y-2">
-                    {initialData.playerLeaderboard
-                      .filter((player) => player.rank >= 1 && player.rank <= 3)
-                      .map((player) => (
-                        <Link
-                          key={player.playerId}
-                          href={`/player/${player.playerSlug}`}
-                          className="grid grid-cols-[32px_minmax(0,1fr)_56px_52px] items-center rounded-xl bg-[#31313C] px-3 py-2 text-sm transition hover:bg-[#4A4A59]"
-                        >
-                          <div className="text-base font-black text-white">{player.rank}</div>
-                          <div className="min-w-0 truncate font-semibold text-white">{player.playerName}</div>
-                          <div className="text-right text-xs font-semibold text-white">{player.teamCode}</div>
-                          <div className="text-right text-base font-black text-white">{player.averageRating.toFixed(1)}</div>
-                        </Link>
-                      ))}
-                  </div>
-                  <div className="mt-3 space-y-2">
-                    {initialData.playerLeaderboard
-                      .filter((player) => player.rank >= 4 && player.rank <= 6)
-                      .map((player) => (
-                        <Link
-                          key={player.playerId}
-                          href={`/player/${player.playerSlug}`}
-                          className="grid grid-cols-[32px_minmax(0,1fr)_56px_52px] items-center rounded-xl bg-[#31313C] px-3 py-2 text-sm transition hover:bg-[#4A4A59]"
-                        >
-                          <div className="text-base font-black text-white">{player.rank}</div>
-                          <div className="min-w-0 truncate font-semibold text-white">{player.playerName}</div>
-                          <div className="text-right text-xs font-semibold text-white">{player.teamCode}</div>
-                          <div className="text-right text-base font-black text-white">{player.averageRating.toFixed(1)}</div>
-                        </Link>
-                      ))}
-                  </div>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-[22px] font-black tracking-[-0.035em] text-white sm:text-[24px]">평점 TOP 선수</h2>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#8B5CF6]/20 px-2.5 py-1 text-[11px] font-bold tracking-wide text-[#C4B5FD]">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#8B5CF6]" />
+                    LIVE
+                  </span>
                 </div>
+                <div className="mt-4 space-y-2">
+                  {initialData.playerLeaderboard
+                    .filter((player) => player.rank >= 1 && player.rank <= 3)
+                    .map((player) => {
+                      const medalColor = player.rank === 1 ? "text-[#FFD700]" : player.rank === 2 ? "text-[#C0C0C0]" : "text-[#CD7F32]";
+                      return (
+                        <Link
+                          key={player.playerId}
+                          href={`/player/${player.playerSlug}`}
+                          className="grid grid-cols-[36px_minmax(0,1fr)_52px_56px] items-center rounded-xl bg-[#3A3A47] px-3 py-2.5 text-sm transition hover:bg-[#454555]"
+                        >
+                          <div className={`text-base font-black ${medalColor}`}>{player.rank}</div>
+                          <div className="min-w-0 truncate font-semibold text-white">{player.playerName}</div>
+                          <div className="text-right text-xs font-medium text-[#9AA4C8]">{player.teamCode}</div>
+                          <div className="text-right text-base font-black text-[#C4B5FD]">{player.averageRating.toFixed(1)}</div>
+                        </Link>
+                      );
+                    })}
+                </div>
+                {initialData.playerLeaderboard.filter((p) => p.rank >= 4 && p.rank <= 6).length > 0 && (
+                  <>
+                    <div className="my-3 border-t border-[#474756]" />
+                    <div className="space-y-2">
+                      {initialData.playerLeaderboard
+                        .filter((player) => player.rank >= 4 && player.rank <= 6)
+                        .map((player) => (
+                          <Link
+                            key={player.playerId}
+                            href={`/player/${player.playerSlug}`}
+                            className="grid grid-cols-[36px_minmax(0,1fr)_52px_56px] items-center rounded-xl px-3 py-2 text-sm transition hover:bg-[#3A3A47]"
+                          >
+                            <div className="text-sm font-bold text-[#6B7A99]">{player.rank}</div>
+                            <div className="min-w-0 truncate font-medium text-[#D4DCFF]">{player.playerName}</div>
+                            <div className="text-right text-xs font-medium text-[#6B7A99]">{player.teamCode}</div>
+                            <div className="text-right text-sm font-bold text-[#A78BFA]">{player.averageRating.toFixed(1)}</div>
+                          </Link>
+                        ))}
+                    </div>
+                  </>
+                )}
                 <div className="mt-4">
                   <Link
                     href="/ratings"
-                    className="inline-flex w-full items-center justify-center rounded-2xl bg-[#8B5CF6] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#7C3AED]"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#8B5CF6] px-4 py-3 text-sm font-bold !text-white transition hover:bg-[#7C3AED]"
                   >
-                    평점 보러가기
+                    평점 보러가기 →
                   </Link>
                 </div>
               </div>

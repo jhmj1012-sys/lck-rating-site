@@ -1,29 +1,13 @@
-import Link from "next/link";
+import { BackNavButton } from "@/components/BackNavButton";
 
 export default async function PrivacyPage() {
   return (
     <div className="min-h-screen bg-[#1C1C1F]">
-      <div className="bg-[#7C3AED]">
-        <nav className="mx-auto flex max-w-5xl items-center gap-1 px-4 sm:px-6">
-          <Link href="/" className="relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] text-[#F5F3FF]">
-            홈
-          </Link>
-          <Link href="/schedule" className="relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] text-[#F5F3FF]">
-            경기일정
-          </Link>
-          <Link href="/ratings" className="relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] text-[#F5F3FF]">
-            평점순위
-          </Link>
-          <Link href="/season-predictions" className="relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] text-[#F5F3FF]">
-            시즌예측
-          </Link>
-          <Link href="/games/15-dollar-challenge" className="relative px-5 py-2 text-[17px] font-bold tracking-[-0.02em] text-[#F5F3FF]">
-            게임
-          </Link>
-        </nav>
-      </div>
       <main className="px-4 py-8 sm:px-6">
         <div className="mx-auto max-w-5xl">
+          <BackNavButton className="mb-4 inline-flex items-center gap-1.5 rounded-xl border border-[#474756] bg-[#3A3A47] px-4 py-2 text-sm font-medium transition hover:bg-[#505063]" style={{ color: "#FFFFFF" }}>
+            ← 돌아가기
+          </BackNavButton>
           <section className="rounded-[24px] border border-[rgba(255,255,255,0.06)] bg-[#31313C] p-6 text-white shadow-[0_14px_34px_rgba(2,6,23,0.28)] sm:p-8">
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#C4B5FD]">Privacy Policy</p>
             <h1 className="mt-3 text-[30px] font-black tracking-[-0.04em]">개인정보처리방침</h1>
