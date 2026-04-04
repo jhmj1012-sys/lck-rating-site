@@ -178,17 +178,17 @@ export function PlayerRankingBoard({ data }: { data: PlayerRankingPageData }) {
                     href={`/player/${player.playerSlug}`}
                     className="group grid grid-cols-[40px_minmax(0,1fr)_56px_80px] items-center bg-[#31313C] px-4 py-3 text-sm text-white transition hover:bg-[#3A3A47] md:grid-cols-[48px_minmax(0,1fr)_72px_72px_96px_72px_72px]"
                   >
-                    <div className="font-black text-white">{player.rank}</div>
+                    <div className="font-black text-[#d6d6e5]">{player.rank}</div>
                     <div className="min-w-0">
-                      <div className="truncate font-bold text-white">{player.playerName}</div>
+                      <div className="truncate font-bold text-[#d6d6e5]">{player.playerName}</div>
                     </div>
                     <div className="hidden font-semibold text-[#d6d6e5] md:block">{ROLE_LABEL[player.role]}</div>
-                    <div className="font-semibold text-white">{player.teamCode}</div>
+                    <div className="font-semibold text-[#d6d6e5]">{player.teamCode}</div>
                     <div className="font-black flex justify-end">
                       <RatingValue value={player.averageRating} />
                     </div>
                     <div className="hidden text-right font-semibold text-[#d6d6e5] md:block">{player.matchCount}</div>
-                    <div className="hidden text-right font-semibold text-[#8EADEF] md:block">{player.recentForm.toFixed(1)}</div>
+                    <div className="hidden text-right font-semibold text-[#d6d6e5] md:block">{player.recentForm.toFixed(1)}</div>
                   </Link>
                 ))}
               </div>
