@@ -60,12 +60,9 @@ function sortRows(rows: PlayerRankingItem[], sort: SortKey) {
 }
 
 function RatingValue({ value }: { value: number }) {
-  const [major, minor] = value.toFixed(1).split(".");
-
   return (
-    <span className={cn("font-black leading-none tracking-[-0.04em]", getRatingTone(value), "text-[20px]")}>
-      {major}
-      <span className="text-[14px]">.{minor}</span>
+    <span className={cn("font-black leading-none tracking-[-0.04em] text-[18px]", getRatingTone(value))}>
+      {value.toFixed(1)}
     </span>
   );
 }
@@ -161,7 +158,7 @@ export function PlayerRankingBoard({ data }: { data: PlayerRankingPageData }) {
                 <div>순위</div>
                 <div>선수명</div>
                 <div>팀</div>
-                <div>평균 평점</div>
+                <div className="text-right pr-2">평균 평점</div>
                 <div className="hidden md:block">경기 수</div>
                 <div className="hidden md:block" title="참여수 = 평점 참여 인원">참여수</div>
                 <div className="hidden md:block" title="최근폼 = 최근 5경기 평균">최근폼</div>
@@ -182,7 +179,7 @@ export function PlayerRankingBoard({ data }: { data: PlayerRankingPageData }) {
                       </div>
                     </div>
                     <div className="font-semibold text-white">{player.teamCode}</div>
-                    <div className="font-black">
+                    <div className="font-black flex justify-end pr-2">
                       <RatingValue value={player.averageRating} />
                     </div>
                     <div className="hidden font-semibold text-[#d6d6e5] md:block">{player.matchCount}</div>
