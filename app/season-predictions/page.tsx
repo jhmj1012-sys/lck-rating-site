@@ -14,6 +14,11 @@ function getStatusLabel(status: string) {
   return status;
 }
 
+function getStatusBadgeClass(status: string) {
+  if (status === "open") return "bg-[#8B5CF6] text-white";
+  return "bg-[#4A4A59] text-[#d6d6e5]";
+}
+
 function getMarketLogo(logoKey: "lck" | "msi" | "worlds") {
   if (logoKey === "msi") {
     return { src: "/icons/leagues/msi.webp", alt: "MSI 로고" };
@@ -61,31 +66,39 @@ export default async function SeasonPredictionsPage({
                 >
                   <div className="flex items-start gap-3 pr-16">
                     <div className="flex min-w-0 items-center gap-2">
-                      <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-white">
+                      <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#474756] bg-[#31313C]">
                         <Image src={logo.src} alt={logo.alt} width={28} height={28} className="h-7 w-7 object-contain" />
                       </span>
                       <div className="min-w-0">
-                        <div className="truncate text-[17px] font-normal text-[#FFFFFF]">{item.title}</div>
+                        <div className="truncate text-[16px] font-bold text-white">{item.title}</div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-4 space-y-2.5">
+                  <div className="mt-4 space-y-3">
                     {topRows.slice(0, 3).map((row, index) => (
                       <div
                         key={`${item.id}_top_${index}`}
-                        className={`${index >= 2 ? "hidden sm:flex" : "flex"} items-center justify-between gap-2`}
+                        className={index >= 2 ? "hidden sm:block" : "block"}
                       >
-                        <span className="truncate text-sm font-normal text-[#FFFFFF]">{row.label}</span>
-                        <span className="text-2xl font-normal tracking-tight text-[#FFFFFF]">{row.percent}%</span>
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <span className="truncate text-sm font-medium text-[#d6d6e5]">{row.label}</span>
+                          <span className="text-base font-black tracking-tight text-white">{row.percent}%</span>
+                        </div>
+                        <div className="h-1 w-full rounded-full bg-[#31313C]">
+                          <div
+                            className="h-1 rounded-full bg-[#8B5CF6]"
+                            style={{ width: `${Math.max(row.percent, row.percent > 0 ? 2 : 0)}%` }}
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>
 
-                  <div className="mt-4 border-t border-slate-200 pt-3 pr-20 text-sm font-semibold text-slate-500">
+                  <div className="mt-4 border-t border-[#474756] pt-3 pr-20 text-xs font-medium text-[#d6d6e5]">
                     현재 {item.totalEntries.toLocaleString()}명 참가중
                   </div>
-                  <span className="absolute bottom-4 right-4 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                  <span className={`absolute bottom-4 right-4 rounded-full px-2.5 py-1 text-xs font-semibold ${getStatusBadgeClass(item.status)}`}>
                     {getStatusLabel(item.status)}
                   </span>
                 </Link>
