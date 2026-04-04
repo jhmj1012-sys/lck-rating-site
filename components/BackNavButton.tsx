@@ -2,14 +2,17 @@
 
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
+import type React from "react";
 
 export function BackNavButton({
   children,
   className,
+  style,
   fallbackHref = "/",
 }: {
   children: ReactNode;
   className?: string;
+  style?: React.CSSProperties;
   fallbackHref?: string;
 }) {
   const router = useRouter();
@@ -25,6 +28,7 @@ export function BackNavButton({
         router.push(fallbackHref);
       }}
       className={className}
+      style={style}
     >
       {children}
     </button>

@@ -18,6 +18,14 @@ const ROLE_ICON: Record<PlayerRole, string> = {
   SUP: "/icons/positions/icon-position-utility-disabled.png",
 };
 
+const ROLE_LABEL: Record<PlayerRole, string> = {
+  TOP: "탑",
+  JGL: "정글",
+  MID: "미드",
+  ADC: "원딜",
+  SUP: "서포터",
+};
+
 function getRatingTone(value: number) {
   void value;
   return "text-white";
@@ -60,12 +68,9 @@ function sortRows(rows: PlayerRankingItem[], sort: SortKey) {
 }
 
 function RatingValue({ value }: { value: number }) {
-  const [major, minor] = value.toFixed(1).split(".");
-
   return (
-    <span className={cn("font-black leading-none tracking-[-0.04em]", getRatingTone(value), "text-[20px]")}>
-      {major}
-      <span className="text-[14px]">.{minor}</span>
+    <span className={cn("font-black leading-none tracking-[-0.04em] text-[18px]", getRatingTone(value))}>
+      {value.toFixed(1)}
     </span>
   );
 }
@@ -124,11 +129,11 @@ export function PlayerRankingBoard({ data }: { data: PlayerRankingPageData }) {
                   <select
                     value={season}
                     onChange={(event) => startTransition(() => setSeason(event.target.value))}
-                    className="h-8 w-full rounded-lg border-0 bg-[#31313C] px-2.5 text-sm !text-[#FFFFFF] outline-none transition focus:ring-0"
-                    style={{ color: "#FFFFFF" }}
+                    className="h-8 w-full rounded-lg border-0 bg-[#31313C] px-2.5 text-sm !text-[#d6d6e5] outline-none transition focus:ring-0"
+                    style={{ color: "#d6d6e5" }}
                   >
                     {data.seasonOptions.map((item) => (
-                      <option key={item} value={item} style={{ color: "#FFFFFF", backgroundColor: "#31313C" }}>
+                      <option key={item} value={item} style={{ color: "#d6d6e5", backgroundColor: "#31313C" }}>
                         {item}
                       </option>
                     ))}
@@ -139,12 +144,12 @@ export function PlayerRankingBoard({ data }: { data: PlayerRankingPageData }) {
                   <select
                     value={sortKey}
                     onChange={(event) => startTransition(() => setSortKey(event.target.value as SortKey))}
-                    className="h-8 w-full rounded-lg border-0 bg-[#31313C] px-2.5 text-sm !text-[#FFFFFF] outline-none transition focus:ring-0"
-                    style={{ color: "#FFFFFF" }}
+                    className="h-8 w-full rounded-lg border-0 bg-[#31313C] px-2.5 text-sm !text-[#d6d6e5] outline-none transition focus:ring-0"
+                    style={{ color: "#d6d6e5" }}
                   >
-                    <option value="rating" style={{ color: "#FFFFFF", backgroundColor: "#31313C" }}>평점순</option>
-                    <option value="form" style={{ color: "#FFFFFF", backgroundColor: "#31313C" }}>최근순</option>
-                    <option value="participation" style={{ color: "#FFFFFF", backgroundColor: "#31313C" }}>참여순</option>
+                    <option value="rating" style={{ color: "#d6d6e5", backgroundColor: "#31313C" }}>평점순</option>
+                    <option value="form" style={{ color: "#d6d6e5", backgroundColor: "#31313C" }}>최근순</option>
+                    <option value="participation" style={{ color: "#d6d6e5", backgroundColor: "#31313C" }}>참여순</option>
                   </select>
                 </label>
               </div>
@@ -157,38 +162,33 @@ export function PlayerRankingBoard({ data }: { data: PlayerRankingPageData }) {
             </div>
           ) : (
             <div>
-              <div className="grid grid-cols-[44px_minmax(0,1fr)_56px_88px] bg-[#3A3A47] px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-[#d6d6e5] md:grid-cols-[64px_minmax(0,1.4fr)_90px_120px_90px_94px_100px_130px]">
+              <div className="grid grid-cols-[40px_minmax(0,1fr)_56px_80px] bg-[#3A3A47] px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-[#d6d6e5] md:grid-cols-[48px_minmax(0,1fr)_72px_72px_96px_72px_72px]">
                 <div>순위</div>
                 <div>선수명</div>
+                <div className="hidden md:block">포지션</div>
                 <div>팀</div>
-                <div>평균 평점</div>
-                <div className="hidden md:block">경기 수</div>
-                <div className="hidden md:block" title="참여수 = 평점 참여 인원">참여수</div>
-                <div className="hidden md:block" title="최근폼 = 최근 5경기 평균">최근폼</div>
-                <div className="hidden text-right md:block">상세</div>
+                <div className="text-right">평균 평점</div>
+                <div className="hidden text-right md:block">경기 수</div>
+                <div className="hidden text-right md:block" title="최근폼 = 최근 5경기 평균">최근폼</div>
               </div>
               <div className="divide-y divide-[#474756]">
                 {rankedRows.map((player) => (
                   <Link
                     key={player.playerId}
                     href={`/player/${player.playerSlug}`}
-                    className="group grid grid-cols-[44px_minmax(0,1fr)_56px_88px] items-center bg-[#31313C] px-4 py-3 text-sm text-white transition hover:bg-[#3A3A47] md:grid-cols-[64px_minmax(0,1.4fr)_90px_120px_90px_94px_100px_130px]"
+                    className="group grid grid-cols-[40px_minmax(0,1fr)_56px_80px] items-center bg-[#31313C] px-4 py-3 text-sm text-white transition hover:bg-[#3A3A47] md:grid-cols-[48px_minmax(0,1fr)_72px_72px_96px_72px_72px]"
                   >
-                    <div className="font-black text-white">{player.rank}</div>
+                    <div className="font-black text-[#d6d6e5]">{player.rank}</div>
                     <div className="min-w-0">
-                      <div className="truncate font-bold text-white">{player.playerName}</div>
-                      <div className="mt-0.5 hidden items-center gap-1 text-xs text-[#d6d6e5] md:inline-flex">
-                        <Image src={ROLE_ICON[player.role]} alt={player.role} width={18} height={18} className="h-[18px] w-[18px] object-contain brightness-125" />
-                      </div>
+                      <div className="truncate font-bold text-[#d6d6e5]">{player.playerName}</div>
                     </div>
-                    <div className="font-semibold text-white">{player.teamCode}</div>
-                    <div className="font-black">
+                    <div className="hidden font-semibold text-[#d6d6e5] md:block">{ROLE_LABEL[player.role]}</div>
+                    <div className="font-semibold text-[#d6d6e5]">{player.teamCode}</div>
+                    <div className="font-black flex justify-end">
                       <RatingValue value={player.averageRating} />
                     </div>
-                    <div className="hidden font-semibold text-[#d6d6e5] md:block">{player.matchCount}</div>
-                    <div className="hidden font-semibold text-[#d6d6e5] md:block">{player.participationCount}</div>
-                    <div className="hidden font-semibold text-[#8EADEF] md:block">{player.recentForm.toFixed(1)}</div>
-                    <div className="hidden text-right text-xs font-semibold text-[#d6d6e5] transition group-hover:text-white md:block">선수 상세 보기</div>
+                    <div className="hidden text-right font-semibold text-[#d6d6e5] md:block">{player.matchCount}</div>
+                    <div className="hidden text-right font-semibold text-[#d6d6e5] md:block">{player.recentForm.toFixed(1)}</div>
                   </Link>
                 ))}
               </div>

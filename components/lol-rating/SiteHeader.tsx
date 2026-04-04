@@ -88,7 +88,7 @@ function AccountEntryButton({
         href="/signin"
         aria-label={HEADER_LABELS.signin}
         className={cn(
-          "mobile-account-button inline-flex h-10 items-center gap-1.5 rounded-full bg-[#424254] text-sm font-semibold !text-[#FFFFFF] shadow-[0_8px_20px_rgba(2,6,23,0.28)] transition hover:bg-[#505063] hover:!text-[#FFFFFF]",
+          "mobile-account-button inline-flex h-10 items-center gap-1.5 rounded-xl bg-[#424254] text-sm font-semibold !text-[#FFFFFF] shadow-[0_8px_20px_rgba(2,6,23,0.28)] transition hover:bg-[#505063] hover:!text-[#FFFFFF]",
           compact ? "px-2.5 text-[13px]" : "px-3.5",
         )}
       >
@@ -105,7 +105,7 @@ function AccountEntryButton({
         aria-label={HEADER_LABELS.mypage}
         onClick={() => setOpen((current) => !current)}
         className={cn(
-          "mobile-account-button inline-flex h-10 items-center gap-1.5 rounded-full bg-[#424254] text-sm font-semibold text-white transition hover:bg-[#505063]",
+          "mobile-account-button inline-flex h-10 items-center gap-1.5 rounded-xl bg-[#424254] text-sm font-semibold text-white transition hover:bg-[#505063]",
           compact ? "px-2.5 text-[13px]" : "px-3.5",
         )}
       >
@@ -468,7 +468,7 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
             </Link>
 
             <div className="mobile-header-actions flex shrink-0 items-center gap-1.5 sm:gap-2 lg:hidden">
-              <NotificationButton notifications={notifications} unreadCount={unreadNotificationCount} />
+              {isLoggedIn ? <NotificationButton notifications={notifications} unreadCount={unreadNotificationCount} /> : null}
               <AccountEntryButton isLoggedIn={isLoggedIn} label={accountLabel} email={accountEmail} compact />
               <MobileMoreMenu isAdmin={isAdmin} />
             </div>
@@ -525,7 +525,7 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
             </div>
 
             <div className="hidden items-center gap-2 lg:flex">
-              <NotificationButton notifications={notifications} unreadCount={unreadNotificationCount} />
+              {isLoggedIn ? <NotificationButton notifications={notifications} unreadCount={unreadNotificationCount} /> : null}
               <IconNavLink href="/shop" label={HEADER_LABELS.shop}>
               <ShopIcon className="h-4 w-4 text-white" />
               </IconNavLink>

@@ -2,7 +2,20 @@
   "permissions": {
     "allow": [
       "Bash(npx tsc:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git worktree:*)",
+      "Bash(ls C:/Users/jhmj1/lol-rating-site/.claude/worktrees/zen-sinoussi/.env*)",
+      "Read(//c/Users/jhmj1/lol-rating-site/**)",
+      "Bash(node -e \"require\\(''fs''\\)\")",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(netstat -ano)",
+      "Bash(taskkill /PID 25704 /F)",
+      "Bash(cmd /c \"taskkill /PID 25704 /F\")",
+      "Bash(cmd /c \"taskkill /PID 25704 /F /T\")",
+      "Bash(powershell -Command \"Stop-Process -Id 25704 -Force\")",
+      "Bash(powershell -Command \"Get-NetTCPConnection -LocalPort 3000 -State Listen | Select-Object -ExpandProperty OwningProcess\")"
     ]
   }
 }

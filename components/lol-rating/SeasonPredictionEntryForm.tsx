@@ -37,7 +37,7 @@ export function SeasonPredictionEntryForm({
 }) {
   const router = useRouter();
   const [pendingOptionId, setPendingOptionId] = useState<string | null>(null);
-  const [savedOptionId, setSavedOptionId] = useState<string | null>(null);
+  const [optimisticSelectedId, setOptimisticSelectedId] = useState<string | null>(detail.myEntry?.selectedOptionId ?? null);
 
   const getPercent = (option: SeasonPredictionDetail["options"][number]) =>
     detail.status === "resolved" || detail.status === "locked"
@@ -54,9 +54,8 @@ export function SeasonPredictionEntryForm({
         {detail.options.map((option) => {
           const percent = getPercent(option);
           const votes = getVoteCount(option);
-          const isMine = detail.myEntry?.selectedOptionId === option.id;
+          const isMine = optimisticSelectedId === option.id;
           const isPending = pendingOptionId === option.id;
-          const isSaved = savedOptionId === option.id;
 
           return (
             <div
@@ -69,22 +68,33 @@ export function SeasonPredictionEntryForm({
             >
               <div className="flex flex-wrap items-center gap-2">
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-base font-normal text-[#FFFFFF]">{option.label}</div>
-                  <div className="mt-1 text-xs text-[#D4DCFF]">
-                    {votes.toLocaleString()}명 선택 · {percent}%
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="truncate text-base font-semibold text-white">{option.label}</div>
+                    <span className="shrink-0 text-base font-black text-white">{percent}%</span>
+                  </div>
+                  <div className="mt-1.5 h-1 w-full rounded-full bg-[#474756]">
+                    <div
+                      className={`h-1 rounded-full transition-all ${isMine ? "bg-[#8B5CF6]" : "bg-[#6B7A99]"}`}
+                      style={{ width: `${Math.max(percent, percent > 0 ? 2 : 0)}%` }}
+                    />
+                  </div>
+                  <div className="mt-1 text-xs text-[#d6d6e5]">
+                    {votes.toLocaleString()}명 선택
                   </div>
                 </div>
                 <button
                   type="button"
-                  disabled={!detail.canSubmit || Boolean(pendingOptionId)}
+                  disabled={!detail.canSubmit}
                   onClick={async () => {
+                    if (pendingOptionId) return;
+                    const prevSelectedId = optimisticSelectedId;
+                    setOptimisticSelectedId(option.id);
                     try {
                       setPendingOptionId(option.id);
-                      setSavedOptionId(null);
                       await postEntry(detail.id, option.id);
-                      setSavedOptionId(option.id);
                       router.refresh();
                     } catch (error) {
+                      setOptimisticSelectedId(prevSelectedId);
                       const message = error instanceof Error ? error.message : "시즌예측 저장에 실패했습니다.";
 
                       if (error instanceof EntrySubmitError && error.status === 401) {
@@ -93,7 +103,6 @@ export function SeasonPredictionEntryForm({
                         return;
                       }
 
-                      setSavedOptionId(null);
                       throw new Error(message);
                     } finally {
                       setPendingOptionId(null);
@@ -105,7 +114,7 @@ export function SeasonPredictionEntryForm({
                       : "inline-flex min-h-10 items-center justify-center rounded-xl bg-[#424254] px-3 text-sm font-semibold !text-[#FFFFFF] disabled:cursor-not-allowed disabled:opacity-60"
                   }
                 >
-                  {!detail.canSubmit ? "마감" : isPending ? "저장 중..." : isSaved ? "저장" : isMine ? "선택 완료" : "선택"}
+                  {!detail.canSubmit ? "마감" : isPending ? "저장 중..." : isMine ? "선택 완료" : "선택"}
                 </button>
               </div>
             </div>
@@ -113,9 +122,9 @@ export function SeasonPredictionEntryForm({
         })}
       </div>
 
-      {showMyEntry && detail.myEntry ? (
-        <div className="rounded-2xl bg-[#3A3A47] px-4 py-3 text-sm text-[#FFFFFF]">
-          현재 내 선택: {detail.myEntry.selectedOptionLabel}
+      {showMyEntry && optimisticSelectedId ? (
+        <div className="rounded-2xl border-l-4 border-[#8B5CF6] bg-[rgba(139,92,246,0.08)] px-4 py-3 text-sm text-[#d6d6e5]">
+          현재 내 선택: <span className="font-bold text-white">{detail.options.find((o) => o.id === optimisticSelectedId)?.label ?? detail.myEntry?.selectedOptionLabel}</span>
         </div>
       ) : null}
 

@@ -44,7 +44,7 @@ function FilterSelect({
         disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
         className={cn(
-          "h-8 w-full rounded-lg border-0 bg-[#31313C] px-2.5 text-sm text-white outline-none transition",
+          "h-8 w-full rounded-lg border-0 bg-[#31313C] px-2.5 text-sm text-[#d6d6e5] outline-none transition",
           "hover:border-0 focus:border-0 focus:ring-0",
           disabled ? "cursor-not-allowed bg-[#3A3A47] text-[#9fa8b8]" : "",
         )}
