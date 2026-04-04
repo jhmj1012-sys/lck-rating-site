@@ -12,7 +12,21 @@
       "role": "admin",
       "selectedProfileTheme": null,
       "createdAt": "2026-04-02T15:51:13.829Z",
-      "updatedAt": "2026-04-03T15:14:32.428Z"
+      "updatedAt": "2026-04-04T05:28:24.609Z"
+    },
+    {
+      "id": "user_2",
+      "email": "guest_0e3c4a0a3970441eb372a5b65cddb7bd@guest.local",
+      "name": "게스트0e3c",
+      "nickname": "게스트0e3c",
+      "nicknameOnboardingSeen": true,
+      "nicknameUpdatedAt": "2026-04-04T05:06:51.632Z",
+      "bio": null,
+      "image": null,
+      "role": "user",
+      "selectedProfileTheme": null,
+      "createdAt": "2026-04-04T05:06:51.632Z",
+      "updatedAt": "2026-04-04T05:06:51.632Z"
     }
   ],
   "teams": [
@@ -16181,7 +16195,50 @@
       "sortOrder": 6
     }
   ],
-  "seasonPredictionEntries": [],
+  "seasonPredictionEntries": [
+    {
+      "id": "season_entry_1",
+      "userId": "user_1",
+      "questionId": "season_question_1",
+      "selectedOptionId": "season_option_1_4",
+      "submittedAt": "2026-04-04T05:14:15.250Z",
+      "updatedAt": "2026-04-04T05:23:47.052Z",
+      "lockedAt": null,
+      "snapshot": null,
+      "status": "open",
+      "hitStatus": "pending",
+      "rewardGranted": false,
+      "rewardAmount": null
+    },
+    {
+      "id": "season_entry_2",
+      "userId": "user_1",
+      "questionId": "season_question_3",
+      "selectedOptionId": "season_option_3_3",
+      "submittedAt": "2026-04-04T05:16:55.887Z",
+      "updatedAt": "2026-04-04T05:28:33.557Z",
+      "lockedAt": null,
+      "snapshot": null,
+      "status": "open",
+      "hitStatus": "pending",
+      "rewardGranted": false,
+      "rewardAmount": null
+    },
+    {
+      "id": "season_entry_3",
+      "userId": "user_1",
+      "questionId": "season_question_2",
+      "selectedOptionId": "season_option_2_6",
+      "submittedAt": "2026-04-04T05:17:00.719Z",
+      "updatedAt": "2026-04-04T05:24:24.037Z",
+      "lockedAt": null,
+      "snapshot": null,
+      "status": "open",
+      "hitStatus": "pending",
+      "rewardGranted": false,
+      "rewardAmount": null
+    }
+  ],
   "playerRatings": [
     {
       "id": "rating_1",
@@ -16252,6 +16309,16 @@
       "comment": "",
       "createdAt": "2026-04-03T14:09:16.565Z",
       "updatedAt": "2026-04-03T14:09:16.565Z"
+    },
+    {
+      "id": "rating_8",
+      "userId": "user_2",
+      "matchId": "match_6",
+      "playerId": "player_bfx_10",
+      "score": 1,
+      "comment": "",
+      "createdAt": "2026-04-04T05:06:51.642Z",
+      "updatedAt": "2026-04-04T05:06:51.642Z"
     }
   ],
   "comments": [],
@@ -16354,6 +16421,17 @@
       "referenceId": "prediction_1",
       "createdAt": "2026-04-03T15:15:11.571Z",
       "balanceAfter": 66
+    },
+    {
+      "id": "ledger_10",
+      "userId": "user_2",
+      "type": "earn",
+      "amount": 8,
+      "reason": "기존 활동 코인 이관",
+      "referenceType": "migration",
+      "referenceId": "user_2",
+      "createdAt": "2026-04-04T05:14:13.615Z",
+      "balanceAfter": 8
     }
   ],
   "notifications": [
@@ -16401,7 +16479,7 @@
   ],
   "userInventory": [],
   "nextIds": {
-    "users": 2,
+    "users": 3,
     "teams": 12,
     "players": 111,
     "teamRosterEntries": 111,
@@ -16410,10 +16488,10 @@
     "predictions": 2,
     "seasonPredictionQuestions": 4,
     "seasonPredictionOptions": 23,
-    "seasonPredictionEntries": 1,
-    "playerRatings": 8,
+    "seasonPredictionEntries": 4,
+    "playerRatings": 9,
     "comments": 1,
-    "pointLedger": 10,
+    "pointLedger": 11,
     "notifications": 2,
     "profileStoreItems": 4,
     "userInventory": 1
