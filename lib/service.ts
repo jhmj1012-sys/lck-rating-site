@@ -1396,16 +1396,24 @@ function buildTeamStandings(store: StoreShape): TeamStandingItem[] {
 }
 
 function buildPredictionLeaderboard(store: StoreShape): PredictionLeaderboardItem[] {
+  const matchesById = new Map(store.matches.map((match) => [match.id, match]));
+  const predictionsByUserId = new Map<string, typeof store.predictions>();
+  for (const prediction of store.predictions) {
+    const list = predictionsByUserId.get(prediction.userId) ?? [];
+    list.push(prediction);
+    predictionsByUserId.set(prediction.userId, list);
+  }
+
   return store.users
     .filter((user) => Boolean(user.nickname) && !isGuestUser(user))
     .map((user) => {
-      const predictions = store.predictions.filter((prediction) => prediction.userId === user.id);
+      const predictions = predictionsByUserId.get(user.id) ?? [];
       const resolved = predictions.filter((prediction) => {
-        const match = store.matches.find((item) => item.id === prediction.matchId);
+        const match = matchesById.get(prediction.matchId);
         return match?.status === "finished" && match.scoreA !== null && match.scoreB !== null;
       });
       const hit = resolved.filter((prediction) => {
-        const match = store.matches.find((item) => item.id === prediction.matchId);
+        const match = matchesById.get(prediction.matchId);
         if (!match || match.scoreA === null || match.scoreB === null) {
           return false;
         }
@@ -1488,8 +1496,17 @@ function buildPredictionInsights(store: StoreShape, viewerId: string): {
   const accuracy = totalPredictions > 0 ? Math.round((hits.length / totalPredictions) * 100) : 0;
   const styleLabel = getPredictionStyleLabel(underdogRate);
 
+  const resolvedMatchIds = new Set(resolvedPredictions.map((p) => p.matchId));
+  const predictionsByMatchId = new Map<string, typeof store.predictions>();
+  for (const prediction of store.predictions) {
+    if (!resolvedMatchIds.has(prediction.matchId) || !prediction.settledAt) continue;
+    const list = predictionsByMatchId.get(prediction.matchId) ?? [];
+    list.push(prediction);
+    predictionsByMatchId.set(prediction.matchId, list);
+  }
+
   const rows = resolvedPredictions.flatMap((prediction) => {
-    const matchPredictions = store.predictions.filter((item) => item.matchId === prediction.matchId && item.settledAt);
+    const matchPredictions = predictionsByMatchId.get(prediction.matchId) ?? [];
     return matchPredictions.map((item) => ({
       isViewer: item.userId === viewerId,
       hit: item.settlementResult === "hit",
@@ -1644,10 +1661,17 @@ function buildRecentCommentsFeed(store: StoreShape): HomeCommentFeedItem[] {
 }
 
 function buildPlayerLeaderboard(store: StoreShape): HomePlayerLeaderboardItem[] {
+  const ratingsByPlayerId = new Map<string, number[]>();
+  for (const rating of store.playerRatings) {
+    const scores = ratingsByPlayerId.get(rating.playerId) ?? [];
+    scores.push(rating.score);
+    ratingsByPlayerId.set(rating.playerId, scores);
+  }
+
   return store.players
     .map((player) => {
       const team = getTeamById(store, player.teamId);
-      const scores = store.playerRatings.filter((rating) => rating.playerId === player.id).map((rating) => rating.score);
+      const scores = ratingsByPlayerId.get(player.id) ?? [];
       if (!team || scores.length === 0) {
         return null;
       }
@@ -1683,9 +1707,10 @@ type PlayerRatingEntry = {
 };
 
 function getPlayerRatingEntries(store: StoreShape): PlayerRatingEntry[] {
-  const entriesFromMatch = store.playerRatings
+  const matchesById = new Map(store.matches.map((match) => [match.id, match]));
+  return store.playerRatings
     .map((rating) => {
-      const match = getMatchById(store, rating.matchId);
+      const match = matchesById.get(rating.matchId);
       if (!match) {
         return null;
       }
@@ -1698,7 +1723,6 @@ function getPlayerRatingEntries(store: StoreShape): PlayerRatingEntry[] {
       } satisfies PlayerRatingEntry;
     })
     .filter((entry): entry is PlayerRatingEntry => entry !== null);
-  return entriesFromMatch;
 }
 
 function buildPlayerRankingItems(store: StoreShape): PlayerRankingItem[] {
