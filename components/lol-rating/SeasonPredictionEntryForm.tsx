@@ -37,7 +37,7 @@ export function SeasonPredictionEntryForm({
 }) {
   const router = useRouter();
   const [pendingOptionId, setPendingOptionId] = useState<string | null>(null);
-  const [savedOptionId, setSavedOptionId] = useState<string | null>(null);
+  const [optimisticSelectedId, setOptimisticSelectedId] = useState<string | null>(detail.myEntry?.selectedOptionId ?? null);
 
   const getPercent = (option: SeasonPredictionDetail["options"][number]) =>
     detail.status === "resolved" || detail.status === "locked"
@@ -54,9 +54,8 @@ export function SeasonPredictionEntryForm({
         {detail.options.map((option) => {
           const percent = getPercent(option);
           const votes = getVoteCount(option);
-          const isMine = detail.myEntry?.selectedOptionId === option.id;
+          const isMine = optimisticSelectedId === option.id;
           const isPending = pendingOptionId === option.id;
-          const isSaved = savedOptionId === option.id;
 
           return (
             <div
@@ -85,15 +84,17 @@ export function SeasonPredictionEntryForm({
                 </div>
                 <button
                   type="button"
-                  disabled={!detail.canSubmit || Boolean(pendingOptionId)}
+                  disabled={!detail.canSubmit}
                   onClick={async () => {
+                    if (pendingOptionId) return;
+                    const prevSelectedId = optimisticSelectedId;
+                    setOptimisticSelectedId(option.id);
                     try {
                       setPendingOptionId(option.id);
-                      setSavedOptionId(null);
                       await postEntry(detail.id, option.id);
-                      setSavedOptionId(option.id);
                       router.refresh();
                     } catch (error) {
+                      setOptimisticSelectedId(prevSelectedId);
                       const message = error instanceof Error ? error.message : "시즌예측 저장에 실패했습니다.";
 
                       if (error instanceof EntrySubmitError && error.status === 401) {
@@ -102,7 +103,6 @@ export function SeasonPredictionEntryForm({
                         return;
                       }
 
-                      setSavedOptionId(null);
                       throw new Error(message);
                     } finally {
                       setPendingOptionId(null);
@@ -114,7 +114,7 @@ export function SeasonPredictionEntryForm({
                       : "inline-flex min-h-10 items-center justify-center rounded-xl bg-[#424254] px-3 text-sm font-semibold !text-[#FFFFFF] disabled:cursor-not-allowed disabled:opacity-60"
                   }
                 >
-                  {!detail.canSubmit ? "마감" : isPending ? "저장 중..." : isSaved ? "저장" : isMine ? "선택 완료" : "선택"}
+                  {!detail.canSubmit ? "마감" : isPending ? "저장 중..." : isMine ? "선택 완료" : "선택"}
                 </button>
               </div>
             </div>
