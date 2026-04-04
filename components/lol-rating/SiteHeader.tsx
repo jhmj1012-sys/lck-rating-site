@@ -468,7 +468,7 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
             </Link>
 
             <div className="mobile-header-actions flex shrink-0 items-center gap-1.5 sm:gap-2 lg:hidden">
-              <NotificationButton notifications={notifications} unreadCount={unreadNotificationCount} />
+              {isLoggedIn ? <NotificationButton notifications={notifications} unreadCount={unreadNotificationCount} /> : null}
               <AccountEntryButton isLoggedIn={isLoggedIn} label={accountLabel} email={accountEmail} compact />
               <MobileMoreMenu isAdmin={isAdmin} />
             </div>
@@ -525,7 +525,7 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
             </div>
 
             <div className="hidden items-center gap-2 lg:flex">
-              <NotificationButton notifications={notifications} unreadCount={unreadNotificationCount} />
+              {isLoggedIn ? <NotificationButton notifications={notifications} unreadCount={unreadNotificationCount} /> : null}
               <IconNavLink href="/shop" label={HEADER_LABELS.shop}>
               <ShopIcon className="h-4 w-4 text-white" />
               </IconNavLink>
