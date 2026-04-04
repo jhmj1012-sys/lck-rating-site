@@ -4,7 +4,7 @@ export function SiteFooter() {
   return (
     <footer className="border-t border-[rgba(255,255,255,0.06)] bg-[#17171B]">
       <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-5 text-xs text-[#A7AFBF] sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <div>© {new Date().getFullYear()} LOL PRO RATING</div>
+        <div suppressHydrationWarning>© {new Date().getFullYear()} LOL PRO RATING</div>
         <nav className="flex items-center gap-4">
           <Link href="/terms" className="transition hover:text-white">
             이용약관
