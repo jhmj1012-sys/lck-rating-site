@@ -6,6 +6,7 @@
   StoredMatchParticipant,
   StoredNotification,
   StoredPlayer,
+  StoredPlayerRating,
   StoredPointLedgerEntry,
   StoredPrediction,
   StoredSeasonPredictionEntry,
@@ -176,7 +177,7 @@ const seedMatches = [
   { id: "match_1", scheduledAt: "2026-04-01T17:00:00+09:00", teamA: "HLE", teamB: "BRO", status: "scheduled", scoreA: null, scoreB: null, patch: "15.7", stage: "占쏙옙占쌉쏙옙占쏙옙 1R" },
   { id: "match_2", scheduledAt: "2026-04-01T19:00:00+09:00", teamA: "T1", teamB: "KT", status: "scheduled", scoreA: null, scoreB: null, patch: "15.7", stage: "占쏙옙占쌉쏙옙占쏙옙 1R" },
   { id: "match_3", scheduledAt: "2026-04-02T17:00:00+09:00", teamA: "DK", teamB: "NS", status: "scheduled", scoreA: null, scoreB: null, patch: "15.7", stage: "占쏙옙占쌉쏙옙占쏙옙 1R" },
-  { id: "match_4", scheduledAt: "2026-04-02T19:00:00+09:00", teamA: "DRX", teamB: "DNS", status: "scheduled", scoreA: null, scoreB: null, patch: "15.7", stage: "占쏙옙占쌉쏙옙占쏙옙 1R" },
+  { id: "match_4", scheduledAt: "2026-04-02T19:00:00+09:00", teamA: "DRX", teamB: "DNS", status: "finished", scoreA: 2, scoreB: 1, patch: "15.7", stage: "占쏙옙占쌉쏙옙占쏙옙 1R" },
   { id: "match_5", scheduledAt: "2026-04-03T17:00:00+09:00", teamA: "GEN", teamB: "KT", status: "scheduled", scoreA: null, scoreB: null, patch: "15.7", stage: "占쏙옙占쌉쏙옙占쏙옙 1R" },
   { id: "match_6", scheduledAt: "2026-04-03T19:00:00+09:00", teamA: "BFX", teamB: "BRO", status: "scheduled", scoreA: null, scoreB: null, patch: "15.7", stage: "占쏙옙占쌉쏙옙占쏙옙 1R" },
   { id: "match_7", scheduledAt: "2026-04-04T17:00:00+09:00", teamA: "T1", teamB: "HLE", status: "scheduled", scoreA: null, scoreB: null, patch: "15.7", stage: "占쏙옙占쌉쏙옙占쏙옙 1R" },
@@ -445,7 +446,196 @@ function createMatchParticipants(players: StoredPlayer[], matches: StoredMatch[]
 }
 
 function createUsers(): StoredUser[] {
-  return [];
+  const base = "2026-04-02T21:30:00+09:00";
+  const make = (
+    id: string,
+    name: string,
+    nickname: string,
+    bio: string | null,
+  ): StoredUser => ({
+    id,
+    email: `${id}@dummy.local`,
+    name,
+    nickname,
+    nicknameOnboardingSeen: true,
+    nicknameUpdatedAt: base,
+    bio,
+    image: null,
+    role: "user",
+    selectedProfileTheme: null,
+    createdAt: base,
+    updatedAt: base,
+  });
+
+  return [
+    make("seed_u1", "김민준", "우칼이_신이다", "DRX 팬 7년차. 우칼 원픽"),
+    make("seed_u2", "이서윤", "데덤_사랑해", "DNS 팬. deokdam 너무 잘생겼다"),
+    make("seed_u3", "박준혁", "빈센조_폭행죄", "정글의 신 빈센조 영원히"),
+    make("seed_u4", "최지아", "피요식_사냥꾼", "Pyosik 최고의 정글러"),
+    make("seed_u5", "정도윤", "리치는_부자", "탑솔 리치 팬"),
+    make("seed_u6", "강하은", "클로저_팬클럽장", "Clozer 언젠간 꼭 이긴다"),
+    make("seed_u7", "윤시우", "지우야_10점줄게", "Jiwoo ADC 원픽"),
+    make("seed_u8", "임나영", "안딜_서폿갓", "서포터의 로망 Andil"),
+    make("seed_u9", "신재원", "두두는_탑왕", "탑라인 DuDu 응원해"),
+    make("seed_u10", "오하린", "라이프_힐전도사", "Life 서포터 영원히"),
+    make("seed_u11", "한승민", "DRX우승각", "DRX 2026 우승 간다!"),
+    make("seed_u12", "류지현", "DNS기적믿어", "DNS 파이팅, 역전할 수 있어"),
+  ];
+}
+
+function createPlayerRatings(users: StoredUser[]): StoredPlayerRating[] {
+  const uid = (nickname: string) => users.find((u) => u.nickname === nickname)!.id;
+  const t = (offset: number) => {
+    const d = new Date("2026-04-02T21:00:00+09:00");
+    d.setMinutes(d.getMinutes() + offset);
+    return d.toISOString();
+  };
+  let seq = 1;
+  const r = (
+    userId: string,
+    playerId: string,
+    score: number,
+    comment: string,
+    recommendNicknames: string[],
+    minuteOffset: number,
+  ): StoredPlayerRating => ({
+    id: `seed_rating_${seq++}`,
+    userId,
+    matchId: "match_4",
+    playerId,
+    score,
+    comment,
+    createdAt: t(minuteOffset),
+    recommendUserIds: recommendNicknames.map((n) => uid(n)),
+  });
+
+  // ── DRX (KRX) players ─────────────────────────────────
+  // Rich  TOP  player_krx_1
+  // Vincenzo  JGL  player_krx_3
+  // Ucal  MID  player_krx_6
+  // Jiwoo  ADC  player_krx_8
+  // Andil  SUP  player_krx_10
+  // ── DNS players ───────────────────────────────────────
+  // DuDu  TOP  player_dns_1
+  // Pyosik  JGL  player_dns_3
+  // Clozer  MID  player_dns_5
+  // deokdam  ADC  player_dns_7
+  // Life  SUP  player_dns_9
+
+  return [
+    // ── Ucal (MID, DRX) ────────────────────────────────
+    r(uid("우칼이_신이다"), "player_krx_6", 10,
+      "산 중에 가장 높은 산, 강 중에 가장 긴 강 😭 이게 진짜 미드라이너다",
+      ["빈센조_폭행죄","지우야_10점줄게","안딜_서폿갓","DRX우승각","리치는_부자","피요식_사냥꾼","DNS기적믿어"], 3),
+    r(uid("빈센조_폭행죄"), "player_krx_6", 10,
+      "오늘 우칼 진짜 포탈 나올 것 같았음 ㅋㅋㅋ 1세트 클로저 탈탈 털어버리는 거 레전드",
+      ["우칼이_신이다","DRX우승각","지우야_10점줄게"], 7),
+    r(uid("DRX우승각"), "player_krx_6", 9,
+      "2세트 신드라 미드갱 2번 막고 솔킬 따낸 거 소름.. 우칼 이번 시즌 너무 성장했다",
+      ["우칼이_신이다","안딜_서폿갓","지우야_10점줄게"], 12),
+    r(uid("클로저_팬클럽장"), "player_krx_6", 8,
+      "우칼 잘하긴 했는데 클로저도 3세트에 선방했음", [], 18),
+    r(uid("데덤_사랑해"), "player_krx_6", 8,
+      "포지셔닝이 감탄이다 진짜 DRX 미드 복 터졌네", ["DNS기적믿어"], 25),
+
+    // ── Vincenzo (JGL, DRX) ────────────────────────────
+    r(uid("빈센조_폭행죄"), "player_krx_3", 10,
+      "빈센조 오늘 폭행죄 실화임? 초반 4킬 다 혼자 따냄 ㅠㅠ 이게 정글이지",
+      ["우칼이_신이다","DRX우승각","지우야_10점줄게","안딜_서폿갓","리치는_부자"], 5),
+    r(uid("우칼이_신이다"), "player_krx_3", 9,
+      "빈센조가 드래곤 컨트롤을 이렇게 잘하는 줄 몰랐음. 진짜 운영형 정글로 각성",
+      ["빈센조_폭행죄","DRX우승각"], 10),
+    r(uid("피요식_사냥꾼"), "player_krx_3", 7,
+      "빈센조 좋긴 한데 피요식도 2세트 초반 오브젝트 다 잡았음. 서로 잘함",
+      [], 20),
+    r(uid("DRX우승각"), "player_krx_3", 9,
+      "오브젝트 싸움마다 항상 먼저 자리 잡고 있음. 이게 진짜 정글 뇌가 있는 거지",
+      ["빈센조_폭행죄","우칼이_신이다"], 30),
+
+    // ── Jiwoo (ADC, DRX) ───────────────────────────────
+    r(uid("지우야_10점줄게"), "player_krx_8", 10,
+      "지우 오늘 포지셔닝 완벽했다 ❤️ 한 번도 죽지 않고 딜 다 박았어",
+      ["우칼이_신이다","빈센조_폭행죄","안딜_서폿갓","DRX우승각"], 8),
+    r(uid("우칼이_신이다"), "player_krx_8", 9,
+      "1세트 마지막 한타 지우 포지션 진짜 예술이었음 ㄷㄷ", ["지우야_10점줄게","안딜_서폿갓"], 15),
+    r(uid("데덤_사랑해"), "player_krx_8", 8,
+      "deokdam보다 오늘은 지우가 좀 더 안정적이었음. 그래도 deokdam도 잘함", [], 22),
+    r(uid("DNS기적믿어"), "player_krx_8", 7,
+      "지우 좋긴 한데 deokdam이 더 포텐 있다고 봄", [], 35),
+
+    // ── Andil (SUP, DRX) ───────────────────────────────
+    r(uid("안딜_서폿갓"), "player_krx_10", 10,
+      "안딜 오늘 쓰레쉬 랜턴 4번 성공 ㅋㅋㅋ 팀원들 다 살렸다. 서폿의 본질",
+      ["우칼이_신이다","지우야_10점줄게","빈센조_폭행죄","DRX우승각"], 6),
+    r(uid("DRX우승각"), "player_krx_10", 9,
+      "비전 컨트롤이 LCK 탑급인 듯. 와드 박는 타이밍이 매 순간 완벽함",
+      ["안딜_서폿갓","우칼이_신이다"], 14),
+    r(uid("우칼이_신이다"), "player_krx_10", 8,
+      "안딜 오늘 세 경기 다 다른 챔프 했는데 다 잘함. 아무거나 줘도 됨", ["지우야_10점줄게"], 28),
+
+    // ── Rich (TOP, DRX) ────────────────────────────────
+    r(uid("리치는_부자"), "player_krx_1", 9,
+      "리치 오늘 탑 라인 완전 압살했음. 레넥톤으로 두두 아무것도 못하게 막음 😤",
+      ["우칼이_신이다","빈센조_폭행죄","DRX우승각"], 9),
+    r(uid("두두는_탑왕"), "player_krx_1", 7,
+      "리치 잘하긴 했는데 두두가 솔킬 한 번 따낸 거 인상적임", [], 20),
+    r(uid("DRX우승각"), "player_krx_1", 8,
+      "리치 텔포 사용 타이밍 기가 막힘. 항상 한타 참여율 100%", ["리치는_부자"], 35),
+
+    // ── deokdam (ADC, DNS) ─────────────────────────────
+    r(uid("데덤_사랑해"), "player_dns_7", 9,
+      "deokdam 오늘 졌지만 3세트 한타 딜량 보셨음? DRX 원딜보다 딜 더 넣었음 💪",
+      ["DNS기적믿어","클로저_팬클럽장","라이프_힐전도사","피요식_사냥꾼"], 4),
+    r(uid("DNS기적믿어"), "player_dns_7", 9,
+      "deokdam 제발 팀원들이 살려줬으면 진짜 캐리했을 텐데... 아깝다",
+      ["데덤_사랑해","클로저_팬클럽장"], 11),
+    r(uid("라이프_힐전도사"), "player_dns_7", 8,
+      "deokdam 이번 시즌 성장이 눈에 보임. 포지셔닝이 작년이랑 다름", ["데덤_사랑해"], 19),
+    r(uid("지우야_10점줄게"), "player_dns_7", 7,
+      "deokdam 잘하긴 한데 오늘 지우가 더 좋았음 ㅋㅋ", [], 40),
+
+    // ── Pyosik (JGL, DNS) ─────────────────────────────
+    r(uid("피요식_사냥꾼"), "player_dns_3", 8,
+      "피요식 2세트 바론 스틸 시도 아슬아슬했는데 아깝다. 메이크플레이는 했음",
+      ["DNS기적믿어","데덤_사랑해"], 6),
+    r(uid("DNS기적믿어"), "player_dns_3", 7,
+      "피요식 오늘 초반 빈센조한테 카운터 자꾸 당한 게 좀 아쉬웠음",
+      ["피요식_사냥꾼"], 16),
+    r(uid("두두는_탑왕"), "player_dns_3", 8,
+      "팀 밀리는 상황에서도 혼자 분전함. 진짜 포기 안 하는 정글", [], 27),
+
+    // ── Clozer (MID, DNS) ─────────────────────────────
+    r(uid("클로저_팬클럽장"), "player_dns_5", 8,
+      "클로저 3세트 아지르 소환사 바람 막은 거 ㄹㅇ 신의 손 ✋ 질 것 같던 한타 뒤집을 뻔",
+      ["DNS기적믿어","데덤_사랑해","라이프_힐전도사","피요식_사냥꾼"], 2),
+    r(uid("DNS기적믿어"), "player_dns_5", 8,
+      "클로저 우칼한테 1,2세트 솔킬 당한 거 빼면 사실상 互角. 실력은 충분함",
+      ["클로저_팬클럽장"], 13),
+    r(uid("빈센조_폭행죄"), "player_dns_5", 7,
+      "클로저 진짜 어렵게 하네. 우칼 이기기 쉽지 않은데 선방했다", [], 23),
+    r(uid("우칼이_신이다"), "player_dns_5", 6,
+      "오늘은 내가 이겼지만 클로저 다음에 또 만나면 쉽지 않을 듯 ㄷ", ["클로저_팬클럽장","DNS기적믿어"], 45),
+
+    // ── DuDu (TOP, DNS) ───────────────────────────────
+    r(uid("두두는_탑왕"), "player_dns_1", 9,
+      "두두 3세트 레넥톤 상대로 솔킬 따낸 거 레전드임 😭 오늘 탑 라인은 두두가 이겼다",
+      ["DNS기적믿어","클로저_팬클럽장","데덤_사랑해"], 7),
+    r(uid("DNS기적믿어"), "player_dns_1", 8,
+      "두두 진짜 요즘 너무 성장했다. 리치 상대로도 밀리지 않음",
+      ["두두는_탑왕","라이프_힐전도사"], 17),
+    r(uid("리치는_부자"), "player_dns_1", 6,
+      "두두 솔킬은 내 실수였음... 다음에 만나면 절대 안 줌 😤", [], 30),
+
+    // ── Life (SUP, DNS) ────────────────────────────────
+    r(uid("라이프_힐전도사"), "player_dns_9", 9,
+      "라이프 오늘 유미 힐량 진짜 말이 안 됨 ㅋㅋ deokdam 덕분에 살았다 3번은 됨",
+      ["데덤_사랑해","DNS기적믿어","두두는_탑왕"], 5),
+    r(uid("DNS기적믿어"), "player_dns_9", 8,
+      "라이프 비전 컨트롤이 안딜이랑 비슷한 레벨임. 이번 시즌 엄청 올라온 듯",
+      ["라이프_힐전도사","데덤_사랑해"], 15),
+    r(uid("안딜_서폿갓"), "player_dns_9", 7,
+      "라이프 잘하더라. 오늘 안딜이 좀 더 잘했다고 생각하지만 실력차 별로 없음", [], 25),
+  ];
 }
 
 function createPredictions(users: StoredUser[], matches: StoredMatch[]): StoredPrediction[] {
@@ -598,6 +788,7 @@ export function createSeedStore(): StoreShape {
   const notifications = createNotifications();
   const profileStoreItems = seedStoreItems;
   const userInventory = createInventory();
+  const playerRatings = createPlayerRatings(users);
 
   return {
     users,
@@ -610,7 +801,7 @@ export function createSeedStore(): StoreShape {
     seasonPredictionQuestions,
     seasonPredictionOptions,
     seasonPredictionEntries,
-    playerRatings: [],
+    playerRatings,
     comments,
     pointLedger,
     notifications,
@@ -627,7 +818,7 @@ export function createSeedStore(): StoreShape {
       seasonPredictionQuestions: seasonPredictionQuestions.length + 1,
       seasonPredictionOptions: seasonPredictionOptions.length + 1,
       seasonPredictionEntries: seasonPredictionEntries.length + 1,
-      playerRatings: 1,
+      playerRatings: playerRatings.length + 1,
       comments: comments.length + 1,
       pointLedger: pointLedger.length + 1,
       notifications: notifications.length + 1,

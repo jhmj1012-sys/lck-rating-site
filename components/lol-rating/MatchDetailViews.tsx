@@ -10,7 +10,7 @@ import { COMMENT_MAX_LENGTH, COMMENT_MIN_LENGTH } from '@/lib/comment-constants'
 import { TeamLogo } from './TeamLogo';
 import type { MatchComment, MatchData, MatchDetailData } from './types';
 import { getTeamDisplayName } from './team-branding';
-import { Avatar, Badge, Button, Card, CardContent } from './ui';
+import { Avatar, Button, Card, CardContent } from './ui';
 import { cn, getInitials } from './utils';
 
 type DetailState = 'PRE_MATCH' | 'LIVE' | 'FINISHED';
@@ -221,16 +221,16 @@ function MatchHeader({ data, state }: { data: MatchDetailData; state: DetailStat
 
   return (
     <Card className='overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.14),transparent_34%),linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)]'>
-      <CardContent className='px-5 pb-5 pt-5 sm:px-6 sm:pb-6 sm:pt-6'>
+      <CardContent className='px-5 pb-4 pt-4 sm:px-6 sm:pb-5 sm:pt-5'>
         <div className='text-center'>
           <div className='flex items-start justify-between gap-3'>
             <div className='text-left text-[11px] font-semibold uppercase tracking-[0.28em] text-sky-700'>{data.match.league}</div>
             {state === 'LIVE' ? <LiveBadge compact /> : null}
           </div>
-          <div className='mx-auto mt-3 grid max-w-[860px] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 rounded-[20px] border border-slate-200 bg-white px-5 py-5 sm:px-8'>
+          <div className='mx-auto mt-2 grid max-w-[860px] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 rounded-[20px] border border-slate-200 bg-white px-5 py-4 sm:px-8'>
             <div className='text-center'>
-              <div className='flex flex-col items-center gap-3'>
-                <TeamLogo team={data.match.teamA} size={52} imageClassName='p-2' priority />
+              <div className='flex flex-col items-center gap-2'>
+                <TeamLogo team={data.match.teamA} size={44} imageClassName='p-2' priority />
                 <div className='text-2xl font-black tracking-[-0.03em] text-slate-950 sm:text-3xl'>{getTeamDisplayName(data.match.teamA)}</div>
               </div>
             </div>
@@ -243,17 +243,17 @@ function MatchHeader({ data, state }: { data: MatchDetailData; state: DetailStat
                 </span>
                 <span className='text-3xl font-black tracking-[-0.03em] text-slate-950'>{scoreB || '\u00A0'}</span>
               </div>
-              <div className='mt-3 text-sm font-semibold text-slate-600'>{data.match.stage}</div>
+              <div className='mt-2 text-sm font-semibold text-slate-600'>{data.match.stage}</div>
             </div>
 
             <div className='text-center'>
-              <div className='flex flex-col items-center gap-3'>
-                <TeamLogo team={data.match.teamB} size={52} imageClassName='p-2' priority />
+              <div className='flex flex-col items-center gap-2'>
+                <TeamLogo team={data.match.teamB} size={44} imageClassName='p-2' priority />
                 <div className='text-2xl font-black tracking-[-0.03em] text-slate-950 sm:text-3xl'>{getTeamDisplayName(data.match.teamB)}</div>
               </div>
             </div>
           </div>
-          <div className='mt-3 flex flex-wrap items-center justify-center gap-2 text-sm text-slate-600'>
+          <div className='mt-2 flex flex-wrap items-center justify-center gap-2 text-sm text-slate-600'>
             <span>{formatDateTime(data.match.scheduledAt)}</span>
           </div>
         </div>
@@ -553,29 +553,6 @@ function PreMatchView({ data }: { data: MatchDetailData }) {
   );
 }
 
-function LiveView({ data }: { data: MatchDetailData }) {
-  return (
-    <div className='space-y-5'>
-      <Card>
-        <CardContent className='px-5 pb-5 pt-5 sm:px-6 sm:pb-6 sm:pt-6'>
-          <div className='grid gap-3 sm:grid-cols-2'>
-            <div className='rounded-[18px] border border-slate-200 bg-white px-4 py-3'>
-              <div className='text-xs uppercase tracking-[0.16em] text-slate-500'>현재 스코어</div>
-              <div className='mt-2 text-2xl font-black text-slate-950'>{formatScore(data.match.score)}</div>
-            </div>
-            <div className='rounded-[18px] border border-slate-200 bg-white px-4 py-3'>
-              <div className='text-xs uppercase tracking-[0.16em] text-slate-500'>상태</div>
-              <div className='mt-2 text-2xl font-black text-slate-950'>진행중</div>
-            </div>
-          </div>
-          <div className='mt-4 rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700'>
-            매치 평점은 경기 종료 후 이 페이지에서 바로 참여할 수 있습니다.
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
 
 const SCORE_LABEL_BY_POINT: Record<number, string> = {
   0: '평가 전',
@@ -591,7 +568,7 @@ const SCORE_LABEL_BY_POINT: Record<number, string> = {
   10: '완벽한 경기!',
 };
 
-function StarScorePicker({
+function NumberRatingPicker({
   value,
   disabled,
   onChange,
@@ -600,338 +577,68 @@ function StarScorePicker({
   disabled?: boolean;
   onChange: (score: number) => void;
 }) {
-  const trackRef = useRef<HTMLDivElement | null>(null);
-  const latestClientXRef = useRef<number | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [liveScore, setLiveScore] = useState(value ?? 0);
-
-  useEffect(() => {
-    if (!isDragging) {
-      setLiveScore(value ?? 0);
-    }
-  }, [value, isDragging]);
-
-  const updateScoreByClientX = (clientX: number, commit: boolean) => {
-    if (!trackRef.current || disabled) {
-      return;
-    }
-
-    const rect = trackRef.current.getBoundingClientRect();
-    if (rect.width <= 0) {
-      return;
-    }
-
-    const clampedRatio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    const snappedStars = Math.round(clampedRatio * 5 * 2) / 2;
-    const nextScore = Math.round(snappedStars * 2);
-
-    setLiveScore(nextScore);
-    if (commit) {
-      onChange(nextScore);
-    }
-  };
-
-  const startMouseDrag = (clientX: number) => {
-    setIsDragging(true);
-    latestClientXRef.current = clientX;
-    updateScoreByClientX(clientX, false);
-
-    const handleMouseMove = (event: MouseEvent) => {
-      latestClientXRef.current = event.clientX;
-      updateScoreByClientX(event.clientX, false);
-    };
-
-    const handleMouseUp = (event: MouseEvent) => {
-      const commitX = latestClientXRef.current ?? event.clientX;
-      updateScoreByClientX(commitX, true);
-      setIsDragging(false);
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-  };
-
-  const startTouchDrag = (clientX: number) => {
-    setIsDragging(true);
-    latestClientXRef.current = clientX;
-    updateScoreByClientX(clientX, false);
-
-    const handleTouchMove = (event: TouchEvent) => {
-      const touch = event.touches[0];
-      if (!touch) {
-        return;
-      }
-      latestClientXRef.current = touch.clientX;
-      updateScoreByClientX(touch.clientX, false);
-      event.preventDefault();
-    };
-
-    const handleTouchEnd = (event: TouchEvent) => {
-      const touch = event.changedTouches[0];
-      const commitX = touch?.clientX ?? latestClientXRef.current;
-      if (typeof commitX === 'number') {
-        updateScoreByClientX(commitX, true);
-      }
-      setIsDragging(false);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleTouchEnd);
-      window.removeEventListener('touchcancel', handleTouchEnd);
-    };
-
-    window.addEventListener('touchmove', handleTouchMove, { passive: false });
-    window.addEventListener('touchend', handleTouchEnd);
-    window.addEventListener('touchcancel', handleTouchEnd);
-  };
-
-  const fillPercent = (liveScore / 10) * 100;
-  const scoreLabel = SCORE_LABEL_BY_POINT[liveScore] ?? SCORE_LABEL_BY_POINT[0];
+  const selected = value ?? 0;
+  const scoreLabel = SCORE_LABEL_BY_POINT[selected] ?? SCORE_LABEL_BY_POINT[0];
 
   return (
-    <div className='space-y-1'>
-      <div
-        ref={trackRef}
-        role='slider'
-        aria-label='별점 선택'
-        aria-valuemin={0}
-        aria-valuemax={10}
-        aria-valuenow={liveScore}
-        tabIndex={disabled ? -1 : 0}
-        className={cn(
-          'relative select-none leading-none',
-          disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
-        )}
-        onMouseDown={(event) => {
-          if (disabled) {
-            return;
-          }
-          startMouseDrag(event.clientX);
-        }}
-        onTouchStart={(event) => {
-          if (disabled) {
-            return;
-          }
-          const touch = event.touches[0];
-          if (!touch) {
-            return;
-          }
-          startTouchDrag(touch.clientX);
-        }}
-        onKeyDown={(event) => {
-          if (disabled) {
-            return;
-          }
-          if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
-            event.preventDefault();
-            const nextScore = Math.min(10, liveScore + 1);
-            setLiveScore(nextScore);
-            onChange(nextScore);
-          }
-          if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') {
-            event.preventDefault();
-            const nextScore = Math.max(0, liveScore - 1);
-            setLiveScore(nextScore);
-            onChange(nextScore);
-          }
-        }}
-      >
-        <div className='text-base tracking-[0.1em] text-[#3C4052] sm:text-2xl'>★★★★★</div>
-        <div className='pointer-events-none absolute inset-0 overflow-hidden' style={{ width: `${fillPercent}%` }}>
-          <div className='text-base tracking-[0.1em] text-[#8B5CF6] sm:text-2xl'>★★★★★</div>
-        </div>
+    <div className='space-y-2'>
+      <div className='grid grid-cols-5 gap-1.5'>
+        {([1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const).map((score) => (
+          <button
+            key={score}
+            type='button'
+            disabled={disabled}
+            onClick={() => onChange(score)}
+            className={cn(
+              'flex h-11 items-center justify-center rounded-[10px] text-base font-black transition',
+              selected === score
+                ? 'bg-[#8B5CF6] text-white shadow-[0_3px_0_#5B21B6]'
+                : 'bg-[#52526A] text-white hover:bg-[#5E5E7E]',
+              disabled ? 'cursor-not-allowed opacity-40' : '',
+            )}
+          >
+            {score}
+          </button>
+        ))}
       </div>
-      <div className='text-[11px] font-semibold text-[#8793B4] sm:text-xs'>{scoreLabel}</div>
+      <div className='text-sm font-semibold text-[#9AA6C9]'>{scoreLabel}</div>
     </div>
   );
-}
-
-type MatchRatingPlayer = MatchDetailData['match']['players'][number];
-
-function formatRatingPoint(score: number | null) {
-  return score !== null ? `${score.toFixed(1)}점` : '--';
 }
 
 function RatingProgressSummary({ ratedCount, totalCount }: { ratedCount: number; totalCount: number }) {
   const progress = totalCount > 0 ? (ratedCount / totalCount) * 100 : 0;
-
   return (
-    <div className='rounded-[24px] border border-white/10 bg-[#151A26] p-4 shadow-[0_14px_40px_rgba(2,6,23,0.28)] sm:p-5'>
-      <div className='flex items-start justify-between gap-3'>
-        <div>
-          <div className='text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7E89A8]'>평가 진행률</div>
-          <div className='mt-1 flex items-end gap-2'>
-            <span className='text-[1.9rem] font-black tracking-[-0.04em] text-white'>{ratedCount}</span>
-            <span className='pb-1 text-sm font-semibold text-[#93A0C3]'>/ {totalCount}</span>
-          </div>
-        </div>
-        <div className='rounded-full border border-[#8B5CF6]/30 bg-[#8B5CF6]/12 px-3 py-1 text-xs font-semibold text-[#D7C9FF]'>
-          {Math.round(progress)}%
-        </div>
-      </div>
-      <div className='mt-3 h-2 overflow-hidden rounded-full bg-[#242B3C]'>
+    <div className='flex items-center gap-3'>
+      <div className='h-1.5 flex-1 overflow-hidden rounded-full bg-[#474756]'>
         <div className='h-full rounded-full bg-[#8B5CF6] transition-[width] duration-300' style={{ width: `${progress}%` }} />
       </div>
+      <span className='shrink-0 text-xs font-semibold text-[#d6d6e5]'>{ratedCount}/{totalCount} 완료</span>
     </div>
   );
 }
 
-function PlayerRatingCard({
-  player,
-  selected,
-  draftScore,
-  draftComment,
-  pending,
-  saved,
-  canWrite,
-  onSelect,
-  onScoreChange,
-  onCommentChange,
-  onSave,
-}: {
-  player: MatchRatingPlayer;
-  selected: boolean;
-  draftScore: number | null;
-  draftComment: string;
-  pending: boolean;
-  saved: boolean;
-  canWrite: boolean;
-  onSelect: () => void;
-  onScoreChange: (score: number) => void;
-  onCommentChange: (value: string) => void;
-  onSave: () => void;
-}) {
-  const averageScore = Number(player.rating.toFixed(1));
-  const hasViewerScore = draftScore !== null;
-  const saveDisabled = !canWrite || pending || draftScore === null;
-
-  return (
-    <div
-      className={cn(
-        'overflow-hidden rounded-[24px] border transition-all duration-200',
-        selected
-          ? 'border-[#8B5CF6] bg-[linear-gradient(180deg,rgba(139,92,246,0.16)_0%,rgba(16,20,31,1)_30%,rgba(16,20,31,1)_100%)] shadow-[0_0_0_1px_rgba(139,92,246,0.2),0_22px_50px_rgba(4,8,20,0.45)]'
-          : 'border-white/8 bg-[#10141F] shadow-[0_14px_32px_rgba(4,8,20,0.28)]',
-      )}
-    >
-      <button
-        type='button'
-        onClick={onSelect}
-        aria-pressed={selected}
-        className='flex min-h-[138px] w-full flex-col gap-4 px-4 py-4 text-left sm:px-5'
-      >
-        <div className='flex items-start justify-between gap-3'>
-          <div className='flex min-w-0 items-center gap-3'>
-            <Avatar className='h-12 w-12 shrink-0 border-white/10 bg-[#22283A] text-sm font-black text-white'>
-              {getInitials(player.name)}
-            </Avatar>
-            <div className='min-w-0'>
-              <div className='flex flex-wrap items-center gap-2'>
-                <span className='inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-semibold text-[#DCE3FF]'>
-                  <Image src={ROLE_META[player.role].iconPath} alt={ROLE_META[player.role].label} width={14} height={14} className='h-3.5 w-3.5 object-contain' />
-                  {ROLE_META[player.role].label}
-                </span>
-                <span className='text-[11px] font-semibold text-[#7E89A8]'>{getTeamDisplayName(player.team)}</span>
-              </div>
-              <div className='mt-1 truncate text-xl font-black tracking-[-0.03em] text-white'>{player.name}</div>
-            </div>
-          </div>
-          <span
-            className={cn(
-              'shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold',
-              hasViewerScore
-                ? 'border border-emerald-400/20 bg-emerald-400/10 text-emerald-200'
-                : 'border border-white/10 bg-white/5 text-[#9AA6C9]',
-            )}
-          >
-            {hasViewerScore ? '평가 완료' : '평가 전'}
-          </span>
-        </div>
-
-        <div className='grid grid-cols-2 gap-2.5'>
-          <div className='rounded-[18px] border border-white/8 bg-[#1A1F2D] p-3'>
-            <div className='text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7E89A8]'>평균 평점</div>
-            <div className='mt-1 text-[1.25rem] font-black tracking-[-0.04em] text-white'>{formatRatingPoint(averageScore)}</div>
-            <div className='mt-1 text-[11px] text-[#8E9ABB]'>{player.ratingCount}명 참여</div>
-          </div>
-          <div className='rounded-[18px] border border-[#8B5CF6]/25 bg-[#8B5CF6]/10 p-3'>
-            <div className='text-[11px] font-semibold uppercase tracking-[0.16em] text-[#CDBBFF]'>내 평점</div>
-            <div className='mt-1 text-[1.25rem] font-black tracking-[-0.04em] text-[#F1ECFF]'>
-              {hasViewerScore ? formatRatingPoint(draftScore) : '--'}
-            </div>
-            <div className='mt-1 text-[11px] text-[#C5B5F6]'>{hasViewerScore ? '저장 후 반영됨' : '별점 선택 전'}</div>
-          </div>
-        </div>
-      </button>
-
-      {selected ? (
-        <div className='border-t border-white/8 bg-[#0D111B] px-4 py-4 sm:px-5'>
-          <div className='rounded-[20px] border border-white/8 bg-[#131826] p-4'>
-            <div className='flex items-start justify-between gap-3'>
-              <div>
-                <div className='text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7E89A8]'>내 평점 입력</div>
-                <div className='mt-1 text-lg font-black tracking-[-0.03em] text-white'>
-                  {hasViewerScore ? formatRatingPoint(draftScore) : '별을 드래그해 선택'}
-                </div>
-              </div>
-              {saved ? (
-                <span className='rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-200'>
-                  저장됨
-                </span>
-              ) : null}
-            </div>
-
-            <div className='mt-4'>
-              <StarScorePicker value={draftScore} disabled={!canWrite || pending} onChange={onScoreChange} />
-            </div>
-
-            <div className='mt-4'>
-              <textarea
-                value={draftComment}
-                onChange={(event) => onCommentChange(event.target.value.slice(0, COMMENT_MAX_LENGTH))}
-                placeholder='한줄 코멘트 남기기 (선택)'
-                className='min-h-[104px] w-full resize-none rounded-[18px] border border-white/10 bg-[#0B0F19] px-4 py-3 text-sm leading-6 text-white outline-none transition focus:border-[#8B5CF6] focus:shadow-[0_0_0_3px_rgba(139,92,246,0.18)]'
-                disabled={!canWrite || pending}
-              />
-              <div className='mt-2 flex items-center justify-between gap-3'>
-                <span className='text-[11px] font-medium text-[#7E89A8]'>{draftComment.length}/{COMMENT_MAX_LENGTH}</span>
-                <button
-                  type='button'
-                  className='inline-flex min-h-[46px] min-w-[96px] items-center justify-center rounded-full bg-[#8B5CF6] px-5 text-sm font-semibold text-white transition hover:bg-[#7C3AED] disabled:cursor-not-allowed disabled:bg-[#4B4F61] disabled:text-[#B6BED8]'
-                  onClick={onSave}
-                  disabled={saveDisabled}
-                >
-                  {pending ? '저장 중...' : '저장'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-function FinishedView({ data }: { data: MatchDetailData }) {
-  const COMMENT_PAGE_SIZE = 8;
-  const [pendingPlayerId, setPendingPlayerId] = useState<string | null>(null);
+function StartedView({ data, state }: { data: MatchDetailData; state: DetailState }) {
+  const isFinished = state === 'FINISHED';
   const [shareCopied, setShareCopied] = useState(false);
   const shareCardRef = useRef<HTMLDivElement | null>(null);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
-  const [commentDraftByPlayerId, setCommentDraftByPlayerId] = useState<Record<string, string>>({});
   const [viewerScoreByPlayerId, setViewerScoreByPlayerId] = useState<Record<string, number>>({});
-  const [commentPendingByPlayerId, setCommentPendingByPlayerId] = useState<Record<string, boolean>>({});
-  const [commentSavedByPlayerId, setCommentSavedByPlayerId] = useState<Record<string, boolean>>({});
-  const [ratingCommentPage, setRatingCommentPage] = useState(1);
-  const [ratingActionError, setRatingActionError] = useState<string | null>(null);
+  const [commentByPlayerId, setCommentByPlayerId] = useState<Record<string, string>>(() =>
+    Object.fromEntries(data.match.players.map((p) => [p.id, p.viewerComment ?? ''])),
+  );
+  const [isBatchSaving, setIsBatchSaving] = useState(false);
+  const [batchSaveError, setBatchSaveError] = useState<string | null>(null);
+  const [batchSaveDone, setBatchSaveDone] = useState(false);
+  const [revealedAverageIds, setRevealedAverageIds] = useState<Set<string>>(
+    () => new Set(data.match.players.filter((p) => p.viewerScore !== null).map((p) => p.id)),
+  );
   const [ratingComments, setRatingComments] = useState(data.match.ratingComments);
+  const [likedCommentIds, setLikedCommentIds] = useState<Set<string>>(
+    () => new Set(data.match.ratingComments.filter((c) => c.viewerLiked).map((c) => c.id)),
+  );
   const canWrite = true;
   const playerById = useMemo(() => new Map(data.match.players.map((player) => [player.id, player])), [data.match.players]);
-  const totalRatingCommentPages = Math.max(1, Math.ceil(ratingComments.length / COMMENT_PAGE_SIZE));
-  const pagedRatingComments = useMemo(() => {
-    const startIndex = (ratingCommentPage - 1) * COMMENT_PAGE_SIZE;
-    return ratingComments.slice(startIndex, startIndex + COMMENT_PAGE_SIZE);
-  }, [ratingComments, ratingCommentPage]);
 
   const getPlayerByTeamAndRole = (teamCode: string, role: 'TOP' | 'JGL' | 'MID' | 'ADC' | 'SUP') =>
     data.match.players
@@ -956,35 +663,11 @@ function FinishedView({ data }: { data: MatchDetailData }) {
     }
     return ordered;
   }, [data.match.teamA, data.match.teamB, data.match.players]);
-  const teamSections = useMemo(
-    () =>
-      [data.match.teamA, data.match.teamB].map((teamCode) => ({
-        teamCode,
-        label: getTeamDisplayName(teamCode),
-        players: ROLE_ORDER.map((role) => getPlayerByTeamAndRole(teamCode, role)).filter(
-          (player): player is MatchRatingPlayer => Boolean(player),
-        ),
-      })),
-    [data.match.teamA, data.match.teamB, data.match.players],
-  );
   const ratedCount = orderedSelectablePlayers.filter(
     (player) => (viewerScoreByPlayerId[player.id] ?? player.viewerScore ?? null) !== null,
   ).length;
 
   useEffect(() => {
-    setRatingComments(data.match.ratingComments);
-  }, [data.match.ratingComments]);
-
-  useEffect(() => {
-    setCommentDraftByPlayerId((prev) => {
-      const next = { ...prev };
-      for (const player of data.match.players) {
-        if (typeof next[player.id] === 'undefined') {
-          next[player.id] = player.viewerComment ?? '';
-        }
-      }
-      return next;
-    });
     setViewerScoreByPlayerId((prev) => {
       const next = { ...prev };
       for (const player of data.match.players) {
@@ -997,51 +680,67 @@ function FinishedView({ data }: { data: MatchDetailData }) {
   }, [data.match.players]);
 
   useEffect(() => {
-    setRatingCommentPage((prev) => Math.min(prev, totalRatingCommentPages));
-  }, [totalRatingCommentPages]);
-
-  useEffect(() => {
     if (selectedPlayerId && playerById.has(selectedPlayerId)) {
       return;
     }
     setSelectedPlayerId(orderedSelectablePlayers[0]?.id ?? null);
   }, [orderedSelectablePlayers, playerById, selectedPlayerId]);
 
-  const upsertRatingComment = (ratingComment: MatchDetailData['match']['ratingComments'][number] | null | undefined) => {
-    if (!ratingComment) {
-      return;
+  const saveAllRatings = async () => {
+    if (!canWrite || isBatchSaving) return;
+    const toSave = orderedSelectablePlayers.filter((p) => viewerScoreByPlayerId[p.id] !== undefined);
+    if (toSave.length === 0) return;
+    try {
+      setBatchSaveError(null);
+      setIsBatchSaving(true);
+      await Promise.all(
+        toSave.map((p) =>
+          postJson(`/api/matches/${data.match.id}/ratings`, {
+            playerId: p.id,
+            score: viewerScoreByPlayerId[p.id],
+            comment: (commentByPlayerId[p.id] ?? '').trim(),
+          }),
+        ),
+      );
+      setRevealedAverageIds((prev) => new Set([...prev, ...toSave.map((p) => p.id)]));
+      setBatchSaveDone(true);
+      window.setTimeout(() => setBatchSaveDone(false), 2000);
+    } catch (error) {
+      setBatchSaveError(error instanceof Error ? error.message : '저장에 실패했습니다.');
+    } finally {
+      setIsBatchSaving(false);
     }
-    setRatingComments((current) => [ratingComment, ...current.filter((item) => item.id !== ratingComment.id)]);
-    setRatingCommentPage(1);
   };
 
-  const savePlayerComment = async (playerId: string) => {
-    if (!canWrite || pendingPlayerId || commentPendingByPlayerId[playerId]) {
-      return;
-    }
-    const score = viewerScoreByPlayerId[playerId] ?? playerById.get(playerId)?.viewerScore ?? null;
-    if (score === null) {
-      return;
-    }
+  const toggleLike = async (commentId: string) => {
+    const isLiked = likedCommentIds.has(commentId);
+    setLikedCommentIds((prev) => {
+      const next = new Set(prev);
+      isLiked ? next.delete(commentId) : next.add(commentId);
+      return next;
+    });
+    setRatingComments((prev) =>
+      prev.map((c) =>
+        c.id === commentId
+          ? { ...c, likeCount: c.likeCount + (isLiked ? -1 : 1), viewerLiked: !isLiked }
+          : c,
+      ),
+    );
     try {
-      setRatingActionError(null);
-      setPendingPlayerId(playerId);
-      setCommentPendingByPlayerId((prev) => ({ ...prev, [playerId]: true }));
-      const comment = commentDraftByPlayerId[playerId] ?? '';
-      const payload = await postJson<{ ok: true; ratingComment?: MatchDetailData['match']['ratingComments'][number] | null }>(
-        `/api/matches/${data.match.id}/ratings`,
-        { playerId, score, comment },
+      await postJson(`/api/matches/${data.match.id}/rating-comments/${commentId}/like`, {});
+    } catch {
+      setLikedCommentIds((prev) => {
+        const next = new Set(prev);
+        isLiked ? next.add(commentId) : next.delete(commentId);
+        return next;
+      });
+      setRatingComments((prev) =>
+        prev.map((c) =>
+          c.id === commentId
+            ? { ...c, likeCount: c.likeCount + (isLiked ? 1 : -1), viewerLiked: isLiked }
+            : c,
+        ),
       );
-      setCommentSavedByPlayerId((prev) => ({ ...prev, [playerId]: true }));
-      upsertRatingComment(payload.ratingComment);
-      window.setTimeout(() => {
-        setCommentSavedByPlayerId((prev) => ({ ...prev, [playerId]: false }));
-      }, 1200);
-    } catch (error) {
-      setRatingActionError(error instanceof Error ? error.message : '코멘트 저장에 실패했습니다.');
-    } finally {
-      setPendingPlayerId(null);
-      setCommentPendingByPlayerId((prev) => ({ ...prev, [playerId]: false }));
     }
   };
 
@@ -1075,144 +774,8 @@ function FinishedView({ data }: { data: MatchDetailData }) {
     window.setTimeout(() => setShareCopied(false), 1200);
   };
 
-  return (
-    <div className='space-y-5'>
-      <Card className='overflow-hidden border-white/8 bg-[#090D16] shadow-[0_24px_60px_rgba(2,6,23,0.45)]'>
-        <CardContent className='space-y-5 px-4 pb-4 pt-4 sm:px-6 sm:pb-6 sm:pt-6'>
-          <div className='flex flex-wrap items-end justify-between gap-3'>
-            <div>
-              <div className='text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8A95B2]'>Player Rating</div>
-              <h2 className='mt-1 text-[1.85rem] font-black tracking-[-0.04em] text-white'>선수 평점 남기기</h2>
-            </div>
-            <div className='rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-[#C9D3F3]'>
-              카드 탭 후 바로 평가
-            </div>
-          </div>
-
-          <RatingProgressSummary ratedCount={ratedCount} totalCount={orderedSelectablePlayers.length} />
-
-          {ratingActionError ? (
-            <div className='rounded-[18px] border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm font-medium text-rose-200'>
-              {ratingActionError}
-            </div>
-          ) : null}
-
-          <div className='space-y-5'>
-            {teamSections.map((section) => (
-              <div key={`rating_team_${section.teamCode}`} className='space-y-3'>
-                <div className='flex items-center justify-between gap-3'>
-                  <div className='text-sm font-semibold text-white'>{section.label}</div>
-                  <div className='text-[11px] font-medium text-[#7E89A8]'>{section.players.length}명</div>
-                </div>
-                <div className='space-y-3'>
-                  {section.players.map((player) => {
-                    const draftScore = viewerScoreByPlayerId[player.id] ?? player.viewerScore ?? null;
-                    const draftComment = commentDraftByPlayerId[player.id] ?? player.viewerComment ?? '';
-
-                    return (
-                      <PlayerRatingCard
-                        key={player.id}
-                        player={player}
-                        selected={selectedPlayerId === player.id}
-                        draftScore={draftScore}
-                        draftComment={draftComment}
-                        pending={Boolean(commentPendingByPlayerId[player.id])}
-                        saved={Boolean(commentSavedByPlayerId[player.id])}
-                        canWrite={canWrite}
-                        onSelect={() => {
-                          setSelectedPlayerId(player.id);
-                          setRatingActionError(null);
-                        }}
-                        onScoreChange={(score) => {
-                          setSelectedPlayerId(player.id);
-                          setViewerScoreByPlayerId((prev) => ({ ...prev, [player.id]: score }));
-                          setCommentSavedByPlayerId((prev) => ({ ...prev, [player.id]: false }));
-                        }}
-                        onCommentChange={(value) => {
-                          setCommentDraftByPlayerId((prev) => ({ ...prev, [player.id]: value }));
-                          setCommentSavedByPlayerId((prev) => ({ ...prev, [player.id]: false }));
-                        }}
-                        onSave={() => savePlayerComment(player.id)}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className='overflow-hidden border-white/8 bg-[#0B1019] shadow-[0_22px_54px_rgba(2,6,23,0.36)]'>
-        <CardContent className='space-y-4 px-4 pb-4 pt-4 sm:px-6 sm:pb-6 sm:pt-6'>
-          <div className='flex flex-wrap items-end justify-between gap-3'>
-            <div>
-              <div className='text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8A95B2]'>Community Feed</div>
-              <div className='mt-1 text-[1.75rem] font-black tracking-[-0.04em] text-white'>실시간 평점 피드</div>
-            </div>
-            <div className='rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-[#C9D3F3]'>
-              {ratingComments.length}개 반응
-            </div>
-          </div>
-          {ratingComments.length > 0 ? (
-            <>
-              <div className='space-y-3'>
-                {pagedRatingComments.map((item) => (
-                  <div
-                    key={item.id}
-                    className='rounded-[22px] border border-white/8 bg-[linear-gradient(180deg,rgba(26,32,47,0.98)_0%,rgba(16,20,31,0.98)_100%)] p-4 shadow-[0_12px_28px_rgba(2,6,23,0.2)]'
-                  >
-                    <div className='flex items-start gap-3'>
-                      <Avatar className='h-10 w-10 shrink-0 border-white/10 bg-[#242B3D] text-xs font-black text-white'>
-                        {getInitials(item.user)}
-                      </Avatar>
-                      <div className='min-w-0 flex-1'>
-                        <div className='flex flex-wrap items-center gap-2'>
-                          <span className='text-sm font-semibold text-white'>{item.user}</span>
-                          <span className='rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-semibold text-[#D5DDF7]'>
-                            {item.team} {item.playerName}
-                          </span>
-                          <span className='rounded-full border border-[#8B5CF6]/20 bg-[#8B5CF6]/14 px-2.5 py-1 text-[11px] font-semibold text-[#D9CCFF]'>
-                            {item.score.toFixed(1)}점
-                          </span>
-                          <span className='text-[11px] font-medium text-[#7E89A8]'>{item.createdLabel}</span>
-                        </div>
-                        <div className='mt-2 break-words text-sm leading-6 text-[#E5EBFF]'>
-                          {item.text.trim().length > 0 ? item.text : '평점만 남겼습니다.'}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {totalRatingCommentPages > 1 ? (
-                <div className='flex flex-wrap items-center justify-center gap-1.5 pt-1'>
-                  {Array.from({ length: totalRatingCommentPages }, (_, idx) => idx + 1).map((page) => (
-                    <button
-                      key={`rating_comment_page_${page}`}
-                      type='button'
-                      onClick={() => setRatingCommentPage(page)}
-                      className={cn(
-                        'h-9 min-w-9 rounded-full border px-3 text-xs font-semibold transition',
-                        ratingCommentPage === page
-                          ? 'border-[#8B5CF6] bg-[#8B5CF6] text-white'
-                          : 'border-white/10 bg-white/5 text-[#C9D3F3] hover:border-[#8B5CF6]/50',
-                      )}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                </div>
-              ) : null}
-            </>
-          ) : (
-            <div className='rounded-[20px] border border-white/8 bg-[#121826] px-4 py-8 text-center text-sm text-[#9AA6C9]'>
-              아직 등록된 선수 평점 코멘트가 없습니다.
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
+  const finishedCards = isFinished ? (
+    <>
       <Card>
         <CardContent className='space-y-3 px-5 pb-5 pt-5 sm:px-6 sm:pb-6 sm:pt-6'>
           <div className='text-2xl font-black tracking-[-0.03em] text-slate-950'>내 예측 결과</div>
@@ -1234,8 +797,224 @@ function FinishedView({ data }: { data: MatchDetailData }) {
           </div>
         </CardContent>
       </Card>
+    </>
+  ) : null;
 
-      <Card>
+  const selPlayer = selectedPlayerId !== null ? playerById.get(selectedPlayerId) ?? null : null;
+  const selDraftScore = selPlayer ? (viewerScoreByPlayerId[selPlayer.id] ?? selPlayer.viewerScore ?? null) : null;
+  const selShowAverage = selPlayer ? revealedAverageIds.has(selPlayer.id) : false;
+  const newlyRatedCount = orderedSelectablePlayers.filter((p) => viewerScoreByPlayerId[p.id] !== undefined).length;
+
+  return (
+    <div className='space-y-5'>
+      <div className='overflow-hidden rounded-[24px] bg-[#31313C] shadow-[0_14px_36px_rgba(2,6,23,0.28)]'>
+        <div className='space-y-4 px-4 pb-4 pt-4 sm:px-5 sm:pb-5 sm:pt-5'>
+          <div className='flex items-center justify-between gap-3'>
+            <h2 className='text-xl font-black tracking-[-0.03em] text-white'>선수 평점</h2>
+          </div>
+
+          <RatingProgressSummary ratedCount={ratedCount} totalCount={orderedSelectablePlayers.length} />
+
+          {/* 5-row role grid */}
+          <div className='overflow-hidden rounded-[16px] border border-[#474756]'>
+            <div className='grid grid-cols-[1fr_36px_1fr] bg-[#3A3A47] px-3 py-2'>
+              <div className='text-[11px] font-semibold text-[#d6d6e5]'>{getTeamDisplayName(data.match.teamA)}</div>
+              <div />
+              <div className='text-right text-[11px] font-semibold text-[#d6d6e5]'>{getTeamDisplayName(data.match.teamB)}</div>
+            </div>
+            {ROLE_ORDER.map((role) => {
+              const left = getPlayerByTeamAndRole(data.match.teamA, role);
+              const right = getPlayerByTeamAndRole(data.match.teamB, role);
+              const leftScore = left ? (viewerScoreByPlayerId[left.id] ?? left.viewerScore ?? null) : null;
+              const rightScore = right ? (viewerScoreByPlayerId[right.id] ?? right.viewerScore ?? null) : null;
+              return (
+                <div key={role} className='grid grid-cols-[1fr_36px_1fr] items-stretch border-t border-[#474756]'>
+                  {left ? (
+                    <button
+                      type='button'
+                      onClick={() => setSelectedPlayerId(left.id)}
+                      className={cn(
+                        'flex items-center gap-2 px-3 py-2.5 text-left transition',
+                        selectedPlayerId === left.id ? 'bg-[#8B5CF6]/20' : 'hover:bg-[#3A3A47]',
+                      )}
+                    >
+                      <div className='min-w-0 flex-1'>
+                        <div className='truncate text-sm font-bold text-white'>{left.name}</div>
+                      </div>
+                      {leftScore !== null && (
+                        <span className='shrink-0 text-xs font-black text-[#A78BFA]'>{leftScore.toFixed(1)}</span>
+                      )}
+                    </button>
+                  ) : <div className='px-3 py-3 text-sm text-[#7E89A8]'>-</div>}
+                  <div className='flex items-center justify-center border-x border-[#474756]'>
+                    <Image src={ROLE_META[role].iconPath} alt={ROLE_META[role].label} width={18} height={18} className='h-[18px] w-[18px] object-contain brightness-125' />
+                  </div>
+                  {right ? (
+                    <button
+                      type='button'
+                      onClick={() => setSelectedPlayerId(right.id)}
+                      className={cn(
+                        'flex items-center justify-end gap-2 px-3 py-2.5 text-right transition',
+                        selectedPlayerId === right.id ? 'bg-[#8B5CF6]/20' : 'hover:bg-[#3A3A47]',
+                      )}
+                    >
+                      {rightScore !== null && (
+                        <span className='shrink-0 text-xs font-black text-[#A78BFA]'>{rightScore.toFixed(1)}</span>
+                      )}
+                      <div className='min-w-0 flex-1'>
+                        <div className='truncate text-sm font-bold text-white'>{right.name}</div>
+                      </div>
+                    </button>
+                  ) : <div className='px-3 py-3 text-right text-sm text-[#7E89A8]'>-</div>}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Selected player rating panel */}
+          {selPlayer !== null ? (
+            <div className='space-y-3 rounded-[16px] bg-[#3A3A47] p-4'>
+              <div className='flex items-start justify-between gap-3'>
+                <div>
+                  <div className='text-[11px] text-[#9AA6C9]'>{getTeamDisplayName(selPlayer.team)} · {ROLE_META[selPlayer.role].label}</div>
+                  <div className='mt-0.5 text-lg font-black tracking-[-0.02em] text-white'>{selPlayer.name}</div>
+                </div>
+                {selShowAverage ? (
+                  <div className='shrink-0 text-right'>
+                    <div className='text-[11px] text-[#9AA6C9]'>평균 평점</div>
+                    <div className='text-xl font-black text-white'>{selPlayer.rating.toFixed(1)}</div>
+                    <div className='text-[11px] text-[#9AA6C9]'>{selPlayer.ratingCount}명</div>
+                  </div>
+                ) : null}
+              </div>
+              <div className='text-xs font-semibold text-[#9AA6C9]'>
+                {selDraftScore !== null ? `${selDraftScore.toFixed(1)}점 선택됨` : '점수를 선택해 주세요'}
+              </div>
+              <NumberRatingPicker
+                value={selDraftScore}
+                disabled={!canWrite || isBatchSaving}
+                onChange={(score) => {
+                  setViewerScoreByPlayerId((prev) => ({ ...prev, [selPlayer.id]: score }));
+                }}
+              />
+              {/* 한 줄 코멘트 */}
+              <div className='space-y-1.5'>
+                <div className='relative'>
+                  <input
+                    type='text'
+                    value={commentByPlayerId[selPlayer.id] ?? ''}
+                    onChange={(e) => {
+                      const val = e.target.value.slice(0, 50);
+                      setCommentByPlayerId((prev) => ({ ...prev, [selPlayer.id]: val }));
+                    }}
+                    placeholder='한 줄 코멘트 남기기... (선택, 50자)'
+                    disabled={isBatchSaving}
+                    className='w-full rounded-[10px] border border-[#474756] bg-[#27272E] px-3 py-2.5 pr-12 text-sm text-white outline-none transition placeholder:text-[#6B6B80] focus:border-[#8B5CF6]'
+                  />
+                  <span className='pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-[#6B6B80]'>
+                    {(commentByPlayerId[selPlayer.id] ?? '').length}/50
+                  </span>
+                </div>
+                <div className='grid grid-cols-5 gap-2'>
+                  {(['😭', '😤', '🤣', '😱', '🥹', '🤩', '😮', '🤬', '😴', '🥶'] as const).map((emoji) => (
+                    <button
+                      key={emoji}
+                      type='button'
+                      disabled={isBatchSaving}
+                      onClick={() => {
+                        setCommentByPlayerId((prev) => {
+                          const cur = prev[selPlayer.id] ?? '';
+                          if (cur.length >= 50) return prev;
+                          return { ...prev, [selPlayer.id]: (cur + emoji).slice(0, 50) };
+                        });
+                      }}
+                      className='flex h-[60px] w-full items-center justify-center rounded-[10px] bg-[#31313C] text-3xl transition hover:bg-[#474756] active:scale-90 disabled:opacity-40'
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {/* Batch save */}
+          <div className='space-y-2 pt-1'>
+            {batchSaveError ? (
+              <div className='rounded-[12px] border border-rose-400/20 bg-rose-500/10 px-3 py-2 text-sm font-medium text-rose-200'>
+                {batchSaveError}
+              </div>
+            ) : null}
+            <button
+              type='button'
+              disabled={isBatchSaving || newlyRatedCount === 0}
+              onClick={saveAllRatings}
+              className='inline-flex w-full min-h-[48px] items-center justify-center rounded-[14px] border border-[#5B21B6] bg-[#7C3AED] px-5 text-sm font-semibold text-white shadow-[0_4px_0_#5B21B6] transition-all hover:translate-y-[2px] hover:shadow-[0_2px_0_#5B21B6] disabled:cursor-not-allowed disabled:border-[#474756] disabled:bg-[#3A3A47] disabled:shadow-none disabled:text-[#9AA6C9]'
+            >
+              {isBatchSaving
+                ? '저장 중...'
+                : batchSaveDone
+                  ? '저장 완료 ✓'
+                  : newlyRatedCount > 0
+                    ? `${newlyRatedCount}명 평점 저장하기`
+                    : '점수를 먼저 선택해 주세요'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* 반응 피드 */}
+      <div className='overflow-hidden rounded-[24px] bg-[#31313C] shadow-[0_14px_36px_rgba(2,6,23,0.28)]'>
+        <div className='border-b border-[#474756] px-4 py-3 sm:px-5'>
+          <div className='flex items-center justify-between gap-2'>
+            <h3 className='text-base font-black tracking-[-0.02em] text-white'>반응 피드</h3>
+            <span className='text-xs font-semibold text-[#9AA6C9]'>{ratingComments.length > 0 ? `${ratingComments.length}개` : ''}</span>
+          </div>
+        </div>
+        <div className='divide-y divide-[#474756]'>
+          {ratingComments.length === 0 ? (
+            <div className='px-4 py-8 text-center'>
+              <div className='text-2xl'>💬</div>
+              <div className='mt-2 text-sm font-semibold text-[#9AA6C9]'>아직 코멘트가 없어요</div>
+              <div className='mt-1 text-xs text-[#6B6B80]'>평점 저장 시 한 줄 코멘트를 남겨보세요</div>
+            </div>
+          ) : (
+            ratingComments.map((c) => {
+              const liked = likedCommentIds.has(c.id);
+              return (
+                <div key={c.id} className='flex items-start gap-3 px-4 py-3 sm:px-5'>
+                  <div className='min-w-0 flex-1'>
+                    <div className='flex flex-wrap items-center gap-1.5'>
+                      <span className='inline-flex items-center rounded-full bg-[#3A3A47] px-2 py-0.5 text-[11px] font-semibold text-[#d6d6e5]'>
+                        {c.team} {c.playerName}
+                      </span>
+                      <span className='text-[11px] font-black text-[#A78BFA]'>{c.score.toFixed(1)}점</span>
+                      <span className='text-[11px] text-[#6B6B80]'>{c.user}</span>
+                    </div>
+                    <p className='mt-1 text-sm leading-snug text-white'>{c.text}</p>
+                  </div>
+                  <button
+                    type='button'
+                    onClick={() => toggleLike(c.id)}
+                    className={cn(
+                      'mt-0.5 shrink-0 flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-semibold transition',
+                      liked
+                        ? 'bg-[#8B5CF6]/20 text-[#C4B5FD]'
+                        : 'bg-[#3A3A47] text-[#9AA6C9] hover:bg-[#474756] hover:text-white',
+                    )}
+                  >
+                    👍{c.likeCount > 0 ? <span>{c.likeCount}</span> : null}
+                  </button>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      {finishedCards}
+
+      {isFinished && <Card>
         <CardContent className='space-y-3 px-5 pb-5 pt-5 sm:px-6 sm:pb-6 sm:pt-6'>
           <div className='flex items-center justify-between gap-3'>
             <div className='text-2xl font-black tracking-[-0.03em] text-slate-950'>공유 카드</div>
@@ -1301,7 +1080,7 @@ function FinishedView({ data }: { data: MatchDetailData }) {
             </div>
           </div>
         </CardContent>
-      </Card>
+      </Card>}
     </div>
   );
 }
@@ -2053,8 +1832,7 @@ export function MatchDetailStateView({ data, viewer }: { data: MatchDetailData; 
       <MatchHeader data={data} state={state} />
 
       {state === 'PRE_MATCH' ? <PreMatchView data={data} /> : null}
-      {state === 'LIVE' ? <LiveView data={data} /> : null}
-      {state === 'FINISHED' ? <FinishedView data={data} /> : null}
+      {state === 'LIVE' || state === 'FINISHED' ? <StartedView data={data} state={state} /> : null}
 
       <CommentsSection data={data} viewer={viewer} />
       <BottomFixedCta state={state} />

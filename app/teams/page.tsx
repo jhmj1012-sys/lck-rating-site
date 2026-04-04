@@ -30,11 +30,11 @@ const TEAM_STAFF: Record<string, { headCoach: string[]; coach: string[] }> = {
   T1: { headCoach: ["Tom", "DooTi"], coach: ["Mata", "Nagne"] },
 };
 
-function StaffRow({ label, names }: { label: string; names: string[] }) {
+function StaffItem({ label, names }: { label: string; names: string[] }) {
   return (
-    <div className="grid gap-2 rounded-2xl bg-[#3A3A47] px-4 py-3 sm:grid-cols-[120px_minmax(0,1fr)]">
-      <div className="text-xs font-medium uppercase tracking-[0.18em] text-[#D4DCFF]">{label}</div>
-      <div className="text-sm font-medium text-[#FFFFFF]">{names.length > 0 ? names.join(" / ") : "-"}</div>
+    <div className="flex items-center gap-2">
+      <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8B8BA8]">{label}</span>
+      <span className="text-sm font-medium text-[#FFFFFF]">{names.length > 0 ? names.join(" / ") : "-"}</span>
     </div>
   );
 }
@@ -157,42 +157,44 @@ export default async function TeamsPage({
               </a>
             </div>
 
-            <div className="mt-5 grid gap-3">
-              <StaffRow label="Head Coach" names={staff.headCoach.slice(0, 1)} />
-              <StaffRow label="Coach" names={staff.coach.slice(0, 1)} />
+            <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[#3A3A47] pt-4">
+              <StaffItem label="Head Coach" names={staff.headCoach.slice(0, 1)} />
+              <StaffItem label="Coach" names={staff.coach.slice(0, 1)} />
             </div>
 
-            <div className="mt-6 rounded-2xl bg-[#3A3A47] p-4">
-              <div className="flex items-center justify-between gap-3">
+            <div className="mt-6">
+              <div className="mb-3 flex items-center justify-between gap-3">
                 <div className="text-sm font-medium text-[#FFFFFF]">팀 로스터</div>
                 <div className="text-xs text-[#D4DCFF]">{selectedTeam.players.length}/11</div>
               </div>
               {!hasExpectedRosterCount ? (
-                <div className="mt-2 rounded-lg bg-[#4A4A59] px-3 py-2 text-xs text-[#F8F8F8]">
+                <div className="mb-2 rounded-lg bg-[#4A4A59] px-3 py-2 text-xs text-[#F8F8F8]">
                   로스터 데이터 확인 필요: 현재 {selectedTeam.players.length}명
                 </div>
               ) : null}
-              <div className="mt-4 grid gap-2">
-                {ROLE_ORDER.map((role) => {
+              <div className="overflow-hidden rounded-2xl bg-[#3A3A47]">
+                {ROLE_ORDER.map((role, i) => {
                   const players = getMainPlayerByRole(selectedTeam, role);
                   return (
-                    <div key={`${selectedTeam.teamCode}_${role}`} className="grid grid-cols-[34px_minmax(0,1fr)] items-start gap-3 rounded-xl bg-[#31313C] px-3 py-2.5">
-                      <Image src={ROLE_ICON[role]} alt={role} width={24} height={24} className="h-6 w-6 object-contain" />
-                      {players.length > 0 ? (
-                        <div className="flex flex-col gap-1.5 py-0.5">
-                          {players.map((player) => (
-                            <Link
-                              key={player.playerId}
-                              href={`/player/${player.playerSlug}`}
-                              className="text-base font-medium !text-[#FFFFFF] visited:!text-[#FFFFFF] underline-offset-2 hover:!text-[#FFFFFF] hover:underline"
-                            >
-                              {player.name}
-                            </Link>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-base font-medium text-[#A9B5D8]">-</div>
-                      )}
+                    <div
+                      key={`${selectedTeam.teamCode}_${role}`}
+                      className={`grid grid-cols-[30px_repeat(3,minmax(0,1fr))] items-center gap-x-3 gap-y-1 px-4 py-3${i > 0 ? " border-t border-[#31313C]" : ""}`}
+                    >
+                      <Image src={ROLE_ICON[role]} alt={role} width={22} height={22} className="h-[22px] w-[22px] shrink-0 object-contain opacity-70" />
+                      {[0, 1, 2].map((slot) => {
+                        const player = players[slot];
+                        return player ? (
+                          <Link
+                            key={player.playerId}
+                            href={`/player/${player.playerSlug}`}
+                            className="truncate text-sm font-medium !text-[#FFFFFF] visited:!text-[#FFFFFF] underline-offset-2 hover:!text-[#FFFFFF] hover:underline"
+                          >
+                            {player.name}
+                          </Link>
+                        ) : (
+                          <span key={slot} />
+                        );
+                      })}
                     </div>
                   );
                 })}

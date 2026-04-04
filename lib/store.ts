@@ -426,6 +426,7 @@ function withDefaults(store: Partial<StoreShape>): StoreShape {
       ...rating,
       comment: looksGarbled(rating.comment) ? fallbackSetRatingComment(rating.score) : rating.comment,
       updatedAt: rating.updatedAt ?? rating.createdAt,
+      recommendUserIds: "recommendUserIds" in rating ? (rating.recommendUserIds ?? []) : [],
     })),
     comments: (needsScheduleRefresh ? [] : (store.comments ?? seed.comments)).map((comment) => ({
       ...comment,

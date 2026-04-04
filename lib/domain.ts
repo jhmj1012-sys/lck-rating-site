@@ -178,6 +178,7 @@ export interface StoredPlayerRating {
   comment: string;
   createdAt: string;
   updatedAt?: string | null;
+  recommendUserIds?: string[];
 }
 
 export interface StoredComment {

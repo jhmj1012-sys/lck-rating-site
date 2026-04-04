@@ -305,41 +305,41 @@ function ScheduleRow({ match, revealSpoiler }: { match: MatchListItem; revealSpo
   return (
     <Link
       href={`/matches/${match.id}`}
-      className="grid gap-3 border-b border-[#474756] px-5 py-4 transition hover:bg-[#3A3A47] sm:grid-cols-[80px_minmax(0,1fr)] sm:items-stretch sm:px-6"
+      className="group grid gap-3 border-b border-[#474756] px-5 py-3 transition hover:bg-[#363643] sm:grid-cols-[80px_minmax(0,1fr)] sm:items-stretch sm:px-6"
     >
-      <div className="flex flex-col justify-start pt-1">
+      <div className="flex flex-row items-baseline justify-center gap-2 pt-1 sm:flex-col sm:justify-start sm:items-start">
         <div className="text-[13px] font-bold leading-none tracking-[-0.02em] text-[#d6d6e5] sm:text-[14px]">{match.timeLabel}</div>
-        <div className="mt-2 text-[11px] font-medium leading-5 text-[#d6d6e5]">{match.stage}</div>
+        <div className="text-[11px] font-medium leading-none text-[#d6d6e5] sm:mt-2 sm:leading-5">{match.stage}</div>
       </div>
-      <div className="rounded-[24px] bg-[#31313C] px-4 py-4">
+      <div className="rounded-[24px] bg-[#31313C] px-4 py-3 transition group-hover:bg-[#363643]">
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:hidden">
-          <div className="flex min-w-0 flex-col items-center gap-2">
+          <div className="flex min-w-0 flex-col items-center gap-1.5">
             <TeamLogo team={match.teamA} size={40} />
             <span className="truncate text-center text-[17px] font-black leading-none tracking-[-0.02em] text-[#E2E8F0]">{match.teamA}</span>
+            <span className="text-[12px] font-semibold text-[#d6d6e5]">{match.predictionRateA}%</span>
           </div>
-          <span
-            className={cn(
-              "px-2 text-[17px] font-black leading-none tracking-[-0.02em] text-white",
-              hideScore ? "blur-[5px] opacity-75 select-none" : "",
+          <div className="flex flex-col items-center gap-1.5">
+            <span
+              className={cn(
+                "px-2 text-[17px] font-black leading-none tracking-[-0.02em] text-white",
+                hideScore ? "blur-[5px] opacity-75 select-none" : "",
+              )}
+            >
+              {mobileCenterLabel}
+            </span>
+            {liveLike ? (
+              <LiveBadge compact />
+            ) : (
+              <span className={cn("inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold", getScheduleStatusTone(match.status, liveLike))}>
+                {statusLabel}
+              </span>
             )}
-          >
-            {mobileCenterLabel}
-          </span>
-          <div className="flex min-w-0 flex-col items-center gap-2">
+          </div>
+          <div className="flex min-w-0 flex-col items-center gap-1.5">
             <TeamLogo team={match.teamB} size={40} />
             <span className="truncate text-center text-[17px] font-black leading-none tracking-[-0.02em] text-[#E2E8F0]">{match.teamB}</span>
+            <span className="text-[12px] font-semibold text-[#d6d6e5]">{match.predictionRateB}%</span>
           </div>
-        </div>
-        <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:hidden">
-          <span className="text-left text-[12px] font-semibold text-[#d6d6e5]">{match.predictionRateA}%</span>
-          {liveLike ? (
-            <LiveBadge compact />
-          ) : (
-            <span className={cn("inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold", getScheduleStatusTone(match.status, liveLike))}>
-              {statusLabel}
-            </span>
-          )}
-          <span className="text-right text-[12px] font-semibold text-[#d6d6e5]">{match.predictionRateB}%</span>
         </div>
 
         <div className="hidden min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center sm:grid">
@@ -696,14 +696,14 @@ export default function HupuScheduleHome({
             href="/"
             className={cn(
               "relative whitespace-nowrap px-3 py-2 text-[15px] font-bold tracking-[-0.02em] transition sm:px-5 sm:text-[17px]",
-              "text-[#F5F3FF]",
+              "text-[#E2E8F0]",
             )}
-            style={{ color: "#F5F3FF" }}
+            style={{ color: "#E2E8F0" }}
             onMouseEnter={(event) => {
               event.currentTarget.style.color = "#E9D5FF";
             }}
             onMouseLeave={(event) => {
-              event.currentTarget.style.color = "#F5F3FF";
+              event.currentTarget.style.color = "#E2E8F0";
             }}
           >
             홈
@@ -713,14 +713,14 @@ export default function HupuScheduleHome({
             href="/schedule"
             className={cn(
               "relative whitespace-nowrap px-3 py-2 text-[15px] font-bold tracking-[-0.02em] transition sm:px-5 sm:text-[17px]",
-              "text-[#F5F3FF]",
+              "text-[#E2E8F0]",
             )}
-            style={{ color: "#F5F3FF" }}
+            style={{ color: "#E2E8F0" }}
             onMouseEnter={(event) => {
               event.currentTarget.style.color = "#E9D5FF";
             }}
             onMouseLeave={(event) => {
-              event.currentTarget.style.color = "#F5F3FF";
+              event.currentTarget.style.color = "#E2E8F0";
             }}
           >
             경기일정
@@ -728,13 +728,13 @@ export default function HupuScheduleHome({
           </Link>
           <Link
             href="/ratings"
-            className="relative whitespace-nowrap px-3 py-2 text-[15px] font-bold tracking-[-0.02em] text-[#F5F3FF] transition sm:px-5 sm:text-[17px]"
-            style={{ color: "#F5F3FF" }}
+            className="relative whitespace-nowrap px-3 py-2 text-[15px] font-bold tracking-[-0.02em] text-[#E2E8F0] transition sm:px-5 sm:text-[17px]"
+            style={{ color: "#E2E8F0" }}
             onMouseEnter={(event) => {
               event.currentTarget.style.color = "#E9D5FF";
             }}
             onMouseLeave={(event) => {
-              event.currentTarget.style.color = "#F5F3FF";
+              event.currentTarget.style.color = "#E2E8F0";
             }}
           >
             평점순위
@@ -743,27 +743,27 @@ export default function HupuScheduleHome({
             href="/season-predictions"
             className={cn(
               "relative whitespace-nowrap px-3 py-2 text-[15px] font-bold tracking-[-0.02em] transition sm:px-5 sm:text-[17px]",
-              "text-[#F5F3FF]",
+              "text-[#E2E8F0]",
             )}
-            style={{ color: "#F5F3FF" }}
+            style={{ color: "#E2E8F0" }}
             onMouseEnter={(event) => {
               event.currentTarget.style.color = "#E9D5FF";
             }}
             onMouseLeave={(event) => {
-              event.currentTarget.style.color = "#F5F3FF";
+              event.currentTarget.style.color = "#E2E8F0";
             }}
           >
             시즌예측
           </Link>
           <Link
             href="/games/15-dollar-challenge"
-            className="relative whitespace-nowrap px-3 py-2 text-[15px] font-bold tracking-[-0.02em] text-[#F5F3FF] transition sm:px-5 sm:text-[17px]"
-            style={{ color: "#F5F3FF" }}
+            className="relative whitespace-nowrap px-3 py-2 text-[15px] font-bold tracking-[-0.02em] text-[#E2E8F0] transition sm:px-5 sm:text-[17px]"
+            style={{ color: "#E2E8F0" }}
             onMouseEnter={(event) => {
               event.currentTarget.style.color = "#E9D5FF";
             }}
             onMouseLeave={(event) => {
-              event.currentTarget.style.color = "#F5F3FF";
+              event.currentTarget.style.color = "#E2E8F0";
             }}
           >
             게임
@@ -1005,7 +1005,7 @@ export default function HupuScheduleHome({
                 <div className="mt-4">
                   <Link
                     href="/ratings"
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#8B5CF6] px-4 py-3 text-sm font-bold !text-white transition hover:bg-[#7C3AED]"
+                    className="inline-flex min-h-12 w-full items-center justify-center rounded-[12px] border border-[#5B21B6] bg-[#7C3AED] px-4 text-[22px] font-semibold text-white shadow-[0_4px_0_#5B21B6] transition-all duration-150 hover:translate-y-[2px] hover:shadow-[0_2px_0_#5B21B6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A78BFA] focus-visible:ring-offset-2 focus-visible:ring-offset-[#31313C]"
                   >
                     평점 보러가기 →
                   </Link>

@@ -110,10 +110,10 @@ export function PlayerRankingBoard({ data }: { data: PlayerRankingPageData }) {
                       type="button"
                       onClick={() => startTransition(() => setPosition(item))}
                       className={cn(
-                        "inline-flex items-center gap-1 rounded-md bg-[#31313C] px-2.5 py-1 text-xs font-semibold transition",
+                        "inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-semibold transition",
                         position === item
                           ? "bg-[#8B5CF6] text-white"
-                          : "text-[#d6d6e5] hover:bg-[#3A3A47] hover:text-white",
+                          : "bg-[#31313C] text-[#d6d6e5] hover:bg-[#3A3A47] hover:text-white",
                       )}
                     >
                       {item === "ALL" ? (

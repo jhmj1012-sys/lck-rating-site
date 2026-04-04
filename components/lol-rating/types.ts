@@ -46,6 +46,7 @@ export interface PlayerRating {
   ratingCount: number;
   viewerScore: number | null;
   viewerComment: string;
+  topComment: { id: string; user: string; text: string; likeCount: number; viewerLiked: boolean } | null;
 }
 
 export interface MatchRatingComment {
@@ -56,6 +57,8 @@ export interface MatchRatingComment {
   score: number;
   text: string;
   createdLabel: string;
+  likeCount: number;
+  viewerLiked: boolean;
 }
 
 export interface MatchComment {

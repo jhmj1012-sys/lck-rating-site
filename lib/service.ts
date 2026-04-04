@@ -880,6 +880,20 @@ function getMatchPlayers(store: StoreShape, matchId: string, viewerId: string | 
       const fallbackScores = currentScores.length > 0 ? currentScores : (globalScoresByPlayerId.get(participant.playerId) ?? []);
       const viewerRating = viewerMatchRatingByPlayerId.get(participant.playerId) ?? null;
 
+      const topRatingComment = store.playerRatings
+        .filter((r) => r.matchId === matchId && r.playerId === participant.playerId && r.comment.trim().length > 0)
+        .sort((a, b) => (b.recommendUserIds ?? []).length - (a.recommendUserIds ?? []).length)[0] ?? null;
+
+      const topComment = topRatingComment
+        ? {
+            id: topRatingComment.id,
+            user: getPublicName(getUserById(store, topRatingComment.userId)),
+            text: topRatingComment.comment.trim(),
+            likeCount: (topRatingComment.recommendUserIds ?? []).length,
+            viewerLiked: viewerId ? (topRatingComment.recommendUserIds ?? []).includes(viewerId) : false,
+          }
+        : null;
+
       return {
         id: player.id,
         playerSlug: player.slug,
@@ -890,6 +904,7 @@ function getMatchPlayers(store: StoreShape, matchId: string, viewerId: string | 
         ratingCount: fallbackScores.length,
         viewerScore: viewerRating?.score ?? null,
         viewerComment: viewerRating?.comment ?? "",
+        topComment,
       } satisfies PlayerRating;
     })
     .filter((player): player is PlayerRating => player !== null)
@@ -978,17 +993,21 @@ function buildMatchCommentView(
   };
 }
 
-function buildMatchRatingComments(store: StoreShape, matchId: string): MatchRatingComment[] {
+function buildMatchRatingComments(store: StoreShape, matchId: string, viewerId: string | null): MatchRatingComment[] {
   return store.playerRatings
     .filter((rating) => rating.matchId === matchId)
     .filter((rating) => rating.comment.trim().length > 0)
     .slice()
-    .sort((a, b) => new Date(b.updatedAt ?? b.createdAt).getTime() - new Date(a.updatedAt ?? a.createdAt).getTime())
-    .map((rating) => buildMatchRatingCommentView(store, rating.id))
+    .sort((a, b) => {
+      const likeDiff = (b.recommendUserIds ?? []).length - (a.recommendUserIds ?? []).length;
+      if (likeDiff !== 0) return likeDiff;
+      return new Date(b.updatedAt ?? b.createdAt).getTime() - new Date(a.updatedAt ?? a.createdAt).getTime();
+    })
+    .map((rating) => buildMatchRatingCommentView(store, rating.id, viewerId))
     .filter((value): value is MatchRatingComment => value !== null);
 }
 
-function buildMatchRatingCommentView(store: StoreShape, ratingId: string): MatchRatingComment | null {
+function buildMatchRatingCommentView(store: StoreShape, ratingId: string, viewerId: string | null): MatchRatingComment | null {
   const rating = store.playerRatings.find((item) => item.id === ratingId);
   if (!rating) {
     return null;
@@ -1002,6 +1021,8 @@ function buildMatchRatingCommentView(store: StoreShape, ratingId: string): Match
   const author = getUserById(store, rating.userId);
   const player = store.players.find((item) => item.id === rating.playerId);
   const teamCode = player ? getTeamById(store, player.teamId)?.code ?? "-" : "-";
+  const likeCount = (rating.recommendUserIds ?? []).length;
+  const viewerLiked = viewerId ? (rating.recommendUserIds ?? []).includes(viewerId) : false;
 
   return {
     id: rating.id,
@@ -1011,6 +1032,8 @@ function buildMatchRatingCommentView(store: StoreShape, ratingId: string): Match
     score: rating.score,
     text: trimmedComment,
     createdLabel: formatRelativeLabel(rating.updatedAt ?? rating.createdAt),
+    likeCount,
+    viewerLiked,
   } satisfies MatchRatingComment;
 }
 
@@ -1201,7 +1224,7 @@ function buildMatchView(store: StoreShape, match: StoredMatch, viewerId: string 
 
   const players = getMatchPlayers(store, match.id, viewerId);
   const comments = buildComments(store, match.id, viewerId);
-  const ratingComments = buildMatchRatingComments(store, match.id);
+  const ratingComments = buildMatchRatingComments(store, match.id, viewerId);
   const predictionSummary = match.lockedDistribution ?? buildPredictionSummary(store, match);
   const totalRatings = store.playerRatings.filter((rating) => rating.matchId === match.id).length;
   const averagePlayerRating = players.filter((player) => player.ratingCount > 0);
@@ -2782,7 +2805,7 @@ export async function submitPlayerRating(input: {
       existing.comment = input.comment.trim();
       existing.updatedAt = new Date().toISOString();
       return {
-        ratingComment: buildMatchRatingCommentView(store, existing.id),
+        ratingComment: buildMatchRatingCommentView(store, existing.id, input.viewerId),
       };
     }
 
@@ -2810,7 +2833,32 @@ export async function submitPlayerRating(input: {
     }
 
     return {
-      ratingComment: buildMatchRatingCommentView(store, ratingId),
+      ratingComment: buildMatchRatingCommentView(store, ratingId, input.viewerId),
+    };
+  });
+}
+
+export async function toggleRatingCommentLike(input: {
+  viewerId: string;
+  matchId: string;
+  ratingId: string;
+}) {
+  return mutateStore(async (store) => {
+    const rating = store.playerRatings.find(
+      (item) => item.id === input.ratingId && item.matchId === input.matchId,
+    );
+    if (!rating) {
+      throw new Error("코멘트를 찾을 수 없습니다.");
+    }
+    const ids: string[] = rating.recommendUserIds ?? [];
+    if (ids.includes(input.viewerId)) {
+      rating.recommendUserIds = ids.filter((id) => id !== input.viewerId);
+    } else {
+      rating.recommendUserIds = [...ids, input.viewerId];
+    }
+    return {
+      liked: (rating.recommendUserIds).includes(input.viewerId),
+      likeCount: rating.recommendUserIds.length,
     };
   });
 }
