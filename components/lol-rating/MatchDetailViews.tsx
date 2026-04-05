@@ -5,22 +5,13 @@ import Image from 'next/image';
 import { startTransition, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toBlob } from 'html-to-image';
-import { COMMENT_MAX_LENGTH, COMMENT_MIN_LENGTH } from '@/lib/comment-constants';
-
 import { TeamLogo } from './TeamLogo';
-import type { MatchComment, MatchData, MatchDetailData } from './types';
+import type { MatchData, MatchDetailData } from './types';
 import { getTeamDisplayName } from './team-branding';
-import { Avatar, Button, Card, CardContent } from './ui';
-import { cn, getInitials } from './utils';
+import { Button, Card, CardContent } from './ui';
+import { cn } from './utils';
 
 type DetailState = 'PRE_MATCH' | 'LIVE' | 'FINISHED';
-type CommentSort = 'latest' | 'top';
-type MatchDetailViewer = {
-  id: string | null;
-  nickname?: string | null;
-  name?: string | null;
-  hasNickname?: boolean | null;
-};
 const PREDICTION_JOIN_REWARD_COINS = 10;
 const ROLE_ORDER: Array<'TOP' | 'JGL' | 'MID' | 'ADC' | 'SUP'> = ['TOP', 'JGL', 'MID', 'ADC', 'SUP'];
 const ROLE_META: Record<'TOP' | 'JGL' | 'MID' | 'ADC' | 'SUP', { iconPath: string; label: string }> = {
@@ -107,18 +98,18 @@ function getRatingChipTone(score: number | null, opponentScore: number | null) {
 
 function getShareRatingChipColor(score: number | null, opponentScore: number | null) {
   if (score === null) {
-    return '#5C6B82';
+    return '#2a2a3a';
   }
   if (opponentScore === null) {
-    return '#465774';
+    return '#2a2a3a';
   }
   if (score > opponentScore) {
-    return '#11294A';
+    return '#4c1d95';
   }
   if (score < opponentScore) {
-    return '#6A7D98';
+    return '#1e1e2a';
   }
-  return '#465774';
+  return '#2a2a3a';
 }
 
 function getCalendarDayDiff(target: Date, now: Date) {
@@ -435,15 +426,15 @@ function PreMatchInsights({ data }: { data: MatchDetailData }) {
 
           <div className='rounded-[20px] border border-slate-200 bg-white p-4'>
             <div className='mb-3 text-center text-xs font-semibold uppercase tracking-[0.16em] text-slate-500'>최근전적</div>
-            <div className='grid grid-cols-[minmax(0,1fr)_140px_minmax(0,1fr)] items-center gap-3'>
-              <div className='flex items-center justify-end gap-1.5'>
+            <div className='grid grid-cols-[minmax(0,1fr)_80px_minmax(0,1fr)] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_140px_minmax(0,1fr)] sm:gap-3'>
+              <div className='flex items-center justify-end gap-1 sm:gap-1.5'>
                 {Array.from({ length: 5 }).map((_, index) => {
                   const result = preMatchInsights.teamAForm.recent[index] ?? null;
                   return (
                     <span
                       key={`teamA-form-${index}`}
                       className={cn(
-                        'inline-flex h-7 w-7 items-center justify-center rounded-md text-xs font-black',
+                        'inline-flex h-5 w-5 items-center justify-center rounded text-[10px] font-black sm:h-7 sm:w-7 sm:rounded-md sm:text-xs',
                         result === 'W'
                           ? 'bg-emerald-100 text-emerald-700'
                           : result === 'L'
@@ -456,15 +447,15 @@ function PreMatchInsights({ data }: { data: MatchDetailData }) {
                   );
                 })}
               </div>
-              <div className='text-center text-xs font-semibold text-slate-500'>최근 5경기</div>
-              <div className='flex items-center justify-start gap-1.5'>
+              <div className='text-center text-[10px] font-semibold text-slate-500 sm:text-xs'>최근 5경기</div>
+              <div className='flex items-center justify-start gap-1 sm:gap-1.5'>
                 {Array.from({ length: 5 }).map((_, index) => {
                   const result = preMatchInsights.teamBForm.recent[index] ?? null;
                   return (
                     <span
                       key={`teamB-form-${index}`}
                       className={cn(
-                        'inline-flex h-7 w-7 items-center justify-center rounded-md text-xs font-black',
+                        'inline-flex h-5 w-5 items-center justify-center rounded text-[10px] font-black sm:h-7 sm:w-7 sm:rounded-md sm:text-xs',
                         result === 'W'
                           ? 'bg-emerald-100 text-emerald-700'
                           : result === 'L'
@@ -480,59 +471,6 @@ function PreMatchInsights({ data }: { data: MatchDetailData }) {
             </div>
           </div>
 
-          <div className='rounded-[20px] border border-slate-200 bg-white p-4'>
-            <div className='mb-3 text-center text-xs font-semibold uppercase tracking-[0.16em] text-slate-500'>평균평점</div>
-            <div className='space-y-2'>
-              {ROLE_ORDER.map((role) => {
-                const left = getPlayerByTeamAndRole(match.teamA, role);
-                const right = getPlayerByTeamAndRole(match.teamB, role);
-                const leftRating = left ? Number(left.rating.toFixed(1)) : null;
-                const rightRating = right ? Number(right.rating.toFixed(1)) : null;
-
-                return (
-                  <div key={role} className='grid grid-cols-[minmax(0,1fr)_58px_40px_58px_minmax(0,1fr)] items-center gap-3 text-sm'>
-                    <div className='truncate text-left text-lg font-semibold text-slate-950'>
-                      {left ? (
-                        <Link href={`/player/${left.playerSlug}`} className='hover:text-sky-700 hover:underline'>
-                          {left.name}
-                        </Link>
-                      ) : (
-                        '-'
-                      )}
-                    </div>
-                    <div
-                      className={cn(
-                        'rounded-md px-2 py-1 text-center text-sm font-extrabold leading-none',
-                        getRatingChipTone(leftRating, rightRating),
-                      )}
-                    >
-                      {leftRating !== null ? leftRating.toFixed(1) : '-'}
-                    </div>
-                    <div className='flex items-center justify-center'>
-                      <Image src={ROLE_META[role].iconPath} alt={ROLE_META[role].label} width={20} height={20} className='h-5 w-5 object-contain' />
-                    </div>
-                    <div
-                      className={cn(
-                        'rounded-md px-2 py-1 text-center text-sm font-extrabold leading-none',
-                        getRatingChipTone(rightRating, leftRating),
-                      )}
-                    >
-                      {rightRating !== null ? rightRating.toFixed(1) : '-'}
-                    </div>
-                    <div className='truncate text-right text-lg font-semibold text-slate-950'>
-                      {right ? (
-                        <Link href={`/player/${right.playerSlug}`} className='hover:text-sky-700 hover:underline'>
-                          {right.name}
-                        </Link>
-                      ) : (
-                        '-'
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
         </div>
       </CardContent>
     </Card>
@@ -621,6 +559,7 @@ function RatingProgressSummary({ ratedCount, totalCount }: { ratedCount: number;
 function StartedView({ data, state }: { data: MatchDetailData; state: DetailState }) {
   const isFinished = state === 'FINISHED';
   const [shareCopied, setShareCopied] = useState(false);
+  const [showShareCard, setShowShareCard] = useState(false);
   const shareCardRef = useRef<HTMLDivElement | null>(null);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [viewerScoreByPlayerId, setViewerScoreByPlayerId] = useState<Record<string, number>>({});
@@ -634,6 +573,11 @@ function StartedView({ data, state }: { data: MatchDetailData; state: DetailStat
     () => new Set(data.match.players.filter((p) => p.viewerScore !== null).map((p) => p.id)),
   );
   const [ratingComments, setRatingComments] = useState(data.match.ratingComments);
+  const [filterTeam, setFilterTeam] = useState<string | null>(null);
+  const [filterPlayer, setFilterPlayer] = useState<string | null>(null);
+  const [shareCommentId, setShareCommentId] = useState<string | null>(null);
+  const [shareCommentCopied, setShareCommentCopied] = useState(false);
+  const shareCommentCardRef = useRef<HTMLDivElement | null>(null);
   const [likedCommentIds, setLikedCommentIds] = useState<Set<string>>(
     () => new Set(data.match.ratingComments.filter((c) => c.viewerLiked).map((c) => c.id)),
   );
@@ -744,35 +688,43 @@ function StartedView({ data, state }: { data: MatchDetailData; state: DetailStat
     }
   };
 
-  const copyShareCardImage = async () => {
-    const cardElement = shareCardRef.current;
-    if (!cardElement || !navigator.clipboard || typeof window.ClipboardItem === 'undefined') {
-      return;
-    }
-    if (typeof document !== 'undefined' && 'fonts' in document) {
-      await (document as Document & { fonts?: FontFaceSet }).fonts?.ready;
-    }
-    const rect = cardElement.getBoundingClientRect();
-    const blob = await toBlob(cardElement, {
+  const makeBlobFromElement = (el: HTMLDivElement, borderRadius: string) => {
+    const rect = el.getBoundingClientRect();
+    return toBlob(el, {
       cacheBust: true,
       pixelRatio: Math.max(2, window.devicePixelRatio || 1),
       width: Math.round(rect.width),
       height: Math.round(rect.height),
       fetchRequestInit: { cache: 'no-store' },
-      style: {
-        margin: '0',
-        transform: 'none',
-        borderRadius: '22px',
-        overflow: 'hidden',
-      },
-    });
-    if (!blob) {
-      return;
+      style: { margin: '0', transform: 'none', borderRadius, overflow: 'hidden' },
+    }).then((b) => b ?? new Blob([], { type: 'image/png' }));
+  };
+
+  const copyShareCardImage = async () => {
+    const cardElement = shareCardRef.current;
+    if (!cardElement || !navigator.clipboard || typeof window.ClipboardItem === 'undefined') return;
+    if (typeof document !== 'undefined' && 'fonts' in document) {
+      await (document as Document & { fonts?: FontFaceSet }).fonts?.ready;
     }
-    await navigator.clipboard.write([new window.ClipboardItem({ 'image/png': blob })]);
+    const blobPromise = makeBlobFromElement(cardElement, '22px');
+    await navigator.clipboard.write([new window.ClipboardItem({ 'image/png': blobPromise })]);
     setShareCopied(true);
     window.setTimeout(() => setShareCopied(false), 1200);
   };
+
+  const copyCommentShareImage = async () => {
+    const el = shareCommentCardRef.current;
+    if (!el || !navigator.clipboard || typeof window.ClipboardItem === 'undefined') return;
+    if (typeof document !== 'undefined' && 'fonts' in document) {
+      await (document as Document & { fonts?: FontFaceSet }).fonts?.ready;
+    }
+    const blobPromise = makeBlobFromElement(el, '18px');
+    await navigator.clipboard.write([new window.ClipboardItem({ 'image/png': blobPromise })]);
+    setShareCommentCopied(true);
+    window.setTimeout(() => setShareCommentCopied(false), 1200);
+  };
+
+  const shareComment = shareCommentId ? ratingComments.find((c) => c.id === shareCommentId) ?? null : null;
 
   const finishedCards = isFinished ? (
     <>
@@ -811,6 +763,15 @@ function StartedView({ data, state }: { data: MatchDetailData; state: DetailStat
         <div className='space-y-4 px-4 pb-4 pt-4 sm:px-5 sm:pb-5 sm:pt-5'>
           <div className='flex items-center justify-between gap-3'>
             <h2 className='text-xl font-black tracking-[-0.03em] text-white'>선수 평점</h2>
+            {isFinished && (
+              <button
+                type='button'
+                onClick={() => setShowShareCard(true)}
+                className='inline-flex items-center gap-1.5 rounded-full bg-[#3A3A47] px-3 py-1.5 text-[11px] font-semibold !text-white transition hover:bg-[#474756]'
+              >
+                📤 공유 카드
+              </button>
+            )}
           </div>
 
           <RatingProgressSummary ratedCount={ratedCount} totalCount={orderedSelectablePlayers.length} />
@@ -841,9 +802,10 @@ function StartedView({ data, state }: { data: MatchDetailData; state: DetailStat
                       <div className='min-w-0 flex-1'>
                         <div className='truncate text-sm font-bold text-white'>{left.name}</div>
                       </div>
-                      {leftScore !== null && (
-                        <span className='shrink-0 text-xs font-black text-[#A78BFA]'>{leftScore.toFixed(1)}</span>
-                      )}
+                      <div className='shrink-0 text-right'>
+                        {left.ratingCount > 0 && <span className='text-xs font-black text-[#A78BFA]'>{left.rating.toFixed(1)}</span>}
+                        {leftScore !== null && <span className='ml-1 text-[10px] text-[#6B6B80]'>(나 {leftScore.toFixed(1)})</span>}
+                      </div>
                     </button>
                   ) : <div className='px-3 py-3 text-sm text-[#7E89A8]'>-</div>}
                   <div className='flex items-center justify-center border-x border-[#474756]'>
@@ -858,9 +820,10 @@ function StartedView({ data, state }: { data: MatchDetailData; state: DetailStat
                         selectedPlayerId === right.id ? 'bg-[#8B5CF6]/20' : 'hover:bg-[#3A3A47]',
                       )}
                     >
-                      {rightScore !== null && (
-                        <span className='shrink-0 text-xs font-black text-[#A78BFA]'>{rightScore.toFixed(1)}</span>
-                      )}
+                      <div className='shrink-0 text-left'>
+                        {right.ratingCount > 0 && <span className='text-xs font-black text-[#A78BFA]'>{right.rating.toFixed(1)}</span>}
+                        {rightScore !== null && <span className='ml-1 text-[10px] text-[#6B6B80]'>(나 {rightScore.toFixed(1)})</span>}
+                      </div>
                       <div className='min-w-0 flex-1'>
                         <div className='truncate text-sm font-bold text-white'>{right.name}</div>
                       </div>
@@ -915,7 +878,7 @@ function StartedView({ data, state }: { data: MatchDetailData; state: DetailStat
                     {(commentByPlayerId[selPlayer.id] ?? '').length}/50
                   </span>
                 </div>
-                <div className='grid grid-cols-5 gap-2'>
+                <div className='grid grid-cols-10 gap-2'>
                   {(['😭', '😤', '🤣', '😱', '🥹', '🤩', '😮', '🤬', '😴', '🥶'] as const).map((emoji) => (
                     <button
                       key={emoji}
@@ -928,7 +891,7 @@ function StartedView({ data, state }: { data: MatchDetailData; state: DetailStat
                           return { ...prev, [selPlayer.id]: (cur + emoji).slice(0, 50) };
                         });
                       }}
-                      className='flex h-[60px] w-full items-center justify-center rounded-[10px] bg-[#31313C] text-3xl transition hover:bg-[#474756] active:scale-90 disabled:opacity-40'
+                      className='flex aspect-square w-full items-center justify-center rounded-[10px] bg-[#31313C] text-3xl transition hover:bg-[#474756] active:scale-90 disabled:opacity-40'
                     >
                       {emoji}
                     </button>
@@ -970,8 +933,33 @@ function StartedView({ data, state }: { data: MatchDetailData; state: DetailStat
             <h3 className='text-base font-black tracking-[-0.02em] text-white'>반응 피드</h3>
             <span className='text-xs font-semibold text-[#9AA6C9]'>{ratingComments.length > 0 ? `${ratingComments.length}개` : ''}</span>
           </div>
+          {ratingComments.length > 0 && (() => {
+            const commentedPlayerNames = new Set(ratingComments.map((c) => c.playerName));
+            const activePlayers = data.match.players.filter((p) => commentedPlayerNames.has(p.name));
+            const teams = [...new Set(activePlayers.map((p) => p.team))];
+            const teamPlayers = filterTeam ? activePlayers.filter((p) => p.team === filterTeam) : [];
+            const pillCls = (active: boolean) => cn('rounded-full px-2.5 py-1 text-[11px] font-semibold transition', active ? 'bg-[#8B5CF6] text-white' : 'bg-[#3A3A47] !text-[#9AA6C9] hover:bg-[#474756]');
+            return (
+              <div className='mt-2.5 space-y-1.5'>
+                <div className='flex gap-1.5'>
+                  <button type='button' onClick={() => { setFilterTeam(null); setFilterPlayer(null); }} className={pillCls(filterTeam === null)}>전체</button>
+                  {teams.map((t) => (
+                    <button key={t} type='button' onClick={() => { setFilterTeam(t); setFilterPlayer(null); }} className={pillCls(filterTeam === t)}>{t}</button>
+                  ))}
+                </div>
+                {filterTeam && (
+                  <div className='flex flex-wrap gap-1.5'>
+                    <button type='button' onClick={() => setFilterPlayer(null)} className={pillCls(filterPlayer === null)}>전체</button>
+                    {teamPlayers.map((p) => (
+                      <button key={p.id} type='button' onClick={() => setFilterPlayer(p.name)} className={pillCls(filterPlayer === p.name)}>{p.name}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
-        <div className='divide-y divide-[#474756]'>
+        <div className='divide-y divide-[#474756] overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#474756] [&::-webkit-scrollbar-thumb:hover]:bg-[#6B6B80]' style={{ maxHeight: 400 }}>
           {ratingComments.length === 0 ? (
             <div className='px-4 py-8 text-center'>
               <div className='text-2xl'>💬</div>
@@ -979,7 +967,7 @@ function StartedView({ data, state }: { data: MatchDetailData; state: DetailStat
               <div className='mt-1 text-xs text-[#6B6B80]'>평점 저장 시 한 줄 코멘트를 남겨보세요</div>
             </div>
           ) : (
-            ratingComments.map((c) => {
+            ratingComments.filter((c) => (filterTeam === null || c.team === filterTeam) && (filterPlayer === null || c.playerName === filterPlayer)).map((c) => {
               const liked = likedCommentIds.has(c.id);
               return (
                 <div key={c.id} className='flex items-start gap-3 px-4 py-3 sm:px-5'>
@@ -993,18 +981,28 @@ function StartedView({ data, state }: { data: MatchDetailData; state: DetailStat
                     </div>
                     <p className='mt-1 text-sm leading-snug text-white'>{c.text}</p>
                   </div>
-                  <button
-                    type='button'
-                    onClick={() => toggleLike(c.id)}
-                    className={cn(
-                      'mt-0.5 shrink-0 flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-semibold transition',
-                      liked
-                        ? 'bg-[#8B5CF6]/20 text-[#C4B5FD]'
-                        : 'bg-[#3A3A47] text-[#9AA6C9] hover:bg-[#474756] hover:text-white',
-                    )}
-                  >
-                    👍{c.likeCount > 0 ? <span>{c.likeCount}</span> : null}
-                  </button>
+                  <div className='mt-0.5 shrink-0 flex items-center gap-1'>
+                    <button
+                      type='button'
+                      onClick={() => setShareCommentId(c.id)}
+                      className='flex h-7 w-7 items-center justify-center rounded-full bg-[#3A3A47] text-[11px] !text-white transition hover:bg-[#474756]'
+                      title='퍼가기'
+                    >
+                      <svg viewBox='0 0 20 20' fill='none' stroke='currentColor' strokeWidth='1.8' className='h-3.5 w-3.5'><path d='M15 7l-5-4-5 4' /><path d='M10 3v10' /><path d='M4 13v3h12v-3' /></svg>
+                    </button>
+                    <button
+                      type='button'
+                      onClick={() => toggleLike(c.id)}
+                      className={cn(
+                        'flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-semibold transition',
+                        liked
+                          ? 'bg-[#8B5CF6]/20 text-[#C4B5FD]'
+                          : 'bg-[#3A3A47] !text-white hover:bg-[#474756]',
+                      )}
+                    >
+                      👍{c.likeCount > 0 ? <span>{c.likeCount}</span> : null}
+                    </button>
+                  </div>
                 </div>
               );
             })
@@ -1014,817 +1012,164 @@ function StartedView({ data, state }: { data: MatchDetailData; state: DetailStat
 
       {finishedCards}
 
-      {isFinished && <Card>
-        <CardContent className='space-y-3 px-5 pb-5 pt-5 sm:px-6 sm:pb-6 sm:pt-6'>
-          <div className='flex items-center justify-between gap-3'>
-            <div className='text-2xl font-black tracking-[-0.03em] text-slate-950'>공유 카드</div>
-            <button
-              type='button'
-              className='rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-slate-300'
-              onClick={copyShareCardImage}
-            >
-              <span className='inline-flex items-center gap-1.5'>
-                <svg viewBox='0 0 20 20' aria-hidden='true' className='h-3.5 w-3.5' fill='none' stroke='currentColor' strokeWidth='1.8'>
-                  <rect x='3' y='4' width='14' height='12' rx='2' />
-                  <circle cx='8' cy='8' r='1.2' fill='currentColor' stroke='none' />
-                  <path d='M4.8 14l3.6-3 2.8 2.2 2.4-1.8 1.6 2.6' />
-                </svg>
-                {shareCopied ? '이미지 복사됨' : '이미지 복사'}
-              </span>
-            </button>
-          </div>
-          <div data-share-card='true' ref={shareCardRef} className='mx-auto w-full max-w-[392px] aspect-[4/5] overflow-hidden rounded-[22px] border border-slate-200 bg-[#1C1C1F] p-3.5 text-white sm:p-5'>
-            <div className='flex items-center justify-between gap-3'>
-              <div className='inline-flex min-w-0 items-center gap-2'>
-                <span className='inline-flex h-8 w-8 items-center justify-center rounded-xl bg-[#7C3AED] text-[11px] font-black tracking-[-0.03em] text-white sm:h-9 sm:w-9 sm:text-xs'>LPR</span>
-                <span className='truncate text-xs font-bold text-slate-100 sm:text-sm'>LOL PRO RATING</span>
-              </div>
-              <div className='shrink-0 text-right text-[10px] text-slate-300 sm:text-[11px]'>{formatDateTime(data.match.scheduledAt)}</div>
-            </div>
-            <div className='mt-2 text-center text-[11px] font-semibold tracking-[0.14em] text-slate-300 sm:mt-3 sm:text-xs sm:tracking-[0.16em]'>{data.match.league}</div>
-            <div className='mt-1 truncate text-center text-xs font-semibold text-slate-200 sm:text-sm'>{data.match.stage}</div>
-            <div className='mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-2'>
-              <div className='truncate text-center text-base font-black sm:text-lg'>{data.match.teamA}</div>
-              <div className='text-center text-[28px] font-black tracking-[-0.03em] sm:text-4xl'>{data.match.score.replace(' : ', ' - ')}</div>
-              <div className='truncate text-center text-base font-black sm:text-lg'>{data.match.teamB}</div>
-            </div>
-            <div className='mt-5 rounded-[14px] border border-white/20 bg-[#353544] p-2.5 sm:mt-7 sm:p-3.5'>
-              <div className='space-y-3.5 sm:space-y-5'>
-                {ROLE_ORDER.map((role) => {
-                  const left = getPlayerByTeamAndRole(data.match.teamA, role);
-                  const right = getPlayerByTeamAndRole(data.match.teamB, role);
-                  const leftRating = left ? Number(left.rating.toFixed(1)) : null;
-                  const rightRating = right ? Number(right.rating.toFixed(1)) : null;
 
-                  return (
-                    <div key={`share_${role}`} className='grid grid-cols-[minmax(0,1fr)_40px_24px_40px_minmax(0,1fr)] items-center gap-1 text-center sm:grid-cols-[minmax(90px,1fr)_48px_32px_48px_minmax(90px,1fr)] sm:gap-1.5'>
-                      <div className='truncate pl-1 text-left text-[11px] font-semibold text-slate-100 sm:pl-2 sm:text-[12px]'>
-                        {left?.name ?? '-'}
-                      </div>
-                      <div className='rounded-md px-1 py-[2px] text-[10px] font-semibold text-white sm:py-[3px] sm:text-[11px]' style={{ backgroundColor: getShareRatingChipColor(leftRating, rightRating) }}>
-                        {leftRating !== null ? leftRating.toFixed(1) : '-'}
-                      </div>
-                      <div className='flex w-6 items-center justify-center sm:w-8'>
-                        <img src={ROLE_META[role].iconPath} alt={ROLE_META[role].label} width={16} height={16} className='h-4 w-4 translate-x-[1px] object-contain sm:h-[18px] sm:w-[18px]' />
-                      </div>
-                      <div className='rounded-md px-1 py-[2px] text-[10px] font-semibold text-white sm:py-[3px] sm:text-[11px]' style={{ backgroundColor: getShareRatingChipColor(rightRating, leftRating) }}>
-                        {rightRating !== null ? rightRating.toFixed(1) : '-'}
-                      </div>
-                      <div className='truncate pr-1 text-right text-[11px] font-semibold text-slate-100 sm:pr-2 sm:text-[12px]'>
-                        {right?.name ?? '-'}
+      {/* 공유 카드 모달 */}
+      {showShareCard && (() => {
+        const [scoreA, scoreB] = data.match.score.split(' : ').map(Number);
+        const teamAWon = scoreA > scoreB;
+        const teamBWon = scoreB > scoreA;
+        const mvpCandidate = data.match.players.reduce<typeof data.match.players[0] | null>((best, p) => (!best || p.rating > best.rating ? p : best), null);
+        const mvp = mvpCandidate && mvpCandidate.rating > 0 ? mvpCandidate : null;
+        return (
+          <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm' onClick={() => setShowShareCard(false)}>
+            <div className='mx-4 w-full max-w-[392px]' onClick={(e) => e.stopPropagation()}>
+              <div data-share-card='true' ref={shareCardRef} className='relative mx-auto w-full overflow-hidden rounded-[22px] border border-[#2a2a3a] text-white' style={{ background: 'linear-gradient(145deg, #12121a 0%, #1a1230 50%, #0e1a2e 100%)' }}>
+                <div className='absolute inset-0 pointer-events-none' style={{ background: 'radial-gradient(ellipse at top right, rgba(124,58,237,0.18) 0%, transparent 60%)' }} />
+                <div className='relative p-5'>
+                  <div className='flex items-center justify-between gap-3'>
+                    <div className='inline-flex min-w-0 items-center gap-2'>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src='/logo.svg' alt='LPR' className='h-8 w-8' />
+                      <span className='text-xs font-bold text-slate-100'>LOL PRO RATING</span>
+                    </div>
+                    <div className='shrink-0 text-right text-[10px] text-slate-400'>{formatDateTime(data.match.scheduledAt)}</div>
+                  </div>
+                  <div className='mt-3 text-center text-[10px] font-semibold tracking-[0.18em] text-[#A78BFA]'>{data.match.league}</div>
+                  <div className='mt-0.5 truncate text-center text-[11px] font-semibold text-slate-300'>{data.match.stage}</div>
+                  <div className='mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-2'>
+                    <div className='flex flex-col items-center gap-1.5'>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={`/teams/${data.match.teamA}.svg`} alt={data.match.teamA} className='h-10 w-10 object-contain' onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                      <span className={cn('text-sm font-black', teamAWon ? 'text-white' : 'text-slate-400')}>{data.match.teamA}</span>
+                    </div>
+                    <div className='text-center'>
+                      <div className='text-[28px] font-black tracking-[-0.03em]'>
+                        <span className={teamAWon ? 'text-white' : 'text-slate-500'}>{scoreA}</span>
+                        <span className='text-slate-500 mx-1'>-</span>
+                        <span className={teamBWon ? 'text-white' : 'text-slate-500'}>{scoreB}</span>
                       </div>
                     </div>
-                  );
-                })}
+                    <div className='flex flex-col items-center gap-1.5'>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={`/teams/${data.match.teamB}.svg`} alt={data.match.teamB} className='h-10 w-10 object-contain' onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                      <span className={cn('text-sm font-black', teamBWon ? 'text-white' : 'text-slate-400')}>{data.match.teamB}</span>
+                    </div>
+                  </div>
+                  <div className='mt-4 rounded-[14px] border border-white/10 bg-white/5 p-2.5'>
+                    <div className='space-y-2.5'>
+                      {ROLE_ORDER.map((role) => {
+                        const left = getPlayerByTeamAndRole(data.match.teamA, role);
+                        const right = getPlayerByTeamAndRole(data.match.teamB, role);
+                        const leftRating = left ? Number(left.rating.toFixed(1)) : null;
+                        const rightRating = right ? Number(right.rating.toFixed(1)) : null;
+                        const leftIsMvp = mvp && left?.id === mvp.id;
+                        const rightIsMvp = mvp && right?.id === mvp.id;
+                        return (
+                          <div key={`share_${role}`} className='grid grid-cols-[minmax(0,1fr)_40px_24px_40px_minmax(0,1fr)] items-center gap-1 text-center'>
+                            <div className={cn('truncate pl-1 text-left text-[11px] font-semibold', leftIsMvp ? 'text-[#F59E0B]' : 'text-slate-100')}>
+                              {leftIsMvp && <span className='mr-1'>👑</span>}{left?.name ?? '-'}
+                            </div>
+                            <div className='rounded-md px-1 py-[2px] text-[10px] font-semibold text-white' style={{ backgroundColor: getShareRatingChipColor(leftRating, rightRating) }}>
+                              {leftRating !== null ? leftRating.toFixed(1) : '-'}
+                            </div>
+                            <div className='flex w-6 items-center justify-center'>
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={ROLE_META[role].iconPath} alt={ROLE_META[role].label} width={16} height={16} className='h-4 w-4 translate-x-[1px] object-contain' />
+                            </div>
+                            <div className='rounded-md px-1 py-[2px] text-[10px] font-semibold text-white' style={{ backgroundColor: getShareRatingChipColor(rightRating, leftRating) }}>
+                              {rightRating !== null ? rightRating.toFixed(1) : '-'}
+                            </div>
+                            <div className={cn('truncate pr-1 text-right text-[11px] font-semibold', rightIsMvp ? 'text-[#F59E0B]' : 'text-slate-100')}>
+                              {right?.name ?? '-'}{rightIsMvp && <span className='ml-1'>👑</span>}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className='mt-3 flex gap-2'>
+                <button type='button' onClick={copyShareCardImage} className='flex-1 rounded-xl bg-[#8B5CF6] py-2.5 text-sm font-bold text-white transition hover:bg-[#7C3AED]'>
+                  {shareCopied ? '복사됨!' : '이미지 복사'}
+                </button>
+                <button type='button' onClick={() => setShowShareCard(false)} className='rounded-xl bg-[#3A3A47] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#474756]'>
+                  닫기
+                </button>
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>}
-    </div>
-  );
-}
+        );
+      })()}
 
-function CommentInputBar({
-  parentId,
-  placeholder,
-  compact = false,
-  viewer,
-  onCancelReply,
-  onSubmitted,
-  onSubmitComment,
-  onError,
-}: {
-  parentId?: string | null;
-  placeholder: string;
-  compact?: boolean;
-  viewer: MatchDetailViewer;
-  onCancelReply?: () => void;
-  onSubmitted?: () => void;
-  onSubmitComment: (input: { text: string; parentId?: string | null }) => Promise<void>;
-  onError?: (message: string) => void;
-}) {
-  const [text, setText] = useState('');
-  const [pending, setPending] = useState(false);
+      {/* 코멘트 퍼가기 모달 */}
+      {shareComment && (
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm' onClick={() => setShareCommentId(null)}>
+          <div className='mx-4 w-full max-w-[360px]' onClick={(e) => e.stopPropagation()}>
+            <div ref={shareCommentCardRef} className='overflow-hidden rounded-[18px] bg-[#1C1C1F] text-white'>
+              <div className='p-5'>
+                {/* 헤더: 로고 + 리그 */}
+                <div className='flex items-center justify-between gap-3'>
+                  <div className='inline-flex items-center gap-2'>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src='/logo.svg' alt='LPR' className='h-7 w-7' />
+                    <span className='text-[11px] font-bold text-slate-400'>LOL PRO RATING</span>
+                  </div>
+                  <span className='text-[10px] text-slate-500'>{data.match.league} · {data.match.teamA} vs {data.match.teamB}</span>
+                </div>
 
-  const isAuthenticated = Boolean(viewer.id);
-  const hasNickname = Boolean(viewer.hasNickname);
-  const canWrite = isAuthenticated && hasNickname;
-  const avatarLabel = isAuthenticated ? '나' : '';
-  const canSubmit = canWrite && !pending && text.trim().length >= COMMENT_MIN_LENGTH;
+                {/* 선수명 크게 */}
+                <div className='mt-4'>
+                  <div className='text-[11px] font-semibold text-[#A78BFA]'>{shareComment.team}</div>
+                  <div className='text-2xl font-black tracking-[-0.02em]'>{shareComment.playerName}</div>
+                </div>
 
-  const submitComment = async () => {
-    if (!canSubmit) {
-      return;
-    }
-    try {
-      setPending(true);
-      await onSubmitComment({ text, parentId: parentId ?? null });
-      setText('');
-      onSubmitted?.();
-      onCancelReply?.();
-    } catch (error) {
-      onError?.(error instanceof Error ? error.message : '댓글 등록에 실패했습니다.');
-    } finally {
-      setPending(false);
-    }
-  };
+                {/* 코멘트 본문 */}
+                <div className='mt-4 rounded-[14px] bg-[#2a2a36] px-4 py-4'>
+                  <p className='text-[15px] font-semibold leading-relaxed text-white'>{shareComment.text}</p>
+                  <div className='mt-3 flex items-center justify-between'>
+                    <div>
+                      <span className='text-[11px] text-[#6B6B80]'>— {shareComment.user}</span>
+                      <span className='ml-2 text-[11px] text-[#6B6B80]'>{shareComment.score.toFixed(1)}점</span>
+                    </div>
+                    {shareComment.likeCount > 0 && (
+                      <span className='text-[11px] text-[#A78BFA] font-semibold'>👍 {shareComment.likeCount}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
 
-  return (
-    <div
-      className={cn(
-        'relative rounded-[18px] p-2.5',
-        compact ? 'ml-10 mr-2 border border-white/10 bg-[#31313C] sm:ml-14 sm:mr-4' : 'border-none bg-transparent p-0',
-      )}
-    >
-      <div className={cn('flex w-full min-w-0 flex-nowrap justify-start', compact ? 'items-end gap-2' : 'items-start gap-3')}>
-        {!compact ? (
-          <Avatar className='mt-1 h-8 w-8 shrink-0 bg-[#5a3a8a] text-[11px] font-black text-white'>{avatarLabel}</Avatar>
-        ) : null}
-        <div className='relative min-w-0 flex-1'>
-          <input
-            type='text'
-            value={text}
-            onChange={(event) => setText(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                event.preventDefault();
-                void submitComment();
-              }
-            }}
-            maxLength={COMMENT_MAX_LENGTH}
-            className={cn(
-              'block h-12 w-full rounded-[14px] px-4 pr-16 text-[13px] outline-none transition sm:text-[14px]',
-              compact
-                ? '!border !border-white/15 !bg-[#1E1E2E] !text-slate-100 placeholder:!text-slate-300 focus:!border-[#8B5CF6]'
-                : '!border !border-white/15 !bg-[#2a2a3a] !text-slate-100 placeholder:!text-slate-300 focus:!border-[#8B5CF6]',
-            )}
-            placeholder={
-              !isAuthenticated
-                ? '로그인 후 댓글을 작성할 수 있습니다.'
-                : !hasNickname
-                  ? '닉네임 설정 후 댓글을 작성할 수 있습니다.'
-                  : placeholder
-            }
-            disabled={!canWrite || pending}
-          />
-          <div className='absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1'>
-            <Button
-              disabled={!canSubmit}
-              className={cn(
-                'h-6 rounded-[8px] px-2 text-[10px] font-semibold',
-                compact ? 'bg-[#3E365F] text-white' : 'bg-[#3E365F] text-white',
-                canSubmit ? 'opacity-100' : 'opacity-30',
-              )}
-              onClick={() => void submitComment()}
-            >
-              {pending ? '...' : parentId ? '답글' : '등록'}
-            </Button>
-            {onCancelReply ? (
+            {/* 버튼들 */}
+            <div className='mt-3 flex gap-2'>
               <button
                 type='button'
-                className='rounded-[8px] px-2 py-1 text-[10px] font-semibold text-slate-300 hover:text-white'
-                onClick={onCancelReply}
+                onClick={copyCommentShareImage}
+                className='flex-1 rounded-xl bg-[#8B5CF6] py-2.5 text-sm font-bold text-white transition hover:bg-[#7C3AED]'
+              >
+                {shareCommentCopied ? '복사됨!' : '이미지 복사'}
+              </button>
+              <button
+                type='button'
+                onClick={() => setShareCommentId(null)}
+                className='rounded-xl bg-[#3A3A47] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#474756]'
               >
                 닫기
               </button>
-            ) : null}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
 
-function CommentActions({
-  comment,
-  isMine,
-  isAuthenticated,
-  canRecommend,
-  canReply,
-  onReplyToggle,
-  onToggleLike,
-  onDelete,
-  onStartEdit,
-  disabled = false,
-}: {
-  comment: MatchComment;
-  isMine: boolean;
-  isAuthenticated: boolean;
-  canRecommend: boolean;
-  canReply: boolean;
-  onReplyToggle?: () => void;
-  onToggleLike: (commentId: string) => Promise<void>;
-  onDelete: (commentId: string) => Promise<void>;
-  onStartEdit: (comment: MatchComment) => void;
-  disabled?: boolean;
-}) {
-  const router = useRouter();
-  const [likePending, setLikePending] = useState(false);
-  const [deletePending, setDeletePending] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!menuOpen) {
-      return;
-    }
-
-    const handlePointerDown = (event: MouseEvent) => {
-      const target = event.target as Node | null;
-      if (!menuRef.current || !target) {
-        return;
-      }
-      if (!menuRef.current.contains(target)) {
-        setMenuOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handlePointerDown);
-    return () => document.removeEventListener('mousedown', handlePointerDown);
-  }, [menuOpen]);
-
-  return (
-    <div ref={menuRef} className={cn('relative mt-1 flex items-center justify-between gap-2 text-[12px] font-normal', menuOpen ? 'z-30' : 'z-0')}>
-      <div className='flex items-center gap-2'>
-        {canRecommend ? (
-          <button
-            type='button'
-            disabled={likePending || disabled}
-            className={cn(
-              'allow-disabled-cursor inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 font-normal transition',
-              comment.likedByMe ? 'text-[#A56BFF]' : 'text-slate-400 hover:text-slate-200',
-            )}
-            onClick={async () => {
-              if (!isAuthenticated) {
-                router.push('/signin');
-                return;
-              }
-              try {
-                setLikePending(true);
-                await onToggleLike(comment.id);
-              } finally {
-                setLikePending(false);
-              }
-            }}
-          >
-            <span>{comment.likedByMe ? '♥' : '♡'}</span>
-            <span>{comment.likes}</span>
-          </button>
-        ) : null}
-        {canReply ? (
-          <button type='button' className='rounded-full px-1.5 py-0.5 font-normal text-slate-400 hover:text-slate-200' onClick={onReplyToggle}>
-            답글{comment.replyCount > 0 ? ` ${comment.replyCount}` : ''}
-          </button>
-        ) : null}
-      </div>
-      {isMine ? (
-        <>
-          <button
-            type='button'
-            disabled={disabled}
-            className='rounded-full px-1 py-0.5 text-base leading-none text-slate-500 hover:text-slate-300'
-            aria-label='더보기'
-            onClick={() => setMenuOpen((open) => !open)}
-          >
-            …
-          </button>
-          {menuOpen ? (
-            <div className='absolute right-0 top-6 z-50 min-w-[110px] rounded-xl border border-[#2A2B36] bg-[#11131A] p-1.5 shadow-[0_8px_22px_rgba(0,0,0,0.35)]'>
-              <button
-                type='button'
-                disabled={disabled}
-                className='block w-full rounded-lg px-2 py-1.5 text-left text-[11px] text-slate-200 hover:bg-[#1A1D27]'
-                onClick={() => {
-                  onStartEdit(comment);
-                  setMenuOpen(false);
-                }}
-              >
-                수정
-              </button>
-              <button
-                type='button'
-                disabled={deletePending || disabled}
-                className='allow-disabled-cursor block w-full rounded-lg px-2 py-1.5 text-left text-[11px] text-slate-200 hover:bg-[#1A1D27] hover:text-rose-300'
-                onClick={async () => {
-                  const confirmed = window.confirm('이 댓글을 삭제할까요?');
-                  if (!confirmed) {
-                    setMenuOpen(false);
-                    return;
-                  }
-                  try {
-                    setDeletePending(true);
-                    await onDelete(comment.id);
-                  } finally {
-                    setDeletePending(false);
-                    setMenuOpen(false);
-                  }
-                }}
-              >
-                삭제
-              </button>
-            </div>
-          ) : null}
-        </>
-      ) : null}
-    </div>
-  );
-}
-
-function CommentBubble({
-  comment,
-  isMine,
-  isAuthenticated,
-  canReply,
-  canRecommend,
-  onReplyToggle,
-  onToggleLike,
-  onDelete,
-  onStartEdit,
-  isEditing,
-  editDraft,
-  onEditDraftChange,
-  onSaveEdit,
-  onCancelEdit,
-}: {
-  comment: MatchComment;
-  isMine: boolean;
-  isAuthenticated: boolean;
-  canReply: boolean;
-  canRecommend: boolean;
-  onReplyToggle?: () => void;
-  onToggleLike: (commentId: string) => Promise<void>;
-  onDelete: (commentId: string) => Promise<void>;
-  onStartEdit: (comment: MatchComment) => void;
-  isEditing: boolean;
-  editDraft: string;
-  onEditDraftChange: (value: string) => void;
-  onSaveEdit: (commentId: string) => Promise<void>;
-  onCancelEdit: () => void;
-}) {
-  const isReply = !canReply;
-  const trimmedDraft = editDraft.trim();
-  const canSaveEdit = trimmedDraft.length >= COMMENT_MIN_LENGTH && trimmedDraft.length <= COMMENT_MAX_LENGTH && !comment.pending;
-
-  return (
-    <div className='group flex w-full min-w-0 justify-start gap-3'>
-      <Avatar className={cn('mt-1 h-8 w-8 shrink-0 text-[11px] font-bold', isMine ? 'bg-[#5a3a8a] text-white' : 'bg-[#E9E9E6] text-[#353535]')}>
-        {isMine ? '나' : getInitials(comment.user)}
-      </Avatar>
-      <div className='w-full min-w-0'>
-        <div
-          className={cn(
-            'rounded-2xl border px-4 py-3',
-            isMine ? 'border-[#5a3a8a] bg-[#1E1E2E] text-slate-100' : 'border-[0.5px] border-[rgba(255,255,255,0.08)] bg-[#1E1E2E] text-slate-100',
-          )}
-        >
-          <div className='mb-1 flex items-start justify-between gap-2'>
-            <div className='truncate text-[13px] font-medium text-slate-100'>
-              {comment.user}
-            </div>
-            <div className='shrink-0 text-[12px] font-normal text-slate-400'>{comment.createdLabel}</div>
-          </div>
-          {isEditing ? (
-            <div className='space-y-2'>
-              <input
-                type='text'
-                value={editDraft}
-                onChange={(event) => onEditDraftChange(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' && canSaveEdit) {
-                    event.preventDefault();
-                    void onSaveEdit(comment.id);
-                  }
-                  if (event.key === 'Escape') {
-                    event.preventDefault();
-                    onCancelEdit();
-                  }
-                }}
-                maxLength={COMMENT_MAX_LENGTH}
-                className='block h-10 w-full rounded-[12px] border border-white/15 bg-[#262638] px-3 text-[13px] text-slate-100 outline-none transition focus:border-[#8B5CF6] sm:text-[14px]'
-                autoFocus
-              />
-              <div className='flex justify-end gap-1'>
-                <button type='button' className='rounded-[8px] px-2 py-1 text-[10px] font-semibold text-slate-300 hover:text-white' onClick={onCancelEdit}>
-                  취소
-                </button>
-                <Button
-                  disabled={!canSaveEdit}
-                  className={cn('h-6 rounded-[8px] px-2 text-[10px] font-semibold text-white', canSaveEdit ? 'bg-[#3E365F] opacity-100' : 'bg-[#3E365F] opacity-30')}
-                  onClick={() => void onSaveEdit(comment.id)}
-                >
-                  저장
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <p className={cn('whitespace-pre-wrap break-words [overflow-wrap:anywhere] font-normal leading-[1.6]', isReply ? 'text-[13px]' : 'text-[14px]', comment.pending ? 'opacity-70' : '')}>
-              {comment.text}
-            </p>
-          )}
-        </div>
-        {!isEditing ? (
-          <div className='mt-[2px] w-full px-1'>
-            <CommentActions
-              comment={comment}
-              isMine={isMine}
-              isAuthenticated={isAuthenticated}
-              canRecommend={canRecommend}
-              canReply={canReply}
-              onReplyToggle={onReplyToggle}
-              onToggleLike={onToggleLike}
-              onDelete={onDelete}
-              onStartEdit={onStartEdit}
-              disabled={Boolean(comment.pending)}
-            />
-          </div>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
-function CommentThread({
-  comment,
-  replies,
-  viewer,
-  viewerId,
-  isAuthenticated,
-  editingCommentId,
-  editDraft,
-  onEditDraftChange,
-  onSaveEdit,
-  onCancelEdit,
-  onStartEdit,
-  onToggleLike,
-  onDelete,
-  onSubmitComment,
-  onError,
-}: {
-  comment: MatchComment;
-  replies: MatchComment[];
-  viewer: MatchDetailViewer;
-  viewerId: string | null;
-  isAuthenticated: boolean;
-  editingCommentId: string | null;
-  editDraft: string;
-  onEditDraftChange: (value: string) => void;
-  onSaveEdit: (commentId: string) => Promise<void>;
-  onCancelEdit: () => void;
-  onStartEdit: (comment: MatchComment) => void;
-  onToggleLike: (commentId: string) => Promise<void>;
-  onDelete: (commentId: string) => Promise<void>;
-  onSubmitComment: (input: { text: string; parentId?: string | null }) => Promise<void>;
-  onError: (message: string) => void;
-}) {
-  const [replyOpen, setReplyOpen] = useState(false);
-  const isMine = Boolean(viewerId && comment.userId && viewerId === comment.userId);
-  const orderedReplies = replies.slice().reverse();
-
-  return (
-    <div className='space-y-2'>
-      <CommentBubble
-        comment={comment}
-        isMine={isMine}
-        isAuthenticated={isAuthenticated}
-        canReply
-        canRecommend
-        onReplyToggle={() => setReplyOpen((value) => !value)}
-        onToggleLike={onToggleLike}
-        onDelete={onDelete}
-        onStartEdit={onStartEdit}
-        isEditing={editingCommentId === comment.id}
-        editDraft={editingCommentId === comment.id ? editDraft : comment.text}
-        onEditDraftChange={onEditDraftChange}
-        onSaveEdit={onSaveEdit}
-        onCancelEdit={onCancelEdit}
-      />
-
-      {replyOpen ? (
-        <CommentInputBar
-          parentId={comment.id}
-          placeholder=''
-          compact
-          viewer={viewer}
-          onCancelReply={() => setReplyOpen(false)}
-          onSubmitted={() => setReplyOpen(false)}
-          onSubmitComment={onSubmitComment}
-          onError={onError}
-        />
-      ) : null}
-
-      {orderedReplies.length > 0 ? (
-        <div className='ml-6 space-y-2 border-l border-[#3A3342] pl-3 sm:ml-10 sm:pl-4'>
-          {orderedReplies.map((reply) => {
-            const replyIsMine = Boolean(viewerId && reply.userId && viewerId === reply.userId);
-            return (
-              <CommentBubble
-                key={reply.id}
-                comment={reply}
-                isMine={replyIsMine}
-                isAuthenticated={isAuthenticated}
-                canReply={false}
-                canRecommend={false}
-                onToggleLike={onToggleLike}
-                onDelete={onDelete}
-                onStartEdit={onStartEdit}
-                isEditing={editingCommentId === reply.id}
-                editDraft={editingCommentId === reply.id ? editDraft : reply.text}
-                onEditDraftChange={onEditDraftChange}
-                onSaveEdit={onSaveEdit}
-                onCancelEdit={onCancelEdit}
-              />
-            );
-          })}
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-function CommentsSection({ data, viewer }: { data: MatchDetailData; viewer: MatchDetailViewer }) {
-  const [sort, setSort] = useState<CommentSort>('latest');
-  const [commentItems, setCommentItems] = useState<MatchComment[]>(data.match.commentsList);
-  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
-  const [editDraft, setEditDraft] = useState('');
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const toastTimerRef = useRef<number | null>(null);
-  const viewerId = viewer.id;
-  const viewerNickname = viewer.nickname ?? viewer.name ?? '나';
-  const isAuthenticated = Boolean(viewer.id);
-
-  useEffect(() => {
-    setCommentItems(data.match.commentsList);
-  }, [data.match.commentsList]);
-
-  useEffect(() => {
-    return () => {
-      if (toastTimerRef.current) {
-        window.clearTimeout(toastTimerRef.current);
-      }
-    };
-  }, []);
-
-  const showToast = (message: string) => {
-    setToastMessage(message);
-    if (toastTimerRef.current) {
-      window.clearTimeout(toastTimerRef.current);
-    }
-    toastTimerRef.current = window.setTimeout(() => setToastMessage(null), 2000);
-  };
-
-  const rootComments = useMemo(() => {
-    const roots = commentItems.filter((comment) => !comment.parentId);
-    if (sort === 'top') {
-      return roots.slice().sort((a, b) => b.likes - a.likes);
-    }
-    return roots;
-  }, [commentItems, sort]);
-
-  const repliesByParent = useMemo(() => {
-    const map = new Map<string, MatchComment[]>();
-    for (const comment of commentItems) {
-      if (!comment.parentId) {
-        continue;
-      }
-      const list = map.get(comment.parentId) ?? [];
-      list.push(comment);
-      map.set(comment.parentId, list);
-    }
-    return map;
-  }, [commentItems]);
-
-  const handleSubmitComment = async ({ text, parentId }: { text: string; parentId?: string | null }) => {
-    if (!viewerId) {
-      throw new Error('로그인이 필요합니다.');
-    }
-
-    const optimisticId = `temp_comment_${crypto.randomUUID()}`;
-    const optimisticComment: MatchComment = {
-      id: optimisticId,
-      userId: viewerId,
-      parentId: parentId ?? null,
-      user: viewerNickname,
-      userSummary: null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      createdLabel: '방금 전',
-      likes: 0,
-      likedByMe: false,
-      replyCount: 0,
-      text: text.trim(),
-      tag: '',
-      pending: true,
-      isOptimistic: true,
-    };
-
-    setCommentItems((current) => {
-      const next = [optimisticComment, ...current];
-      if (!parentId) {
-        return next;
-      }
-      return next.map((item) => (item.id === parentId ? { ...item, replyCount: item.replyCount + 1 } : item));
-    });
-
-    try {
-      const payload = await postJson<{ ok: true; comment: MatchComment }>(`/api/matches/${data.match.id}/comments`, {
-        text,
-        parentId: parentId ?? null,
-      });
-      setCommentItems((current) => current.map((item) => (item.id === optimisticId ? payload.comment : item)));
-    } catch (error) {
-      setCommentItems((current) => {
-        const filtered = current.filter((item) => item.id !== optimisticId);
-        if (!parentId) {
-          return filtered;
-        }
-        return filtered.map((item) => (item.id === parentId ? { ...item, replyCount: Math.max(0, item.replyCount - 1) } : item));
-      });
-      throw error;
-    }
-  };
-
-  const handleToggleLike = async (commentId: string) => {
-    const target = commentItems.find((item) => item.id === commentId);
-    if (!target) {
-      return;
-    }
-    const previousLiked = target.likedByMe;
-    const previousLikes = target.likes;
-
-    setCommentItems((current) =>
-      current.map((item) =>
-        item.id === commentId
-          ? { ...item, likedByMe: !item.likedByMe, likes: Math.max(0, item.likes + (item.likedByMe ? -1 : 1)) }
-          : item,
-      ),
-    );
-
-    try {
-      const payload = await postJson<{ ok: true; likedByMe: boolean; likes: number }>(
-        `/api/matches/${data.match.id}/comments/${commentId}/recommend`,
-        {},
-      );
-      setCommentItems((current) => current.map((item) => (item.id === commentId ? { ...item, likedByMe: payload.likedByMe, likes: payload.likes } : item)));
-    } catch (error) {
-      setCommentItems((current) => current.map((item) => (item.id === commentId ? { ...item, likedByMe: previousLiked, likes: previousLikes } : item)));
-      showToast(error instanceof Error ? error.message : '좋아요 처리에 실패했습니다.');
-    }
-  };
-
-  const handleDeleteComment = async (commentId: string) => {
-    const snapshot = commentItems;
-    const target = snapshot.find((item) => item.id === commentId);
-    if (!target) {
-      return;
-    }
-
-    const deletedIds = new Set<string>([commentId]);
-    if (!target.parentId) {
-      for (const item of snapshot) {
-        if (item.parentId === commentId) {
-          deletedIds.add(item.id);
-        }
-      }
-    }
-
-    setCommentItems((current) => {
-      const filtered = current.filter((item) => !deletedIds.has(item.id));
-      if (!target.parentId) {
-        return filtered;
-      }
-      return filtered.map((item) => (item.id === target.parentId ? { ...item, replyCount: Math.max(0, item.replyCount - 1) } : item));
-    });
-    if (editingCommentId && deletedIds.has(editingCommentId)) {
-      setEditingCommentId(null);
-      setEditDraft('');
-    }
-
-    try {
-      await deleteJson<{ ok: true; commentId: string }>(`/api/matches/${data.match.id}/comments/${commentId}`);
-    } catch (error) {
-      setCommentItems(snapshot);
-      showToast(error instanceof Error ? error.message : '댓글 삭제에 실패했습니다.');
-    }
-  };
-
-  const handleStartEdit = (comment: MatchComment) => {
-    setEditingCommentId(comment.id);
-    setEditDraft(comment.text);
-  };
-
-  const handleCancelEdit = () => {
-    setEditingCommentId(null);
-    setEditDraft('');
-  };
-
-  const handleSaveEdit = async (commentId: string) => {
-    const trimmed = editDraft.trim();
-    if (trimmed.length < COMMENT_MIN_LENGTH) {
-      showToast(`댓글은 ${COMMENT_MIN_LENGTH}자 이상 작성해 주세요.`);
-      return;
-    }
-
-    const target = commentItems.find((item) => item.id === commentId);
-    if (!target) {
-      return;
-    }
-    const previousText = target.text;
-    const previousUpdatedAt = target.updatedAt;
-
-    setCommentItems((current) => current.map((item) => (item.id === commentId ? { ...item, text: trimmed, updatedAt: new Date().toISOString() } : item)));
-    setEditingCommentId(null);
-    setEditDraft('');
-
-    try {
-      const payload = await patchJson<{ ok: true; comment: MatchComment }>(`/api/matches/${data.match.id}/comments/${commentId}`, { text: trimmed });
-      setCommentItems((current) => current.map((item) => (item.id === commentId ? payload.comment : item)));
-    } catch (error) {
-      setCommentItems((current) => current.map((item) => (item.id === commentId ? { ...item, text: previousText, updatedAt: previousUpdatedAt } : item)));
-      setEditingCommentId(commentId);
-      setEditDraft(previousText);
-      showToast(error instanceof Error ? error.message : '댓글 수정에 실패했습니다.');
-    }
-  };
-
-  return (
-    <Card className='overflow-visible border border-[#1E1E27] bg-[#07080D]'>
-      <CardContent className='space-y-4 px-4 pb-5 pt-6 text-[#E5E7EB] sm:px-6 sm:pb-6'>
-        <div className='flex items-end justify-between gap-3'>
-          <div className='flex items-center gap-3 text-[13px] text-slate-300'>
-            <span className='font-semibold'>정렬</span>
-            <button
-              type='button'
-              className={cn(
-                'rounded-2xl border px-4 py-1.5 font-semibold',
-                sort === 'latest' ? 'border-[#2A2B36] bg-[#0D0E16] text-white' : 'border-[#2A2B36] bg-transparent text-slate-500',
-              )}
-              onClick={() => setSort('latest')}
-            >
-              최신순
-            </button>
-            <button
-              type='button'
-              className={cn(
-                'rounded-2xl border px-4 py-1.5 font-semibold',
-                sort === 'top' ? 'border-[#2A2B36] bg-[#0D0E16] text-white' : 'border-[#2A2B36] bg-transparent text-slate-500',
-              )}
-              onClick={() => setSort('top')}
-            >
-              추천순
-            </button>
-          </div>
-          <div className='text-[13px] font-semibold text-slate-300'>댓글 {rootComments.length}개</div>
-        </div>
-
-        <div className='mx-auto max-w-6xl'>
-          <CommentInputBar viewer={viewer} placeholder='댓글을 입력하세요...' onSubmitComment={handleSubmitComment} onError={showToast} />
-        </div>
-
-        <div className='rounded-[20px] border border-[#1E1E27] bg-transparent p-0'>
-          {rootComments.length === 0 ? (
-            <div className='py-8 text-center text-sm text-slate-500'>아직 대화가 없습니다.</div>
-          ) : (
-            <div className='mx-auto max-w-6xl space-y-4'>
-              {rootComments.map((comment) => (
-                <div key={comment.id} className='border-b border-[rgba(255,255,255,0.06)] pb-4 last:border-b-0'>
-                  <CommentThread
-                    comment={comment}
-                    replies={repliesByParent.get(comment.id) ?? []}
-                    viewer={viewer}
-                    viewerId={viewerId}
-                    isAuthenticated={isAuthenticated}
-                    editingCommentId={editingCommentId}
-                    editDraft={editDraft}
-                    onEditDraftChange={setEditDraft}
-                    onSaveEdit={handleSaveEdit}
-                    onCancelEdit={handleCancelEdit}
-                    onStartEdit={handleStartEdit}
-                    onToggleLike={handleToggleLike}
-                    onDelete={handleDeleteComment}
-                    onSubmitComment={handleSubmitComment}
-                    onError={showToast}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-        {toastMessage ? (
-          <div className='pointer-events-none fixed bottom-6 right-6 z-[80] rounded-lg bg-[#232633] px-3 py-1.5 text-[11px] font-medium text-slate-100 shadow-[0_8px_20px_rgba(0,0,0,0.35)]'>
-            {toastMessage}
-          </div>
-        ) : null}
-      </CardContent>
-    </Card>
-  );
-}
 
 function BottomFixedCta({ state }: { state: DetailState }) {
   return null;
 }
 
-export function MatchDetailStateView({ data, viewer }: { data: MatchDetailData; viewer: MatchDetailViewer }) {
+export function MatchDetailStateView({ data }: { data: MatchDetailData }) {
   const state = resolveDetailState(data.match);
 
   return (
@@ -1834,7 +1179,6 @@ export function MatchDetailStateView({ data, viewer }: { data: MatchDetailData; 
       {state === 'PRE_MATCH' ? <PreMatchView data={data} /> : null}
       {state === 'LIVE' || state === 'FINISHED' ? <StartedView data={data} state={state} /> : null}
 
-      <CommentsSection data={data} viewer={viewer} />
       <BottomFixedCta state={state} />
     </div>
   );

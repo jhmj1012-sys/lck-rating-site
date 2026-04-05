@@ -23,15 +23,7 @@ export default async function MatchDetailPage({
     <main className="match-detail-theme app-shell min-h-screen bg-[#1C1C1F] pb-8">
       <TopSiteNav active="match" notifications={[]} unreadNotificationCount={0} maxWidthClass="max-w-5xl" />
       <div className="mx-auto mt-6 max-w-5xl space-y-6 px-4 sm:px-6">
-        <MatchDetailStateView
-          data={data}
-          viewer={{
-            id: session?.user?.id ?? null,
-            nickname: session?.user?.nickname ?? null,
-            name: session?.user?.name ?? null,
-            hasNickname: session?.user?.hasNickname ?? false,
-          }}
-        />
+        <MatchDetailStateView data={data} />
       </div>
     </main>
   );

@@ -195,6 +195,20 @@
       "selectedProfileTheme": null,
       "createdAt": "2026-04-04T19:22:22.646Z",
       "updatedAt": "2026-04-04T19:22:26.734Z"
+    },
+    {
+      "id": "user_15",
+      "email": "guest_1df78bb2c61c46c1b35a3c31ca59f525@guest.local",
+      "name": "게스트1df7",
+      "nickname": "게스트1df7",
+      "nicknameOnboardingSeen": true,
+      "nicknameUpdatedAt": "2026-04-05T05:16:32.009Z",
+      "bio": null,
+      "image": null,
+      "role": "user",
+      "selectedProfileTheme": null,
+      "createdAt": "2026-04-05T05:16:32.009Z",
+      "updatedAt": "2026-04-05T06:09:19.991Z"
     }
   ],
   "teams": [
@@ -2365,12 +2379,12 @@
       "league": "LCK 2026",
       "stage": "정규시즌 1R",
       "patch": "15.7",
-      "status": "scheduled",
-      "scheduledAt": "2026-04-01T17:00:00+09:00",
+      "status": "finished",
+      "scheduledAt": "2026-04-01T17:00",
       "teamAId": "team_hle",
       "teamBId": "team_bro",
-      "scoreA": null,
-      "scoreB": null,
+      "scoreA": 0,
+      "scoreB": 0,
       "predictionLocked": true,
       "predictionLockedAt": "2026-04-01T07:50:00.000Z",
       "lockedDistribution": {
@@ -2388,9 +2402,9 @@
           "hitBonusCoins": 40
         }
       },
-      "predictionSettledAt": null,
+      "predictionSettledAt": "2026-04-05T05:27:38.921Z",
       "createdAt": "2026-03-27T10:00:00+09:00",
-      "updatedAt": "2026-04-04T19:09:19.786Z"
+      "updatedAt": "2026-04-05T05:27:38.882Z"
     },
     {
       "id": "match_2",
@@ -16152,7 +16166,36 @@
       "teamId": "team_ns"
     }
   ],
-  "predictions": [],
+  "predictions": [
+    {
+      "id": "prediction_1",
+      "userId": "user_15",
+      "matchId": "match_9",
+      "teamId": "team_dns",
+      "createdAt": "2026-04-05T06:09:18.641Z",
+      "updatedAt": "2026-04-05T06:09:20.001Z",
+      "joinedRewardGrantedAt": "2026-04-05T06:09:18.641Z",
+      "settledAt": null,
+      "settlementResult": null,
+      "settlementCoins": 0,
+      "appliedOddsPercent": null,
+      "wasUnderdogPick": null
+    },
+    {
+      "id": "prediction_2",
+      "userId": "user_14",
+      "matchId": "match_9",
+      "teamId": "team_dns",
+      "createdAt": "2026-04-05T06:16:35.554Z",
+      "updatedAt": "2026-04-05T06:16:35.554Z",
+      "joinedRewardGrantedAt": "2026-04-05T06:16:35.554Z",
+      "settledAt": null,
+      "settlementResult": null,
+      "settlementCoins": 0,
+      "appliedOddsPercent": null,
+      "wasUnderdogPick": null
+    }
+  ],
   "seasonPredictionQuestions": [
     {
       "id": "season_question_1",
@@ -16391,7 +16434,8 @@
         "seed_u11",
         "seed_u5",
         "seed_u4",
-        "seed_u12"
+        "seed_u12",
+        "user_14"
       ],
       "updatedAt": "2026-04-02T12:03:00.000Z"
     },
@@ -16462,7 +16506,8 @@
         "seed_u11",
         "seed_u7",
         "seed_u8",
-        "seed_u5"
+        "seed_u5",
+        "user_14"
       ],
       "updatedAt": "2026-04-02T12:05:00.000Z"
     },
@@ -16517,7 +16562,8 @@
         "seed_u1",
         "seed_u3",
         "seed_u8",
-        "seed_u11"
+        "seed_u11",
+        "user_14"
       ],
       "updatedAt": "2026-04-02T12:08:00.000Z"
     },
@@ -16569,7 +16615,8 @@
         "seed_u1",
         "seed_u7",
         "seed_u3",
-        "seed_u11"
+        "seed_u11",
+        "user_14"
       ],
       "updatedAt": "2026-04-02T12:06:00.000Z"
     },
@@ -16583,7 +16630,8 @@
       "createdAt": "2026-04-02T12:14:00.000Z",
       "recommendUserIds": [
         "seed_u8",
-        "seed_u1"
+        "seed_u1",
+        "user_14"
       ],
       "updatedAt": "2026-04-02T12:14:00.000Z"
     },
@@ -16908,6 +16956,116 @@
       "createdAt": "2026-04-04T19:18:16.646Z",
       "updatedAt": "2026-04-04T19:18:16.646Z",
       "recommendUserIds": []
+    },
+    {
+      "id": "rating_41",
+      "userId": "user_15",
+      "matchId": "match_4",
+      "playerId": "player_krx_1",
+      "score": 1,
+      "comment": "🥹ㅎㅎㅎㅎㅎㅋㅋㅋ 😱",
+      "createdAt": "2026-04-05T05:16:32.020Z",
+      "updatedAt": "2026-04-05T05:16:57.069Z",
+      "recommendUserIds": []
+    },
+    {
+      "id": "rating_42",
+      "userId": "user_15",
+      "matchId": "match_1",
+      "playerId": "player_hle_1",
+      "score": 9,
+      "comment": "",
+      "createdAt": "2026-04-05T06:02:05.977Z",
+      "updatedAt": "2026-04-05T06:02:28.189Z",
+      "recommendUserIds": []
+    },
+    {
+      "id": "rating_43",
+      "userId": "user_15",
+      "matchId": "match_1",
+      "playerId": "player_hle_3",
+      "score": 10,
+      "comment": "🤩",
+      "createdAt": "2026-04-05T06:02:10.848Z",
+      "updatedAt": "2026-04-05T06:02:10.848Z",
+      "recommendUserIds": []
+    },
+    {
+      "id": "rating_44",
+      "userId": "user_15",
+      "matchId": "match_1",
+      "playerId": "player_bro_1",
+      "score": 3,
+      "comment": "",
+      "createdAt": "2026-04-05T06:02:28.202Z",
+      "updatedAt": "2026-04-05T06:02:28.202Z",
+      "recommendUserIds": []
+    },
+    {
+      "id": "rating_45",
+      "userId": "user_15",
+      "matchId": "match_1",
+      "playerId": "player_hle_5",
+      "score": 9,
+      "comment": "",
+      "createdAt": "2026-04-05T06:02:28.224Z",
+      "updatedAt": "2026-04-05T06:02:28.224Z",
+      "recommendUserIds": []
+    },
+    {
+      "id": "rating_46",
+      "userId": "user_15",
+      "matchId": "match_1",
+      "playerId": "player_bro_5",
+      "score": 4,
+      "comment": "",
+      "createdAt": "2026-04-05T06:02:28.252Z",
+      "updatedAt": "2026-04-05T06:02:28.252Z",
+      "recommendUserIds": []
+    },
+    {
+      "id": "rating_47",
+      "userId": "user_15",
+      "matchId": "match_1",
+      "playerId": "player_hle_8",
+      "score": 10,
+      "comment": "",
+      "createdAt": "2026-04-05T06:02:28.283Z",
+      "updatedAt": "2026-04-05T06:02:28.283Z",
+      "recommendUserIds": []
+    },
+    {
+      "id": "rating_48",
+      "userId": "user_15",
+      "matchId": "match_1",
+      "playerId": "player_bro_8",
+      "score": 1,
+      "comment": "",
+      "createdAt": "2026-04-05T06:02:28.299Z",
+      "updatedAt": "2026-04-05T06:02:28.299Z",
+      "recommendUserIds": []
+    },
+    {
+      "id": "rating_49",
+      "userId": "user_15",
+      "matchId": "match_1",
+      "playerId": "player_hle_10",
+      "score": 5,
+      "comment": "",
+      "createdAt": "2026-04-05T06:02:28.336Z",
+      "updatedAt": "2026-04-05T06:02:28.336Z",
+      "recommendUserIds": []
+    },
+    {
+      "id": "rating_50",
+      "userId": "user_15",
+      "matchId": "match_1",
+      "playerId": "player_bro_10",
+      "score": 2,
+      "comment": "",
+      "createdAt": "2026-04-05T06:02:28.350Z",
+      "updatedAt": "2026-04-05T06:02:28.350Z",
+      "recommendUserIds": []
     }
   ],
   "comments": [],
@@ -17054,9 +17212,58 @@
       "referenceId": "user_13",
       "createdAt": "2026-04-04T19:17:36.477Z",
       "balanceAfter": 8
+    },
+    {
+      "id": "ledger_14",
+      "userId": "user_14",
+      "type": "earn",
+      "amount": 0,
+      "reason": "기존 활동 코인 이관",
+      "referenceType": "migration",
+      "referenceId": "user_14",
+      "createdAt": "2026-04-05T05:16:32.005Z",
+      "balanceAfter": 0
+    },
+    {
+      "id": "ledger_15",
+      "userId": "user_15",
+      "type": "earn",
+      "amount": 8,
+      "reason": "기존 활동 코인 이관",
+      "referenceType": "migration",
+      "referenceId": "user_15",
+      "createdAt": "2026-04-05T05:16:57.050Z",
+      "balanceAfter": 8
+    },
+    {
+      "id": "ledger_16",
+      "userId": "user_14",
+      "type": "earn",
+      "amount": 10,
+      "reason": "경기 예측 참여 코인",
+      "referenceType": "prediction_submit",
+      "referenceId": "prediction_2",
+      "createdAt": "2026-04-05T06:16:35.554Z",
+      "balanceAfter": 10
     }
   ],
-  "notifications": [],
+  "notifications": [
+    {
+      "id": "notification_1",
+      "userId": "user_14",
+      "type": "prediction_joined",
+      "title": "NS vs DNS 예측 참여 완료",
+      "body": "DNS 선택이 저장되어 +10 Coin을 획득했습니다.",
+      "relatedMatchId": "match_9",
+      "createdAt": "2026-04-05T06:16:35.554Z",
+      "isRead": false,
+      "rewardCoins": 10,
+      "appliedOddsPercent": null,
+      "metadata": {
+        "selectedTeam": "DNS"
+      }
+    }
+  ],
   "profileStoreItems": [
     {
       "id": "store_title_shotcaller",
@@ -17085,20 +17292,20 @@
   ],
   "userInventory": [],
   "nextIds": {
-    "users": 15,
+    "users": 16,
     "teams": 12,
     "players": 111,
     "teamRosterEntries": 111,
     "matches": 96,
     "matchParticipants": 1981,
-    "predictions": 1,
+    "predictions": 3,
     "seasonPredictionQuestions": 4,
     "seasonPredictionOptions": 23,
     "seasonPredictionEntries": 1,
-    "playerRatings": 41,
+    "playerRatings": 51,
     "comments": 1,
-    "pointLedger": 14,
-    "notifications": 1,
+    "pointLedger": 17,
+    "notifications": 2,
     "profileStoreItems": 4,
     "userInventory": 1
   }
