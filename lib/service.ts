@@ -80,7 +80,9 @@ const COINS = {
   predictionHit: 5,
   commentSubmit: 4,
   legacyRatingSubmit: 8,
-  setRatingPerPlayer: 2,
+  setRatingPerPlayer: 4,
+  ratingCommentBonus: 1,
+  ratingFullMatchBonus: 20,
 } as const;
 
 function getNowMs() {
@@ -2806,34 +2808,92 @@ export async function submitPlayerRating(input: {
       existing.updatedAt = new Date().toISOString();
       return {
         ratingComment: buildMatchRatingCommentView(store, existing.id, input.viewerId),
+        coinsEarned: 0,
       };
     }
 
     const ratingId = createId(store, "playerRatings", "rating");
+    const trimmedComment = input.comment.trim();
     store.playerRatings.push({
       id: ratingId,
       userId: input.viewerId,
       matchId: input.matchId,
       playerId: input.playerId,
       score: clampScore(input.score),
-      comment: input.comment.trim(),
+      comment: trimmedComment,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
 
+    let coinsEarned = 0;
+
     if (!isGuestUserId(store, input.viewerId)) {
+      // 선수당 기본 코인
+      coinsEarned += COINS.setRatingPerPlayer;
       appendPointLedgerEntry(store, {
         userId: input.viewerId,
         type: "earn",
-        amount: COINS.legacyRatingSubmit,
-        reason: "경기 평점 참여 코인",
+        amount: COINS.setRatingPerPlayer,
+        reason: "선수 평점 참여 코인",
         referenceType: "player_rating_submit",
         referenceId: ratingId,
       });
+
+      // 코멘트 추가 코인
+      if (trimmedComment.length > 0) {
+        coinsEarned += COINS.ratingCommentBonus;
+        appendPointLedgerEntry(store, {
+          userId: input.viewerId,
+          type: "earn",
+          amount: COINS.ratingCommentBonus,
+          reason: "평점 코멘트 보너스 코인",
+          referenceType: "player_rating_comment",
+          referenceId: ratingId,
+        });
+      }
+
+      // 10명 완주 보너스 (1회한)
+      const alreadyGotFullBonus = store.pointLedger.some(
+        (e) => e.referenceType === "rating_full_match_bonus" && e.referenceId === input.matchId && e.userId === input.viewerId,
+      );
+      if (!alreadyGotFullBonus) {
+        const allMatchPlayerIds = store.matchParticipants
+          .filter((p) => p.matchId === input.matchId)
+          .map((p) => p.playerId);
+        const ratedPlayerIds = new Set(
+          store.playerRatings
+            .filter((r) => r.matchId === input.matchId && r.userId === input.viewerId)
+            .map((r) => r.playerId),
+        );
+        const allRated = allMatchPlayerIds.length > 0 && allMatchPlayerIds.every((id) => ratedPlayerIds.has(id));
+        if (allRated) {
+          coinsEarned += COINS.ratingFullMatchBonus;
+          appendPointLedgerEntry(store, {
+            userId: input.viewerId,
+            type: "earn",
+            amount: COINS.ratingFullMatchBonus,
+            reason: "경기 전원 평점 완주 보너스",
+            referenceType: "rating_full_match_bonus",
+            referenceId: input.matchId,
+          });
+          createNotification(store, {
+            userId: input.viewerId,
+            type: "coin_earned",
+            title: "완주 보너스 🎉",
+            body: `경기 내 모든 선수 평점을 완료해 ${COINS.ratingFullMatchBonus}코인을 추가로 획득했습니다!`,
+            relatedMatchId: input.matchId,
+            isRead: false,
+            rewardCoins: COINS.ratingFullMatchBonus,
+            appliedOddsPercent: null,
+            metadata: {},
+          });
+        }
+      }
     }
 
     return {
       ratingComment: buildMatchRatingCommentView(store, ratingId, input.viewerId),
+      coinsEarned,
     };
   });
 }

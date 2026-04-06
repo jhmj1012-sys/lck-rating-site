@@ -659,7 +659,9 @@ async function replaceSupabaseCollectionRows<K extends StoreCollectionKey>(
     .map((row) => row.id)
     .filter((id) => !desiredIds.has(id));
 
-  for (const batch of chunkArray(rows, 500)) {
+  const uniqueRows = [...new Map(rows.map((r) => [r.id, r])).values()];
+
+  for (const batch of chunkArray(uniqueRows, 500)) {
     if (batch.length === 0) {
       continue;
     }

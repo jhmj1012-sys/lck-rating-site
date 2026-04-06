@@ -21,6 +21,8 @@ const ROLE_META: Record<'TOP' | 'JGL' | 'MID' | 'ADC' | 'SUP', { iconPath: strin
   ADC: { iconPath: '/icons/positions/icon-position-bottom-disabled.png', label: '원딜' },
   SUP: { iconPath: '/icons/positions/icon-position-utility-disabled.png', label: '서폿' },
 };
+const TEAM_CODES = ['T1', 'HLE', 'GEN', 'DK', 'KT', 'BRO', 'NS', 'KRX', 'DNS', 'BFX'] as const;
+const TEAM_TOKEN_RE = new RegExp(`\\[(${TEAM_CODES.join('|')})\\]`, 'g');
 
 function resolveDetailState(match: MatchData): DetailState {
   if (match.status === 'finished') {
@@ -556,8 +558,18 @@ function RatingProgressSummary({ ratedCount, totalCount }: { ratedCount: number;
   );
 }
 
+function renderCommentText(text: string): React.ReactNode {
+  const parts = text.split(TEAM_TOKEN_RE);
+  return parts.map((part, i) =>
+    (TEAM_CODES as readonly string[]).includes(part)
+      ? <img key={i} src={`/teams/${part}.svg`} alt={part} className='inline h-[1.1em] w-[1.1em] object-contain align-middle' />
+      : part,
+  );
+}
+
 function StartedView({ data, state }: { data: MatchDetailData; state: DetailState }) {
   const isFinished = state === 'FINISHED';
+  const router = useRouter();
   const [shareCopied, setShareCopied] = useState(false);
   const [showShareCard, setShowShareCard] = useState(false);
   const shareCardRef = useRef<HTMLDivElement | null>(null);
@@ -569,6 +581,7 @@ function StartedView({ data, state }: { data: MatchDetailData; state: DetailStat
   const [isBatchSaving, setIsBatchSaving] = useState(false);
   const [batchSaveError, setBatchSaveError] = useState<string | null>(null);
   const [batchSaveDone, setBatchSaveDone] = useState(false);
+  const [totalCoinsEarned, setTotalCoinsEarned] = useState(0);
   const [revealedAverageIds, setRevealedAverageIds] = useState<Set<string>>(
     () => new Set(data.match.players.filter((p) => p.viewerScore !== null).map((p) => p.id)),
   );
@@ -637,18 +650,32 @@ function StartedView({ data, state }: { data: MatchDetailData; state: DetailStat
     try {
       setBatchSaveError(null);
       setIsBatchSaving(true);
-      await Promise.all(
-        toSave.map((p) =>
-          postJson(`/api/matches/${data.match.id}/ratings`, {
-            playerId: p.id,
-            score: viewerScoreByPlayerId[p.id],
-            comment: (commentByPlayerId[p.id] ?? '').trim(),
-          }),
-        ),
-      );
+      let earned = 0;
+      for (const p of toSave) {
+        const res = await postJson<{ ratingComment: import('./types').MatchRatingComment | null; coinsEarned: number }>(`/api/matches/${data.match.id}/ratings`, {
+          playerId: p.id,
+          score: viewerScoreByPlayerId[p.id],
+          comment: (commentByPlayerId[p.id] ?? '').trim(),
+        });
+        earned += res.coinsEarned ?? 0;
+        if (res.ratingComment) {
+          const incoming = res.ratingComment;
+          setRatingComments((prev) => {
+            const idx = prev.findIndex((c) => c.id === incoming.id);
+            if (idx !== -1) {
+              const next = [...prev];
+              next[idx] = incoming;
+              return next;
+            }
+            return [incoming, ...prev];
+          });
+        }
+      }
       setRevealedAverageIds((prev) => new Set([...prev, ...toSave.map((p) => p.id)]));
+      setTotalCoinsEarned(earned);
       setBatchSaveDone(true);
-      window.setTimeout(() => setBatchSaveDone(false), 2000);
+      window.setTimeout(() => { setBatchSaveDone(false); setTotalCoinsEarned(0); }, 3000);
+      startTransition(() => router.refresh());
     } catch (error) {
       setBatchSaveError(error instanceof Error ? error.message : '저장에 실패했습니다.');
     } finally {
@@ -776,6 +803,47 @@ function StartedView({ data, state }: { data: MatchDetailData; state: DetailStat
 
           <RatingProgressSummary ratedCount={ratedCount} totalCount={orderedSelectablePlayers.length} />
 
+          {/* 코인 보상 안내 */}
+          {isFinished && (() => {
+            const total = orderedSelectablePlayers.length;
+            const pct = total > 0 ? Math.min(100, (ratedCount / total) * 100) : 0;
+            const isComplete = ratedCount >= total;
+            return (
+              <div className='rounded-[14px] bg-[#27272E] p-3'>
+                <div className='flex items-center gap-1.5'>
+                  <span className='text-sm'>🪙</span>
+                  <span className='text-[11px] font-bold text-[#A78BFA]'>평점 참여 보상</span>
+                </div>
+                <div className='mt-2 flex flex-wrap gap-1.5'>
+                  <span className='inline-flex items-center gap-1 rounded-full bg-[#3A3A47] px-2 py-0.5 text-[10px] font-semibold text-[#d6d6e5]'>
+                    선수당 <span className='text-[#A78BFA]'>+4코인</span>
+                  </span>
+                  <span className='inline-flex items-center gap-1 rounded-full bg-[#3A3A47] px-2 py-0.5 text-[10px] font-semibold text-[#d6d6e5]'>
+                    코멘트 <span className='text-[#A78BFA]'>+1코인</span>
+                  </span>
+                  <span className='inline-flex items-center gap-1 rounded-full bg-[#3A3A47] px-2 py-0.5 text-[10px] font-semibold text-[#d6d6e5]'>
+                    10명 완주 <span className='text-yellow-400'>+20코인</span>
+                  </span>
+                </div>
+                <div className='mt-2.5'>
+                  <div className='mb-1 flex items-center justify-between text-[10px]'>
+                    <span className='text-[#6B6B80]'>{ratedCount}/{total} 평가 완료</span>
+                    {isComplete
+                      ? <span className='font-bold text-[#A78BFA]'>🎉 완주 보너스 획득!</span>
+                      : <span className='text-[#6B6B80]'>완주까지 {total - ratedCount}명 남음</span>
+                    }
+                  </div>
+                  <div className='h-1.5 overflow-hidden rounded-full bg-[#474756]'>
+                    <div
+                      className='h-1.5 rounded-full bg-gradient-to-r from-[#7C3AED] to-[#A78BFA] transition-all duration-500'
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
           {/* 5-row role grid */}
           <div className='overflow-hidden rounded-[16px] border border-[#474756]'>
             <div className='grid grid-cols-[1fr_36px_1fr] bg-[#3A3A47] px-3 py-2'>
@@ -879,7 +947,7 @@ function StartedView({ data, state }: { data: MatchDetailData; state: DetailStat
                   </span>
                 </div>
                 <div className='grid grid-cols-10 gap-2'>
-                  {(['😭', '😤', '🤣', '😱', '🥹', '🤩', '😮', '🤬', '😴', '🥶'] as const).map((emoji) => (
+                  {(['😭', '😤', '🤣', '😱', '🥺', '🤩', '😮', '🤬', '😴', '🥶'] as const).map((emoji) => (
                     <button
                       key={emoji}
                       type='button'
@@ -894,6 +962,27 @@ function StartedView({ data, state }: { data: MatchDetailData; state: DetailStat
                       className='flex aspect-square w-full items-center justify-center rounded-[10px] bg-[#31313C] text-3xl transition hover:bg-[#474756] active:scale-90 disabled:opacity-40'
                     >
                       {emoji}
+                    </button>
+                  ))}
+                </div>
+                <div className='grid grid-cols-10 gap-2'>
+                  {TEAM_CODES.map((team) => (
+                    <button
+                      key={team}
+                      type='button'
+                      disabled={isBatchSaving}
+                      onClick={() => {
+                        setCommentByPlayerId((prev) => {
+                          const cur = prev[selPlayer.id] ?? '';
+                          const token = `[${team}]`;
+                          if (cur.length + token.length > 50) return prev;
+                          return { ...prev, [selPlayer.id]: (cur + token).slice(0, 50) };
+                        });
+                      }}
+                      className='flex aspect-square w-full items-center justify-center rounded-[10px] bg-[#31313C] transition hover:bg-[#474756] active:scale-90 disabled:opacity-40'
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={`/teams/${team}.svg`} alt={team} className='h-[1.875rem] w-[1.875rem] object-contain' />
                     </button>
                   ))}
                 </div>
@@ -912,12 +1001,12 @@ function StartedView({ data, state }: { data: MatchDetailData; state: DetailStat
               type='button'
               disabled={isBatchSaving || newlyRatedCount === 0}
               onClick={saveAllRatings}
-              className='inline-flex w-full min-h-[48px] items-center justify-center rounded-[14px] border border-[#5B21B6] bg-[#7C3AED] px-5 text-sm font-semibold text-white shadow-[0_4px_0_#5B21B6] transition-all hover:translate-y-[2px] hover:shadow-[0_2px_0_#5B21B6] disabled:cursor-not-allowed disabled:border-[#474756] disabled:bg-[#3A3A47] disabled:shadow-none disabled:text-[#9AA6C9]'
+              className='inline-flex w-full min-h-[48px] items-center justify-center rounded-[14px] border border-[#5B21B6] bg-[#7C3AED] px-5 text-sm font-semibold !text-white shadow-[0_4px_0_#5B21B6] transition-all hover:translate-y-[2px] hover:shadow-[0_2px_0_#5B21B6] disabled:cursor-not-allowed disabled:border-[#474756] disabled:bg-[#3A3A47] disabled:shadow-none disabled:text-[#9AA6C9]'
             >
               {isBatchSaving
                 ? '저장 중...'
                 : batchSaveDone
-                  ? '저장 완료 ✓'
+                  ? `저장 완료 ✓${totalCoinsEarned > 0 ? `  🪙 +${totalCoinsEarned}코인` : ''}`
                   : newlyRatedCount > 0
                     ? `${newlyRatedCount}명 평점 저장하기`
                     : '점수를 먼저 선택해 주세요'}
@@ -979,7 +1068,7 @@ function StartedView({ data, state }: { data: MatchDetailData; state: DetailStat
                       <span className='text-[11px] font-black text-[#A78BFA]'>{c.score.toFixed(1)}점</span>
                       <span className='text-[11px] text-[#6B6B80]'>{c.user}</span>
                     </div>
-                    <p className='mt-1 text-sm leading-snug text-white'>{c.text}</p>
+                    <p className='mt-1 text-sm leading-snug text-white'>{renderCommentText(c.text)}</p>
                   </div>
                   <div className='mt-0.5 shrink-0 flex items-center gap-1'>
                     <button
@@ -1065,19 +1154,23 @@ function StartedView({ data, state }: { data: MatchDetailData; state: DetailStat
                         const leftIsMvp = mvp && left?.id === mvp.id;
                         const rightIsMvp = mvp && right?.id === mvp.id;
                         return (
-                          <div key={`share_${role}`} className='grid grid-cols-[minmax(0,1fr)_40px_24px_40px_minmax(0,1fr)] items-center gap-1 text-center'>
+                          <div key={`share_${role}`} className='grid grid-cols-[minmax(0,1fr)_40px_24px_40px_minmax(0,1fr)] items-center gap-1'>
                             <div className={cn('truncate pl-1 text-left text-[11px] font-semibold', leftIsMvp ? 'text-[#F59E0B]' : 'text-slate-100')}>
                               {leftIsMvp && <span className='mr-1'>👑</span>}{left?.name ?? '-'}
                             </div>
-                            <div className='rounded-md px-1 py-[2px] text-[10px] font-semibold text-white' style={{ backgroundColor: getShareRatingChipColor(leftRating, rightRating) }}>
-                              {leftRating !== null ? leftRating.toFixed(1) : '-'}
+                            <div className='flex justify-end'>
+                              <div className='rounded-md px-1.5 py-[2px] text-[10px] font-semibold text-white' style={{ backgroundColor: getShareRatingChipColor(leftRating, rightRating) }}>
+                                {leftRating !== null ? leftRating.toFixed(1) : '-'}
+                              </div>
                             </div>
                             <div className='flex w-6 items-center justify-center'>
                               {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={ROLE_META[role].iconPath} alt={ROLE_META[role].label} width={16} height={16} className='h-4 w-4 translate-x-[1px] object-contain' />
+                              <img src={ROLE_META[role].iconPath} alt={ROLE_META[role].label} width={16} height={16} className='h-4 w-4 object-contain' />
                             </div>
-                            <div className='rounded-md px-1 py-[2px] text-[10px] font-semibold text-white' style={{ backgroundColor: getShareRatingChipColor(rightRating, leftRating) }}>
-                              {rightRating !== null ? rightRating.toFixed(1) : '-'}
+                            <div className='flex justify-start'>
+                              <div className='rounded-md px-1.5 py-[2px] text-[10px] font-semibold text-white' style={{ backgroundColor: getShareRatingChipColor(rightRating, leftRating) }}>
+                                {rightRating !== null ? rightRating.toFixed(1) : '-'}
+                              </div>
                             </div>
                             <div className={cn('truncate pr-1 text-right text-[11px] font-semibold', rightIsMvp ? 'text-[#F59E0B]' : 'text-slate-100')}>
                               {right?.name ?? '-'}{rightIsMvp && <span className='ml-1'>👑</span>}
@@ -1126,7 +1219,7 @@ function StartedView({ data, state }: { data: MatchDetailData; state: DetailStat
 
                 {/* 코멘트 본문 */}
                 <div className='mt-4 rounded-[14px] bg-[#2a2a36] px-4 py-4'>
-                  <p className='text-[15px] font-semibold leading-relaxed text-white'>{shareComment.text}</p>
+                  <p className='text-[15px] font-semibold leading-relaxed text-white'>{renderCommentText(shareComment.text)}</p>
                   <div className='mt-3 flex items-center justify-between'>
                     <div>
                       <span className='text-[11px] text-[#6B6B80]'>— {shareComment.user}</span>

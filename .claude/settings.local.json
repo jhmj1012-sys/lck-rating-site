@@ -16,7 +16,8 @@
       "Bash(cmd /c \"taskkill /PID 25704 /F /T\")",
       "Bash(powershell -Command \"Stop-Process -Id 25704 -Force\")",
       "Bash(powershell -Command \"Get-NetTCPConnection -LocalPort 3000 -State Listen | Select-Object -ExpandProperty OwningProcess\")",
-      "Bash(del \"C:\\\\Users\\\\jhmj1\\\\lol-rating-site\\\\data\\\\service-store.json\")"
+      "Bash(del \"C:\\\\Users\\\\jhmj1\\\\lol-rating-site\\\\data\\\\service-store.json\")",
+      "Bash(xargs grep:*)"
     ]
   }
 }

@@ -142,6 +142,21 @@ function AccountEntryButton({
   );
 }
 
+function getNotificationMeta(type: NotificationItem['type']) {
+  switch (type) {
+    case 'prediction_hit':
+      return { emoji: '🎉', bg: 'bg-emerald-500/20' };
+    case 'prediction_missed':
+      return { emoji: '😔', bg: 'bg-slate-500/20' };
+    case 'prediction_joined':
+      return { emoji: '🎯', bg: 'bg-blue-500/20' };
+    case 'coin_earned':
+      return { emoji: '🪙', bg: 'bg-yellow-500/20' };
+    default:
+      return { emoji: '🔔', bg: 'bg-[#8B5CF6]/20' };
+  }
+}
+
 function NotificationButton({
   notifications,
   unreadCount,
@@ -150,74 +165,125 @@ function NotificationButton({
   unreadCount: number;
 }) {
   const [open, setOpen] = useState(false);
+  const [localUnread, setLocalUnread] = useState(unreadCount);
+  const [localItems, setLocalItems] = useState(notifications);
   const menuRef = useRef<HTMLDivElement | null>(null);
+
+  // router.refresh() 후 새 props 반영
+  useEffect(() => {
+    setLocalUnread(unreadCount);
+    setLocalItems(notifications);
+  }, [unreadCount, notifications]);
 
   useEffect(() => {
     const onMouseDown = (event: MouseEvent) => {
-      if (!menuRef.current) {
-        return;
-      }
-      if (!menuRef.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
+      if (!menuRef.current) return;
+      if (!menuRef.current.contains(event.target as Node)) setOpen(false);
     };
-
     document.addEventListener("mousedown", onMouseDown);
     return () => document.removeEventListener("mousedown", onMouseDown);
   }, []);
 
+  const markAllRead = () => {
+    setLocalUnread(0);
+    setLocalItems((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    fetch('/api/notifications/read', { method: 'POST' }).catch(() => {});
+  };
+
   return (
     <div ref={menuRef} className="relative">
+      {/* 벨 버튼 */}
       <button
         type="button"
         aria-label={HEADER_LABELS.notifications}
-        onClick={() => setOpen((value) => !value)}
-        className="mobile-header-icon group relative inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#424254] text-white transition hover:bg-[#505063] hover:text-white"
+        onClick={() => setOpen((v) => !v)}
+        className="mobile-header-icon group relative inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#424254] text-white transition hover:bg-[#505063]"
       >
         <BellIcon className="h-4 w-4 text-white" />
-        {unreadCount > 0 ? (
+        {localUnread > 0 && (
           <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[#8B5CF6] px-1 text-[11px] font-bold text-white">
-            {unreadCount > 9 ? "9+" : unreadCount}
+            {localUnread > 9 ? "9+" : localUnread}
           </span>
-        ) : null}
+        )}
         <span className="ui-header-tooltip pointer-events-none absolute -bottom-8 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-[#d7dce3] bg-white px-2 py-1 text-[11px] font-medium text-[#55677b] shadow-[0_8px_20px_rgba(32,45,55,0.1)] lg:group-hover:block lg:group-focus-visible:block">
           {HEADER_LABELS.notifications}
         </span>
       </button>
 
-      {open ? (
-        <div className="fixed left-2 right-2 top-[4.2rem] z-50 overflow-hidden rounded-2xl border border-[#474756] bg-[#31313C] shadow-[0_16px_36px_rgba(2,6,23,0.34)] sm:absolute sm:left-auto sm:right-0 sm:top-12 sm:w-[320px]">
-          <div className="border-b border-[#474756] px-4 py-3">
-            <div className="text-sm font-semibold text-[#FFFFFF]">{HEADER_LABELS.notifications}</div>
-          </div>
-          <div className="max-h-[360px] overflow-y-auto">
-            {notifications.length === 0 ? (
-              <div className="px-4 py-6 text-sm text-[#d6d6e5]">최근 알림이 없습니다.</div>
-            ) : (
-              notifications.map((notification) => (
-                <Link
-                  key={notification.id}
-                  href={notification.relatedMatchId ? `/matches/${notification.relatedMatchId}` : "/"}
-                  className="block border-b border-[#474756] px-4 py-3 transition hover:bg-[#3A3A47]"
-                  onClick={() => setOpen(false)}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="truncate text-sm font-semibold text-[#FFFFFF]">{notification.title}</div>
-                      <div className="mt-1 line-clamp-2 text-xs leading-5 text-[#d6d6e5]">{notification.body}</div>
-                    </div>
-                    {notification.rewardCoins ? <div className="text-xs font-semibold text-[#8B5CF6]">+{notification.rewardCoins}</div> : null}
-                  </div>
-                  <div className="mt-2 flex items-center justify-between gap-3 text-[11px] text-[#b6bfdc]">
-                    <span>{notification.createdLabel}</span>
-                    {!notification.isRead ? <span className="font-semibold text-[#8EADEF]">NEW</span> : null}
-                  </div>
-                </Link>
-              ))
+      {/* 드롭다운 */}
+      {open && (
+        <div className="fixed left-2 right-2 top-[4.2rem] z-50 flex flex-col overflow-hidden rounded-2xl border border-[#474756] bg-[#31313C] shadow-[0_16px_36px_rgba(2,6,23,0.4)] sm:absolute sm:left-auto sm:right-0 sm:top-12 sm:w-[360px]">
+          {/* 헤더 */}
+          <div className="flex items-center justify-between border-b border-[#474756] px-4 py-3">
+            <span className="text-sm font-bold text-white">
+              알림
+              {localUnread > 0 && (
+                <span className="ml-2 inline-flex items-center rounded-full bg-[#8B5CF6]/20 px-1.5 py-0.5 text-[10px] font-bold text-[#A78BFA]">
+                  {localUnread}
+                </span>
+              )}
+            </span>
+            {localUnread > 0 && (
+              <button
+                type="button"
+                onClick={markAllRead}
+                className="text-[11px] font-semibold transition"
+                style={{ color: 'rgba(255,255,255,0.6)' }}
+              >
+                모두 읽음
+              </button>
             )}
           </div>
+
+          {/* 목록 */}
+          <div className="max-h-[400px] overflow-y-auto [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#474756]">
+            {localItems.length === 0 ? (
+              <div className="flex flex-col items-center justify-center gap-2 px-4 py-10">
+                <span className="text-2xl">🔔</span>
+                <p className="text-sm text-[#9AA6C9]">아직 알림이 없어요</p>
+              </div>
+            ) : (
+              localItems.map((n) => {
+                const meta = getNotificationMeta(n.type);
+                return (
+                  <Link
+                    key={n.id}
+                    href={n.relatedMatchId ? `/matches/${n.relatedMatchId}` : '/me'}
+                    onClick={() => setOpen(false)}
+                    className={cn(
+                      "flex items-start gap-3 border-b border-[#474756] px-4 py-3.5 transition last:border-b-0 hover:bg-[#3A3A47]",
+                      !n.isRead && "bg-[#8B5CF6]/5",
+                    )}
+                  >
+                    {/* 읽음 여부 도트 */}
+                    <div className="mt-2 shrink-0">
+                      <span className={cn("block h-2 w-2 rounded-full", !n.isRead ? "bg-[#8B5CF6]" : "bg-transparent")} />
+                    </div>
+                    {/* 타입 아이콘 */}
+                    <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base", meta.bg)}>
+                      {meta.emoji}
+                    </div>
+                    {/* 본문 */}
+                    <div className="min-w-0 flex-1">
+                      <p className={cn("text-[13px] leading-snug", !n.isRead ? "font-bold text-white" : "font-semibold text-[#d6d6e5]")}>
+                        {n.title}
+                      </p>
+                      <p className="mt-0.5 line-clamp-2 text-[12px] leading-5 text-[#9AA6C9]">{n.body}</p>
+                      <div className="mt-1.5 flex items-center gap-2">
+                        <span className="text-[11px] text-[#6B6B80]">{n.createdLabel}</span>
+                        {n.rewardCoins && (
+                          <span className="text-[11px] font-bold text-[#8B5CF6]">+{n.rewardCoins} 코인</span>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })
+            )}
+          </div>
+
         </div>
-      ) : null}
+      )}
     </div>
   );
 }
