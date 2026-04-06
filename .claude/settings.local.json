@@ -29,7 +29,10 @@
       "Bash(find \"C:\\\\Users\\\\jhmj1\\\\lol-rating-site\\\\components\" -name \"*.tsx\" -type f -exec wc -l {})",
       "Bash(grep -r \"FilterBar\\\\|ScheduleFilterBar\\\\|import.*schedule\" C:Usersjhmj1lol-rating-site --include=*.tsx --include=*.ts)",
       "Bash(grep -r import.*from.*@/ C:Usersjhmj1lol-rating-siteapp --include=*.tsx --include=*.ts)",
-      "Bash(grep -r \"any\\\\|@ts-ignore\\\\|any\\\\[\\\\]\\\\|unknown\" C:Usersjhmj1lol-rating-siteappapi --include=*.ts --include=*.tsx)"
+      "Bash(grep -r \"any\\\\|@ts-ignore\\\\|any\\\\[\\\\]\\\\|unknown\" C:Usersjhmj1lol-rating-siteappapi --include=*.ts --include=*.tsx)",
+      "Bash(grep -r \"coin\\\\|shop\\\\|purchase\\\\|store\" C:Usersjhmj1lol-rating-sitelib --include=*.ts --include=*.tsx)",
+      "Bash(grep -r \"profileStoreItems\\\\|ProfileStoreItem\" C:Usersjhmj1lol-rating-sitelib --include=*.ts)",
+      "Bash(xargs -0 grep -l shop)"
     ]
   }
 }
