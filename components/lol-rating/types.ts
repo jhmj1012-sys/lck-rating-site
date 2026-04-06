@@ -61,6 +61,16 @@ export interface MatchRatingComment {
   viewerLiked: boolean;
 }
 
+export interface PredictionComment {
+  id: string;
+  user: string;
+  selectedTeam: string;
+  text: string;
+  createdLabel: string;
+  likeCount: number;
+  viewerLiked: boolean;
+}
+
 export interface MatchComment {
   id: string;
   userId: string | null;
@@ -199,6 +209,7 @@ export interface MatchData {
   myPredictionSettlementCoins: number;
   players: PlayerRating[];
   ratingComments: MatchRatingComment[];
+  predictionComments: PredictionComment[];
   commentsList: MatchComment[];
   myPredictionTeam: string | null;
 }

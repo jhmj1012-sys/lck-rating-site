@@ -114,6 +114,8 @@ export interface StoredPrediction {
   userId: string;
   matchId: string;
   teamId: string;
+  comment: string;
+  recommendUserIds: string[];
   createdAt: string;
   updatedAt?: string | null;
   joinedRewardGrantedAt: string | null;

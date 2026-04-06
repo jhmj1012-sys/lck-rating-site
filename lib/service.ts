@@ -46,6 +46,7 @@ import type {
   MyPointLedgerItem,
   PreMatchInsights,
   PublicUserSummary,
+  PredictionComment,
   PredictionComparisonItem,
   PredictionInsightItem,
   RosterPlayerItem,
@@ -78,6 +79,7 @@ const APP_TIME_ZONE = "Asia/Seoul";
 const COINS = {
   predictionSubmit: 10,
   predictionHit: 5,
+  predictionCommentBonus: 3,
   commentSubmit: 4,
   legacyRatingSubmit: 8,
   setRatingPerPlayer: 4,
@@ -1039,6 +1041,39 @@ function buildMatchRatingCommentView(store: StoreShape, ratingId: string, viewer
   } satisfies MatchRatingComment;
 }
 
+function buildMatchPredictionComments(store: StoreShape, matchId: string, viewerId: string | null): PredictionComment[] {
+  return store.predictions
+    .filter((p) => p.matchId === matchId && (p.comment ?? "").trim().length > 0)
+    .slice()
+    .sort((a, b) => {
+      const likeDiff = (b.recommendUserIds ?? []).length - (a.recommendUserIds ?? []).length;
+      if (likeDiff !== 0) return likeDiff;
+      return new Date(b.updatedAt ?? b.createdAt).getTime() - new Date(a.updatedAt ?? a.createdAt).getTime();
+    })
+    .map((p) => buildMatchPredictionCommentView(store, p.id, viewerId))
+    .filter((v): v is PredictionComment => v !== null);
+}
+
+function buildMatchPredictionCommentView(store: StoreShape, predictionId: string, viewerId: string | null): PredictionComment | null {
+  const prediction = store.predictions.find((p) => p.id === predictionId);
+  if (!prediction) return null;
+  const text = (prediction.comment ?? "").trim();
+  if (!text) return null;
+  const author = getUserById(store, prediction.userId);
+  const selectedTeamCode = getTeamById(store, prediction.teamId)?.code ?? "-";
+  const likeCount = (prediction.recommendUserIds ?? []).length;
+  const viewerLiked = viewerId ? (prediction.recommendUserIds ?? []).includes(viewerId) : false;
+  return {
+    id: prediction.id,
+    user: getPublicName(author),
+    selectedTeam: selectedTeamCode,
+    text,
+    createdLabel: formatRelativeLabel(prediction.updatedAt ?? prediction.createdAt),
+    likeCount,
+    viewerLiked,
+  } satisfies PredictionComment;
+}
+
 function buildMvp(players: PlayerRating[]) {
   const best = players
     .filter((player) => player.ratingCount > 0)
@@ -1227,6 +1262,7 @@ function buildMatchView(store: StoreShape, match: StoredMatch, viewerId: string 
   const players = getMatchPlayers(store, match.id, viewerId);
   const comments = buildComments(store, match.id, viewerId);
   const ratingComments = buildMatchRatingComments(store, match.id, viewerId);
+  const predictionComments = buildMatchPredictionComments(store, match.id, viewerId);
   const predictionSummary = match.lockedDistribution ?? buildPredictionSummary(store, match);
   const totalRatings = store.playerRatings.filter((rating) => rating.matchId === match.id).length;
   const averagePlayerRating = players.filter((player) => player.ratingCount > 0);
@@ -1273,6 +1309,7 @@ function buildMatchView(store: StoreShape, match: StoredMatch, viewerId: string 
     myPredictionSettlementCoins: myPrediction?.settlementCoins ?? 0,
     players,
     ratingComments,
+    predictionComments,
     commentsList: comments,
     myPredictionTeam: myPrediction?.teamId === match.teamAId ? teamA.code : myPrediction?.teamId === match.teamBId ? teamB.code : null,
   };
@@ -2699,6 +2736,7 @@ export async function submitPrediction(input: {
   viewerId: string;
   matchId: string;
   selectedTeamCode: string;
+  comment?: string;
 }) {
   return mutateStore(async (store) => {
     ensurePredictionLifecycle(store);
@@ -2724,13 +2762,16 @@ export async function submitPrediction(input: {
       throw new Error("유효한 팀 선택이 아닙니다.");
     }
 
+    const commentText = (input.comment ?? "").trim().slice(0, 50);
+
     const existing = store.predictions.find(
       (prediction) => prediction.matchId === input.matchId && prediction.userId === input.viewerId,
     );
     if (existing) {
       existing.teamId = selectedTeam.id;
+      existing.comment = commentText;
       existing.updatedAt = new Date().toISOString();
-      return;
+      return { coinsEarned: 0 };
     }
 
     const now = new Date().toISOString();
@@ -2740,6 +2781,8 @@ export async function submitPrediction(input: {
       userId: input.viewerId,
       matchId: input.matchId,
       teamId: selectedTeam.id,
+      comment: commentText,
+      recommendUserIds: [],
       createdAt: now,
       updatedAt: now,
       joinedRewardGrantedAt: now,
@@ -2750,7 +2793,10 @@ export async function submitPrediction(input: {
       wasUnderdogPick: null,
     });
 
+    let coinsEarned = 0;
+
     if (!isGuestUserId(store, input.viewerId)) {
+      coinsEarned += COINS.predictionSubmit;
       appendPointLedgerEntry(store, {
         userId: input.viewerId,
         type: "earn",
@@ -2760,14 +2806,28 @@ export async function submitPrediction(input: {
         referenceId: predictionId,
       });
 
+      if (commentText.length > 0) {
+        coinsEarned += COINS.predictionCommentBonus;
+        appendPointLedgerEntry(store, {
+          userId: input.viewerId,
+          type: "earn",
+          amount: COINS.predictionCommentBonus,
+          reason: "예측 코멘트 보너스 코인",
+          referenceType: "prediction_comment_bonus",
+          referenceId: predictionId,
+        });
+      }
+
+      const totalCoins = coinsEarned;
+      const commentBonusText = commentText.length > 0 ? ` (코멘트 보너스 +${COINS.predictionCommentBonus})` : "";
       createNotification(store, {
         userId: input.viewerId,
         type: "prediction_joined",
         title: `${teamA?.code ?? "TBD"} vs ${teamB?.code ?? "TBD"} 예측 참여 완료`,
-        body: `${selectedTeam.code} 선택이 저장되어 +${COINS.predictionSubmit} Coin을 획득했습니다.`,
+        body: `${selectedTeam.code} 선택이 저장되어 +${totalCoins} Coin을 획득했습니다.${commentBonusText}`,
         relatedMatchId: match.id,
         isRead: false,
-        rewardCoins: COINS.predictionSubmit,
+        rewardCoins: totalCoins,
         appliedOddsPercent: null,
         metadata: {
           selectedTeam: selectedTeam.code,
@@ -2775,6 +2835,8 @@ export async function submitPrediction(input: {
         createdAt: now,
       });
     }
+
+    return { coinsEarned };
   });
 }
 
@@ -2919,6 +2981,31 @@ export async function toggleRatingCommentLike(input: {
     return {
       liked: (rating.recommendUserIds).includes(input.viewerId),
       likeCount: rating.recommendUserIds.length,
+    };
+  });
+}
+
+export async function togglePredictionCommentLike(input: {
+  viewerId: string;
+  matchId: string;
+  predictionId: string;
+}) {
+  return mutateStore(async (store) => {
+    const prediction = store.predictions.find(
+      (item) => item.id === input.predictionId && item.matchId === input.matchId,
+    );
+    if (!prediction) {
+      throw new Error("예측 코멘트를 찾을 수 없습니다.");
+    }
+    const ids: string[] = prediction.recommendUserIds ?? [];
+    if (ids.includes(input.viewerId)) {
+      prediction.recommendUserIds = ids.filter((id) => id !== input.viewerId);
+    } else {
+      prediction.recommendUserIds = [...ids, input.viewerId];
+    }
+    return {
+      liked: prediction.recommendUserIds.includes(input.viewerId),
+      likeCount: prediction.recommendUserIds.length,
     };
   });
 }

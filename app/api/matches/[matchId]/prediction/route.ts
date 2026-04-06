@@ -13,22 +13,23 @@ export async function POST(
     const cookieStore = await cookies();
     const actor = await resolveUserOrGuest(cookieStore.get(GUEST_USER_COOKIE)?.value ?? null);
     const { matchId } = await params;
-    const body = (await request.json()) as { selectedTeam?: string };
+    const body = (await request.json()) as { selectedTeam?: string; comment?: string };
 
     if (!body.selectedTeam) {
       return NextResponse.json({ error: "예측할 팀을 선택해 주세요." }, { status: 400 });
     }
 
-    await submitPrediction({
+    const result = await submitPrediction({
       viewerId: actor.user.id,
       matchId,
       selectedTeamCode: body.selectedTeam,
+      comment: body.comment,
     });
 
     revalidatePath("/");
     revalidatePath("/me");
     revalidatePath(`/matches/${matchId}`);
-    const response = NextResponse.json({ ok: true });
+    const response = NextResponse.json({ ok: true, coinsEarned: result?.coinsEarned ?? 0 });
     if (actor.isGuest && actor.guestToken) {
       response.cookies.set(GUEST_USER_COOKIE, actor.guestToken, {
         httpOnly: true,

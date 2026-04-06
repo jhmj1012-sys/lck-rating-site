@@ -255,12 +255,16 @@ function MatchHeader({ data, state }: { data: MatchDetailData; state: DetailStat
   );
 }
 
+const PREDICTION_COMMENT_BONUS_COINS = 3;
+
 function PredictionGamePanel({ match }: { match: MatchData }) {
   const router = useRouter();
   const [selectedTeam, setSelectedTeam] = useState<string>(match.myPredictionTeam ?? '');
   const [pending, setPending] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [completedTeam, setCompletedTeam] = useState<string | null>(null);
+  const [comment, setComment] = useState('');
+  const [earnedCoins, setEarnedCoins] = useState<number | null>(null);
   const [nowMs, setNowMs] = useState(0);
 
   useEffect(() => {
@@ -282,10 +286,10 @@ function PredictionGamePanel({ match }: { match: MatchData }) {
             : null;
   const selectedShare = selectedTeam === match.teamA ? match.predictionSummary.teamA : selectedTeam === match.teamB ? match.predictionSummary.teamB : null;
   const estimatedBonusCoins = selectedShare === null ? null : estimateHitBonusCoins(selectedShare);
+  const hasComment = comment.trim().length > 0;
 
   const renderPickCard = (team: string) => {
     const isLeft = team === match.teamA;
-    const ratio = isLeft ? match.predictionSummary.teamA : match.predictionSummary.teamB;
     const active = selectedTeam === team;
 
     return (
@@ -296,6 +300,7 @@ function PredictionGamePanel({ match }: { match: MatchData }) {
           setSelectedTeam(team);
           setFeedback(null);
           setCompletedTeam(null);
+          setEarnedCoins(null);
         }}
         className={cn(
           'flex min-h-[72px] items-center justify-center rounded-[20px] border p-4 text-center transition',
@@ -342,16 +347,53 @@ function PredictionGamePanel({ match }: { match: MatchData }) {
             <span>{match.predictionSummary.teamB}%</span>
           </div>
         </div>
+
+        {/* Comment input */}
+        {!completedTeam && !match.myPredictionTeam ? (
+          <div className='mt-4'>
+            <div className='flex items-center gap-2'>
+              <input
+                type='text'
+                value={comment}
+                onChange={(e) => setComment(e.target.value.slice(0, 50))}
+                placeholder='응원 한마디 or 예측 사유 (선택)'
+                className='flex-1 rounded-[12px] border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:border-slate-300 focus:bg-white transition'
+              />
+              <span className='shrink-0 text-[11px] text-slate-400'>{comment.length}/50</span>
+            </div>
+            {hasComment ? (
+              <div className='mt-2 flex items-center gap-1 text-[11px] font-semibold text-emerald-600'>
+                <span>+{PREDICTION_COMMENT_BONUS_COINS} 코멘트 보너스 코인</span>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
-      <div className='rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700'>
-        <div>참여 시 +{PREDICTION_JOIN_REWARD_COINS} 코인 지급</div>
-        <div className='mt-1'>
-          적중 시 배당에 따라 추가 지급
+      {/* Coin reward info card */}
+      <div className='overflow-hidden rounded-[18px] border border-slate-200 bg-white'>
+        <div className='flex items-stretch divide-x divide-slate-200'>
+          <div className='flex-1 px-4 py-3 text-center'>
+            <div className='text-[11px] font-semibold text-slate-500'>참여 보상</div>
+            <div className='mt-1 text-lg font-black text-slate-900'>+{PREDICTION_JOIN_REWARD_COINS}</div>
+            <div className='text-[10px] text-slate-400'>코인</div>
+          </div>
+          <div className='flex-1 px-4 py-3 text-center'>
+            <div className='text-[11px] font-semibold text-slate-500'>코멘트 보너스</div>
+            <div className={cn('mt-1 text-lg font-black', hasComment ? 'text-emerald-600' : 'text-slate-300')}>+{PREDICTION_COMMENT_BONUS_COINS}</div>
+            <div className='text-[10px] text-slate-400'>코인</div>
+          </div>
+          <div className='flex-1 px-4 py-3 text-center'>
+            <div className='text-[11px] font-semibold text-slate-500'>적중 시 예상</div>
+            <div className='mt-1 text-lg font-black text-amber-500'>{estimatedBonusCoins !== null ? `+${estimatedBonusCoins}` : '-'}</div>
+            <div className='text-[10px] text-slate-400'>코인</div>
+          </div>
         </div>
-        {estimatedBonusCoins !== null ? (
-          <div className='mt-1 text-slate-600'>현재 선택 기준 예상 +{estimatedBonusCoins} 코인</div>
-        ) : null}
+        <div className='border-t border-slate-100 bg-slate-50 px-4 py-2 text-center'>
+          <span className='text-[11px] font-semibold text-slate-500'>
+            예상 총 획득: <span className='text-[#8B5CF6]'>{PREDICTION_JOIN_REWARD_COINS + (hasComment ? PREDICTION_COMMENT_BONUS_COINS : 0)}{estimatedBonusCoins !== null ? ` ~ ${PREDICTION_JOIN_REWARD_COINS + (hasComment ? PREDICTION_COMMENT_BONUS_COINS : 0) + estimatedBonusCoins}` : ''} 코인</span>
+          </span>
+        </div>
       </div>
 
       <Button
@@ -361,9 +403,10 @@ function PredictionGamePanel({ match }: { match: MatchData }) {
         onClick={async () => {
           try {
             setPending(true);
-            await postJson(`/api/matches/${match.id}/prediction`, { selectedTeam });
+            const result = await postJson<{ coinsEarned?: number }>(`/api/matches/${match.id}/prediction`, { selectedTeam, comment: comment.trim() });
             setFeedback(null);
             setCompletedTeam(selectedTeam);
+            setEarnedCoins(result.coinsEarned ?? null);
             startTransition(() => router.refresh());
           } catch (error) {
             setFeedback(error instanceof Error ? error.message : '예측 등록에 실패했습니다.');
@@ -375,12 +418,21 @@ function PredictionGamePanel({ match }: { match: MatchData }) {
         {pending
           ? '전략 확정 중...'
           : completedTeam
-            ? `${getTeamDisplayName(completedTeam)} 선택완료`
+            ? `${getTeamDisplayName(completedTeam)} 선택완료${earnedCoins ? ` 🪙 +${earnedCoins}` : ''}`
             : selectedTeam
               ? `${getTeamDisplayName(selectedTeam)} 선택하기`
               : '예측하기'}
       </Button>
       {feedback ? <div className='rounded-[18px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700'>{feedback}</div> : null}
+
+      {/* Coin earned animation banner */}
+      {earnedCoins !== null && earnedCoins > 0 ? (
+        <div className='flex items-center justify-center gap-2 rounded-[16px] border border-emerald-200 bg-emerald-50 px-4 py-3 animate-in fade-in slide-in-from-bottom-2 duration-300'>
+          <span className='text-lg'>🪙</span>
+          <span className='text-sm font-bold text-emerald-700'>+{earnedCoins} 코인 획득!</span>
+          {comment.trim().length > 0 ? <span className='text-[11px] text-emerald-600'>(코멘트 보너스 포함)</span> : null}
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -479,6 +531,200 @@ function PreMatchInsights({ data }: { data: MatchDetailData }) {
   );
 }
 
+function PredictionReactionFeed({ data }: { data: MatchDetailData }) {
+  const { match } = data;
+  const [predComments, setPredComments] = useState(match.predictionComments);
+  const [likedIds, setLikedIds] = useState<Set<string>>(
+    () => new Set(match.predictionComments.filter((c) => c.viewerLiked).map((c) => c.id)),
+  );
+  const [filterTeam, setFilterTeam] = useState<string | null>(null);
+  const [shareCommentId, setShareCommentId] = useState<string | null>(null);
+  const [shareCopied, setShareCopied] = useState(false);
+  const shareCardRef = useRef<HTMLDivElement | null>(null);
+
+  const toggleLike = async (commentId: string) => {
+    const isLiked = likedIds.has(commentId);
+    setLikedIds((prev) => {
+      const next = new Set(prev);
+      isLiked ? next.delete(commentId) : next.add(commentId);
+      return next;
+    });
+    setPredComments((prev) =>
+      prev.map((c) =>
+        c.id === commentId
+          ? { ...c, likeCount: c.likeCount + (isLiked ? -1 : 1), viewerLiked: !isLiked }
+          : c,
+      ),
+    );
+    try {
+      await postJson(`/api/matches/${match.id}/prediction-comments/${commentId}/like`, {});
+    } catch {
+      setLikedIds((prev) => {
+        const next = new Set(prev);
+        isLiked ? next.add(commentId) : next.delete(commentId);
+        return next;
+      });
+      setPredComments((prev) =>
+        prev.map((c) =>
+          c.id === commentId
+            ? { ...c, likeCount: c.likeCount + (isLiked ? 1 : -1), viewerLiked: isLiked }
+            : c,
+        ),
+      );
+    }
+  };
+
+  const filtered = predComments.filter((c) => filterTeam === null || c.selectedTeam === filterTeam);
+  const pillCls = (active: boolean) =>
+    cn('rounded-full px-2.5 py-1 text-[11px] font-semibold transition', active ? 'bg-[#8B5CF6] text-white' : 'bg-[#3A3A47] !text-[#9AA6C9] hover:bg-[#474756]');
+  const teams = [...new Set(predComments.map((c) => c.selectedTeam))];
+
+  const shareComment = predComments.find((c) => c.id === shareCommentId);
+
+  return (
+    <>
+      <div className='overflow-hidden rounded-[24px] bg-[#31313C] shadow-[0_14px_36px_rgba(2,6,23,0.28)]'>
+        <div className='border-b border-[#474756] px-4 py-3 sm:px-5'>
+          <div className='flex items-center justify-between gap-2'>
+            <h3 className='text-base font-black tracking-[-0.02em] text-white'>예측 반응 피드</h3>
+            <span className='text-xs font-semibold text-[#9AA6C9]'>{predComments.length > 0 ? `${predComments.length}개` : ''}</span>
+          </div>
+          {predComments.length > 0 && teams.length > 0 ? (
+            <div className='mt-2.5 flex gap-1.5'>
+              <button type='button' onClick={() => setFilterTeam(null)} className={pillCls(filterTeam === null)}>전체</button>
+              {teams.map((t) => (
+                <button key={t} type='button' onClick={() => setFilterTeam(t)} className={pillCls(filterTeam === t)}>
+                  <span className='inline-flex items-center gap-1'>
+                    <TeamLogo team={t} size={14} imageClassName='p-0' />
+                    {t}
+                  </span>
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
+        <div className='divide-y divide-[#474756] overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#474756] [&::-webkit-scrollbar-thumb:hover]:bg-[#6B6B80]' style={{ maxHeight: 400 }}>
+          {predComments.length === 0 ? (
+            <div className='px-4 py-8 text-center'>
+              <div className='text-2xl'>🔮</div>
+              <div className='mt-2 text-sm font-semibold text-[#9AA6C9]'>아직 예측 코멘트가 없어요</div>
+              <div className='mt-1 text-xs text-[#6B6B80]'>예측 시 한 줄 코멘트를 남겨보세요</div>
+            </div>
+          ) : (
+            filtered.map((c) => {
+              const liked = likedIds.has(c.id);
+              const isTeamA = c.selectedTeam === match.teamA;
+              return (
+                <div key={c.id} className='flex items-start gap-3 px-4 py-3 sm:px-5'>
+                  <div className='min-w-0 flex-1'>
+                    <div className='flex flex-wrap items-center gap-1.5'>
+                      <span className={cn(
+                        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold',
+                        isTeamA ? 'bg-[#1a3a5c] text-[#7ec8f0]' : 'bg-[#4a2020] text-[#f08080]',
+                      )}>
+                        <TeamLogo team={c.selectedTeam} size={13} imageClassName='p-0' />
+                        {c.selectedTeam}
+                      </span>
+                      <span className='text-[11px] text-[#6B6B80]'>{c.user}</span>
+                    </div>
+                    <p className='mt-1 text-sm leading-snug text-white'>{renderCommentText(c.text)}</p>
+                  </div>
+                  <div className='mt-0.5 shrink-0 flex items-center gap-1'>
+                    <button
+                      type='button'
+                      onClick={() => setShareCommentId(c.id)}
+                      className='flex h-7 w-7 items-center justify-center rounded-full bg-[#3A3A47] text-[11px] !text-white transition hover:bg-[#474756]'
+                      title='퍼가기'
+                    >
+                      <svg viewBox='0 0 20 20' fill='none' stroke='currentColor' strokeWidth='1.8' className='h-3.5 w-3.5'><path d='M15 7l-5-4-5 4' /><path d='M10 3v10' /><path d='M4 13v3h12v-3' /></svg>
+                    </button>
+                    <button
+                      type='button'
+                      onClick={() => toggleLike(c.id)}
+                      className={cn(
+                        'flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-semibold transition',
+                        liked
+                          ? 'bg-[#8B5CF6]/20 text-[#C4B5FD]'
+                          : 'bg-[#3A3A47] !text-white hover:bg-[#474756]',
+                      )}
+                    >
+                      👍{c.likeCount > 0 ? <span>{c.likeCount}</span> : null}
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      {/* Share card modal for prediction comment */}
+      {shareComment ? (
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm' onClick={() => { setShareCommentId(null); setShareCopied(false); }}>
+          <div className='mx-4 w-full max-w-[360px]' onClick={(e) => e.stopPropagation()}>
+            <div ref={shareCardRef} className='relative overflow-hidden rounded-[18px] border border-[#2a2a3a] p-5 text-white' style={{ background: 'linear-gradient(145deg, #12121a 0%, #1a1230 50%, #0e1a2e 100%)' }}>
+              <div className='absolute inset-0 pointer-events-none' style={{ background: 'radial-gradient(ellipse at top right, rgba(124,58,237,0.18) 0%, transparent 60%)' }} />
+              <div className='relative'>
+                <div className='flex items-center justify-between'>
+                  <div className='inline-flex items-center gap-2'>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src='/logo.svg' alt='LPR' className='h-7 w-7' />
+                    <span className='text-[10px] font-bold text-slate-100'>LOL PRO RATING</span>
+                  </div>
+                  <span className='text-[10px] text-slate-400'>승부예측</span>
+                </div>
+                <div className='mt-4 flex items-center justify-center gap-3'>
+                  <TeamLogo team={match.teamA} size={28} imageClassName='p-0' />
+                  <span className='text-xs font-bold text-slate-300'>VS</span>
+                  <TeamLogo team={match.teamB} size={28} imageClassName='p-0' />
+                </div>
+                <div className='mt-3 rounded-[12px] bg-white/5 border border-white/10 p-3'>
+                  <div className='flex items-center gap-1.5'>
+                    <span className={cn(
+                      'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold',
+                      shareComment.selectedTeam === match.teamA ? 'bg-[#1a3a5c] text-[#7ec8f0]' : 'bg-[#4a2020] text-[#f08080]',
+                    )}>
+                      <TeamLogo team={shareComment.selectedTeam} size={12} imageClassName='p-0' />
+                      {shareComment.selectedTeam} 예측
+                    </span>
+                    <span className='text-[10px] text-slate-400'>{shareComment.user}</span>
+                  </div>
+                  <p className='mt-2 text-sm leading-snug text-white'>{renderCommentText(shareComment.text)}</p>
+                </div>
+              </div>
+            </div>
+            <div className='mt-3 flex gap-2'>
+              <button
+                type='button'
+                onClick={async () => {
+                  if (!shareCardRef.current) return;
+                  try {
+                    const blob = await toBlob(shareCardRef.current, { pixelRatio: 2, backgroundColor: '#12121a' });
+                    if (blob) {
+                      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+                      setShareCopied(true);
+                    }
+                  } catch {}
+                }}
+                className='flex-1 rounded-[12px] bg-[#8B5CF6] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#7C3AED]'
+              >
+                {shareCopied ? '복사됨!' : '이미지 복사'}
+              </button>
+              <button
+                type='button'
+                onClick={() => { setShareCommentId(null); setShareCopied(false); }}
+                className='rounded-[12px] bg-[#3A3A47] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#474756]'
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
 function PreMatchView({ data }: { data: MatchDetailData }) {
   return (
     <div className='space-y-5'>
@@ -487,6 +733,8 @@ function PreMatchView({ data }: { data: MatchDetailData }) {
           <PredictionGamePanel match={data.match} />
         </CardContent>
       </Card>
+
+      <PredictionReactionFeed data={data} />
 
       <PreMatchInsights data={data} />
     </div>
