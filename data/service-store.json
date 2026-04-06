@@ -209,6 +209,20 @@
       "selectedProfileTheme": null,
       "createdAt": "2026-04-05T05:16:32.009Z",
       "updatedAt": "2026-04-05T06:09:19.991Z"
+    },
+    {
+      "id": "user_16",
+      "email": "guest_6282fbca7b5643ddb7d481fda4d0b09e@guest.local",
+      "name": "게스트6282",
+      "nickname": "게스트6282",
+      "nicknameOnboardingSeen": true,
+      "nicknameUpdatedAt": "2026-04-06T10:28:43.905Z",
+      "bio": null,
+      "image": null,
+      "role": "user",
+      "selectedProfileTheme": null,
+      "createdAt": "2026-04-06T10:28:43.905Z",
+      "updatedAt": "2026-04-06T10:48:11.594Z"
     }
   ],
   "teams": [
@@ -2641,13 +2655,26 @@
       "teamBId": "team_dns",
       "scoreA": null,
       "scoreB": null,
-      "predictionLocked": false,
-      "predictionLockedAt": null,
-      "lockedDistribution": null,
-      "lockedOdds": null,
+      "predictionLocked": true,
+      "predictionLockedAt": "2026-04-05T07:50:00.000Z",
+      "lockedDistribution": {
+        "teamA": 0,
+        "teamB": 100,
+        "totalVotes": 2
+      },
+      "lockedOdds": {
+        "teamA": {
+          "oddsPercent": 200,
+          "hitBonusCoins": 60
+        },
+        "teamB": {
+          "oddsPercent": 120,
+          "hitBonusCoins": 20
+        }
+      },
       "predictionSettledAt": null,
       "createdAt": "2026-03-27T10:00:00+09:00",
-      "updatedAt": "2026-03-27T10:00:00+09:00"
+      "updatedAt": "2026-04-06T10:17:04.419Z"
     },
     {
       "id": "match_10",
@@ -2660,13 +2687,26 @@
       "teamBId": "team_bfx",
       "scoreA": null,
       "scoreB": null,
-      "predictionLocked": false,
-      "predictionLockedAt": null,
-      "lockedDistribution": null,
-      "lockedOdds": null,
+      "predictionLocked": true,
+      "predictionLockedAt": "2026-04-05T09:50:00.000Z",
+      "lockedDistribution": {
+        "teamA": 50,
+        "teamB": 50,
+        "totalVotes": 0
+      },
+      "lockedOdds": {
+        "teamA": {
+          "oddsPercent": 160,
+          "hitBonusCoins": 40
+        },
+        "teamB": {
+          "oddsPercent": 160,
+          "hitBonusCoins": 40
+        }
+      },
       "predictionSettledAt": null,
       "createdAt": "2026-03-27T10:00:00+09:00",
-      "updatedAt": "2026-03-27T10:00:00+09:00"
+      "updatedAt": "2026-04-06T10:17:04.419Z"
     },
     {
       "id": "match_11",
@@ -16194,6 +16234,38 @@
       "settlementCoins": 0,
       "appliedOddsPercent": null,
       "wasUnderdogPick": null
+    },
+    {
+      "id": "prediction_3",
+      "userId": "user_16",
+      "matchId": "match_11",
+      "teamId": "team_dk",
+      "comment": "dk 가보자궁 ㅎ",
+      "recommendUserIds": [],
+      "createdAt": "2026-04-06T10:28:43.915Z",
+      "updatedAt": "2026-04-06T10:31:13.494Z",
+      "joinedRewardGrantedAt": "2026-04-06T10:28:43.915Z",
+      "settledAt": null,
+      "settlementResult": null,
+      "settlementCoins": 0,
+      "appliedOddsPercent": null,
+      "wasUnderdogPick": null
+    },
+    {
+      "id": "prediction_4",
+      "userId": "user_16",
+      "matchId": "match_12",
+      "teamId": "team_t1",
+      "comment": "무조건이겨야한다 T1파이팅무조건이겨야한다 T1파이팅무조건이겨야한다 T1파이팅무조건이겨야한다",
+      "recommendUserIds": [],
+      "createdAt": "2026-04-06T10:33:21.165Z",
+      "updatedAt": "2026-04-06T10:48:11.605Z",
+      "joinedRewardGrantedAt": "2026-04-06T10:33:21.165Z",
+      "settledAt": null,
+      "settlementResult": null,
+      "settlementCoins": 0,
+      "appliedOddsPercent": null,
+      "wasUnderdogPick": null
     }
   ],
   "seasonPredictionQuestions": [
@@ -17245,6 +17317,17 @@
       "referenceId": "prediction_2",
       "createdAt": "2026-04-05T06:16:35.554Z",
       "balanceAfter": 10
+    },
+    {
+      "id": "ledger_17",
+      "userId": "user_16",
+      "type": "earn",
+      "amount": 10,
+      "reason": "기존 활동 코인 이관",
+      "referenceType": "migration",
+      "referenceId": "user_16",
+      "createdAt": "2026-04-06T10:28:55.471Z",
+      "balanceAfter": 10
     }
   ],
   "notifications": [
@@ -17256,7 +17339,7 @@
       "body": "DNS 선택이 저장되어 +10 Coin을 획득했습니다.",
       "relatedMatchId": "match_9",
       "createdAt": "2026-04-05T06:16:35.554Z",
-      "isRead": false,
+      "isRead": true,
       "rewardCoins": 10,
       "appliedOddsPercent": null,
       "metadata": {
@@ -17292,19 +17375,19 @@
   ],
   "userInventory": [],
   "nextIds": {
-    "users": 16,
+    "users": 17,
     "teams": 12,
     "players": 111,
     "teamRosterEntries": 111,
     "matches": 96,
     "matchParticipants": 1981,
-    "predictions": 3,
+    "predictions": 5,
     "seasonPredictionQuestions": 4,
     "seasonPredictionOptions": 23,
     "seasonPredictionEntries": 1,
     "playerRatings": 51,
     "comments": 1,
-    "pointLedger": 17,
+    "pointLedger": 18,
     "notifications": 2,
     "profileStoreItems": 4,
     "userInventory": 1

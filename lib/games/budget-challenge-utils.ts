@@ -12,7 +12,7 @@ function encodeBase64Url(raw: string) {
   const text = encodeURIComponent(raw);
 
   if (typeof Buffer !== "undefined") {
-    return Buffer.from(text, "utf8").toString("base64url");
+    return Buffer.from(text, "utf8").toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
   }
 
   return btoa(text).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
@@ -24,7 +24,7 @@ function decodeBase64Url(encoded: string) {
   }
 
   if (typeof Buffer !== "undefined") {
-    return decodeURIComponent(Buffer.from(encoded, "base64url").toString("utf8"));
+    return decodeURIComponent(Buffer.from(encoded.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8"));
   }
 
   const padded = encoded.padEnd(Math.ceil(encoded.length / 4) * 4, "=").replace(/-/g, "+").replace(/_/g, "/");

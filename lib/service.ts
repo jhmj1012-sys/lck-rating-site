@@ -205,10 +205,15 @@ function buildSeasonLockedDistribution(store: StoreShape, questionId: string): S
   const options = getSeasonQuestionOptions(store, questionId);
   const totalEntries = entries.length;
 
+  const countByOption = new Map<string, number>();
+  for (const entry of entries) {
+    countByOption.set(entry.selectedOptionId, (countByOption.get(entry.selectedOptionId) ?? 0) + 1);
+  }
+
   return {
     totalEntries,
     optionShares: options.map((option) => {
-      const voteCount = entries.filter((entry) => entry.selectedOptionId === option.id).length;
+      const voteCount = countByOption.get(option.id) ?? 0;
       return {
         optionId: option.id,
         voteCount,
@@ -236,14 +241,22 @@ function getSeasonQuestionStatus(question: StoredSeasonPredictionQuestion): Seas
 }
 
 function ensureSeasonPredictionLifecycle(store: StoreShape) {
+  const entriesByQuestion = new Map<string, typeof store.seasonPredictionEntries>();
+  for (const entry of store.seasonPredictionEntries) {
+    const list = entriesByQuestion.get(entry.questionId) ?? [];
+    list.push(entry);
+    entriesByQuestion.set(entry.questionId, list);
+  }
+
   for (const question of store.seasonPredictionQuestions) {
+    const entries = entriesByQuestion.get(question.id) ?? [];
     const status = getSeasonQuestionStatus(question);
     if (status === "locked" && !question.lockedDistribution) {
       const distribution = buildSeasonLockedDistribution(store, question.id);
       question.lockedDistribution = distribution;
       question.lockedAt = distribution.capturedAt;
       question.updatedAt = distribution.capturedAt;
-      for (const entry of getSeasonQuestionEntries(store, question.id)) {
+      for (const entry of entries) {
         entry.lockedAt = distribution.capturedAt;
         entry.snapshot = distribution;
         entry.status = "locked";
@@ -256,7 +269,7 @@ function ensureSeasonPredictionLifecycle(store: StoreShape) {
       if (!question.lockedAt) {
         question.lockedAt = distribution.capturedAt;
       }
-      for (const entry of getSeasonQuestionEntries(store, question.id)) {
+      for (const entry of entries) {
         const isHit = question.resultOptionId ? entry.selectedOptionId === question.resultOptionId : false;
         entry.lockedAt = entry.lockedAt ?? question.lockedAt;
         entry.snapshot = entry.snapshot ?? distribution;
@@ -266,7 +279,7 @@ function ensureSeasonPredictionLifecycle(store: StoreShape) {
     }
 
     if (status === "canceled") {
-      for (const entry of getSeasonQuestionEntries(store, question.id)) {
+      for (const entry of entries) {
         entry.status = "canceled";
         entry.hitStatus = "canceled";
       }
@@ -1197,12 +1210,22 @@ function buildRecentHeadToHead(store: StoreShape, match: StoredMatch) {
     });
 }
 
-function getTeamKeyPlayerInsight(store: StoreShape, match: StoredMatch, teamId: string): KeyPlayerInsight | null {
+function getTeamKeyPlayerInsight(store: StoreShape, match: StoredMatch, teamId: string, ratingsByPlayer?: Map<string, number[]>): KeyPlayerInsight | null {
   const participantIds = store.matchParticipants
     .filter((item) => item.matchId === match.id && item.teamId === teamId)
     .map((item) => item.playerId);
   const fallbackIds = store.players.filter((player) => player.teamId === teamId).map((player) => player.id);
   const candidateIds = participantIds.length > 0 ? participantIds : fallbackIds;
+
+  const ratingsMap = ratingsByPlayer ?? (() => {
+    const m = new Map<string, number[]>();
+    for (const r of store.playerRatings) {
+      const list = m.get(r.playerId) ?? [];
+      list.push(r.score);
+      m.set(r.playerId, list);
+    }
+    return m;
+  })();
 
   const candidates = candidateIds
     .map((playerId) => {
@@ -1211,7 +1234,7 @@ function getTeamKeyPlayerInsight(store: StoreShape, match: StoredMatch, teamId: 
         return null;
       }
 
-      const scores = store.playerRatings.filter((rating) => rating.playerId === playerId).map((rating) => rating.score);
+      const scores = ratingsMap.get(playerId) ?? [];
       if (scores.length === 0) {
         return null;
       }
@@ -1240,14 +1263,21 @@ function buildPreMatchInsights(store: StoreShape, match: StoredMatch): PreMatchI
   const teamARecent = getTeamRecentMatches(store, match.teamAId, match.scheduledAt, 5);
   const teamBRecent = getTeamRecentMatches(store, match.teamBId, match.scheduledAt, 5);
 
+  const ratingsByPlayer = new Map<string, number[]>();
+  for (const r of store.playerRatings) {
+    const list = ratingsByPlayer.get(r.playerId) ?? [];
+    list.push(r.score);
+    ratingsByPlayer.set(r.playerId, list);
+  }
+
   return {
     teamAForm: toFormAndStreak(teamARecent, match.teamAId),
     teamBForm: toFormAndStreak(teamBRecent, match.teamBId),
     h2h: buildHeadToHead(store, match),
     recentHeadToHead: buildRecentHeadToHead(store, match),
     keyPlayers: {
-      teamA: getTeamKeyPlayerInsight(store, match, match.teamAId),
-      teamB: getTeamKeyPlayerInsight(store, match, match.teamBId),
+      teamA: getTeamKeyPlayerInsight(store, match, match.teamAId, ratingsByPlayer),
+      teamB: getTeamKeyPlayerInsight(store, match, match.teamBId, ratingsByPlayer),
     },
   };
 }
@@ -1264,7 +1294,8 @@ function buildMatchView(store: StoreShape, match: StoredMatch, viewerId: string 
   const ratingComments = buildMatchRatingComments(store, match.id, viewerId);
   const predictionComments = buildMatchPredictionComments(store, match.id, viewerId);
   const predictionSummary = match.lockedDistribution ?? buildPredictionSummary(store, match);
-  const totalRatings = store.playerRatings.filter((rating) => rating.matchId === match.id).length;
+  const matchRatings = store.playerRatings.filter((rating) => rating.matchId === match.id);
+  const totalRatings = matchRatings.length;
   const averagePlayerRating = players.filter((player) => player.ratingCount > 0);
   const myPrediction = viewerId
     ? store.predictions.find((prediction) => prediction.matchId === match.id && prediction.userId === viewerId)
@@ -1286,7 +1317,7 @@ function buildMatchView(store: StoreShape, match: StoredMatch, viewerId: string 
     comments: countVisibleComments(store.comments, match.id),
     totalRatings,
     averagePlayerRating: averagePlayerRating.length > 0 ? Number(average(averagePlayerRating.map((player) => player.rating)).toFixed(1)) : null,
-    viewerPlayerRatingCount: viewerId ? store.playerRatings.filter((rating) => rating.matchId === match.id && rating.userId === viewerId).length : 0,
+    viewerPlayerRatingCount: viewerId ? matchRatings.filter((rating) => rating.userId === viewerId).length : 0,
     mvp: buildMvp(players),
     predictionLocked: isPredictionLocked(match),
     predictionLifecycleState: getPredictionLifecycleState(match),
@@ -1438,12 +1469,14 @@ function buildTeamStandings(store: StoreShape): TeamStandingItem[] {
 
   return baseRows
     .slice()
-    .sort((a, b) =>
-      b.wins - a.wins ||
-      a.losses - b.losses ||
-      (b.setsWon - b.setsLost) - (a.setsWon - a.setsLost) ||
-      a.teamCode.localeCompare(b.teamCode, "en"),
-    )
+    .sort((a, b) => {
+      if (b.wins !== a.wins) return b.wins - a.wins;
+      if (a.losses !== b.losses) return a.losses - b.losses;
+      const setDiffA = a.setsWon - a.setsLost;
+      const setDiffB = b.setsWon - b.setsLost;
+      if (setDiffB !== setDiffA) return setDiffB - setDiffA;
+      return a.teamCode.localeCompare(b.teamCode, "en");
+    })
     .map((row, index) => {
       const total = row.wins + row.losses;
       return {
@@ -1464,6 +1497,15 @@ function buildPredictionLeaderboard(store: StoreShape): PredictionLeaderboardIte
     const list = predictionsByUserId.get(prediction.userId) ?? [];
     list.push(prediction);
     predictionsByUserId.set(prediction.userId, list);
+  }
+
+  // pointLedger를 한 번만 순회해서 유저별 최신 잔액 집계
+  const latestLedgerByUser = new Map<string, { balanceAfter: number; createdAt: string }>();
+  for (const entry of store.pointLedger) {
+    const current = latestLedgerByUser.get(entry.userId);
+    if (!current || entry.createdAt > current.createdAt) {
+      latestLedgerByUser.set(entry.userId, entry);
+    }
   }
 
   return store.users
@@ -1488,7 +1530,7 @@ function buildPredictionLeaderboard(store: StoreShape): PredictionLeaderboardIte
         userId: user.id,
         nickname: user.nickname ?? "",
         userSummary: buildPublicUserSummary(store, user.id),
-        points: getUserPointBalance(store, user.id),
+        points: latestLedgerByUser.get(user.id)?.balanceAfter ?? 0,
         accuracy: resolved.length > 0 ? Math.round((hit / resolved.length) * 100) : 0,
         hit,
         miss: Math.max(0, miss),

@@ -29,7 +29,7 @@ export default async function RootLayout({
 
   return (
     <html lang="ko" className={`h-full antialiased ${pretendard.variable}`}>
-      <body className="min-h-full" suppressHydrationWarning>
+      <body className="min-h-full overflow-x-hidden" suppressHydrationWarning>
         <AuthSessionProvider session={session}>
           <div className="flex min-h-screen flex-col">
             <div className="flex-1">{children}</div>

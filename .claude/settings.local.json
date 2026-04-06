@@ -21,7 +21,15 @@
       "Bash(npm run:*)",
       "Bash(node -e \":*)",
       "Bash(curl -s http://localhost:3000/)",
-      "Bash(curl -s http://localhost:3000/matches/match_11)"
+      "Bash(curl -s http://localhost:3000/matches/match_11)",
+      "Bash(git stash:*)",
+      "Bash(find C:Usersjhmj1lol-rating-site -name auth.ts -o -name auth.tsx -o -name *.auth.*)",
+      "Bash(grep -r HupuScheduleHome C:Usersjhmj1lol-rating-siteapp --include=*.tsx --include=*.ts)",
+      "Bash(grep -r from.*components C:Usersjhmj1lol-rating-siteapp --include=*.tsx --include=*.ts)",
+      "Bash(find \"C:\\\\Users\\\\jhmj1\\\\lol-rating-site\\\\components\" -name \"*.tsx\" -type f -exec wc -l {})",
+      "Bash(grep -r \"FilterBar\\\\|ScheduleFilterBar\\\\|import.*schedule\" C:Usersjhmj1lol-rating-site --include=*.tsx --include=*.ts)",
+      "Bash(grep -r import.*from.*@/ C:Usersjhmj1lol-rating-siteapp --include=*.tsx --include=*.ts)",
+      "Bash(grep -r \"any\\\\|@ts-ignore\\\\|any\\\\[\\\\]\\\\|unknown\" C:Usersjhmj1lol-rating-siteappapi --include=*.ts --include=*.tsx)"
     ]
   }
 }

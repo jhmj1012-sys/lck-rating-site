@@ -26,8 +26,9 @@ export function TopSiteNav({
         unreadNotificationCount={unreadNotificationCount}
       />
       <div className="bg-[#7C3AED]">
-        <div className={cn("mobile-tab-scroll mx-auto px-4 sm:px-6", maxWidthClass)}>
-        <nav className="flex min-w-max items-center gap-1 whitespace-nowrap">
+        <div className={cn("mx-auto w-full px-4 sm:px-6", maxWidthClass)}>
+        <div className="mobile-tab-scroll">
+        <nav className="inline-flex min-w-full items-center gap-1 whitespace-nowrap">
           <Link
             href="/"
             className={cn(
@@ -114,6 +115,7 @@ export function TopSiteNav({
             {active === "games" ? <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-[#C4B5FD] sm:inset-x-4" /> : null}
           </Link>
         </nav>
+        </div>
         </div>
       </div>
     </>

@@ -28,9 +28,9 @@ const LABELS = {
   predictNow: "\uC608\uCE21\uD558\uAE30",
   setRatingsView: "\uACBD\uAE30 \uBC18\uC751 \uBCF4\uAE30",
   latestRatingComments: "\uCD5C\uC2E0 \uD3C9\uC810 \uCF54\uBA58\uD2B8",
-  latestMatchComments: "\uCD5C\uC2E0 \uB313\uAE00",
+  latestMatchComments: "인기 예측 코멘트",
   noRatingComments: "\uC544\uC9C1 \uB0A8\uACA8\uC9C4 \uD3C9\uC810 \uCF54\uBA58\uD2B8\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.",
-  noMatchComments: "\uC544\uC9C1 \uB0A8\uACA8\uC9C4 \uB313\uAE00\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  noMatchComments: "아직 남겨진 예측 코멘트가 없습니다.",
   reactionsView: "\uBC18\uC751 \uBCF4\uAE30",
   joinToday: "\uC624\uB298\uB3C4 \uCC38\uC5EC \uC911",
   myPage: "\uB9C8\uC774\uD398\uC774\uC9C0",
@@ -406,11 +406,15 @@ function getDefaultMonthId(months: MatchMonthGroup[], fallbackId?: string) {
 function TodayMatchCard({ match, forcePredictCta = false }: { match: MatchData; forcePredictCta?: boolean }) {
   const liveLike = isLiveMatch(match);
   const ratingCommentPreview = match.ratingComments.slice(0, 3);
-  const matchCommentPreview = match.commentsList.filter((comment) => !comment.parentId).slice(0, 3);
+  const predictionCommentPreview = match.predictionComments
+    .filter((c) => c.text)
+    .slice()
+    .sort((a, b) => b.likeCount - a.likeCount)
+    .slice(0, 3);
   const isFinished = match.status === "finished";
 
   return (
-    <article className="rounded-[30px] bg-[#31313C] px-5 py-5 text-white shadow-[0_16px_40px_rgba(2,6,23,0.28)]">
+    <article className="min-w-0 rounded-[30px] bg-[#31313C] px-5 py-5 text-white shadow-[0_16px_40px_rgba(2,6,23,0.28)]">
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="text-[13px] font-semibold tracking-[-0.02em] text-[#d6d6e5]">{formatMatchTime(match.scheduledAt)}</div>
@@ -440,7 +444,7 @@ function TodayMatchCard({ match, forcePredictCta = false }: { match: MatchData; 
         </div>
       </div>
 
-        <div className="mt-6 rounded-[24px] bg-[#31313C] px-5 py-5">
+        <div className="mt-6 min-w-0 rounded-[24px] bg-[#31313C] px-5 py-5">
         <div className="relative mt-2 h-[11px] w-full overflow-hidden rounded-[5px] bg-[#2A2A34]">
           <div
             className="h-full w-full"
@@ -459,7 +463,7 @@ function TodayMatchCard({ match, forcePredictCta = false }: { match: MatchData; 
         </div>
         <Link
           href={`/matches/${match.id}`}
-          className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-[12px] border border-[#5B21B6] bg-[#7C3AED] px-4 text-[22px] font-semibold text-white shadow-[0_4px_0_#5B21B6] transition-all duration-150 hover:translate-y-[2px] hover:shadow-[0_2px_0_#5B21B6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A78BFA] focus-visible:ring-offset-2 focus-visible:ring-offset-[#31313C]"
+          className="mt-5 flex min-h-12 w-full min-w-0 items-center justify-center rounded-[12px] border border-[#5B21B6] bg-[#7C3AED] px-4 py-3 text-center text-[18px] leading-tight font-semibold whitespace-normal break-keep text-white shadow-[0_4px_0_#5B21B6] transition-all duration-150 hover:translate-y-[2px] hover:shadow-[0_2px_0_#5B21B6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A78BFA] focus-visible:ring-offset-2 focus-visible:ring-offset-[#31313C] sm:text-[22px]"
         >
           {forcePredictCta ? "승부예측하기" : getPrimaryActionLabel(match)}
         </Link>
@@ -481,9 +485,10 @@ function TodayMatchCard({ match, forcePredictCta = false }: { match: MatchData; 
               ) : (
                 <div className="text-xs text-[#d6d6e5]">{LABELS.noRatingComments}</div>
               )
-            ) : matchCommentPreview.length > 0 ? (
-              matchCommentPreview.map((item) => (
+            ) : predictionCommentPreview.length > 0 ? (
+              predictionCommentPreview.map((item) => (
                 <div key={item.id} className="flex min-w-0 items-center gap-2 text-xs text-white">
+                  <span className="shrink-0 rounded-full bg-[#4A4A59] px-2 py-0.5 text-[11px] font-semibold text-white">{item.selectedTeam}</span>
                   <span className="min-w-0 flex-1 truncate whitespace-nowrap">{item.text}</span>
                 </div>
               ))
@@ -506,7 +511,7 @@ function PastMatchCard({ match, revealSpoiler }: { match: MatchData; revealSpoil
   const scoreLabel = getDisplayScore(match);
 
   return (
-    <article className="rounded-[28px] bg-[#31313C] p-5 text-white shadow-[0_12px_32px_rgba(2,6,23,0.28)]">
+    <article className="min-w-0 rounded-[28px] bg-[#31313C] p-5 text-white shadow-[0_12px_32px_rgba(2,6,23,0.28)]">
       <div className="flex items-center justify-end">
         <div className="text-[12px] text-[#d6d6e5]">{match.date}</div>
       </div>
@@ -539,7 +544,7 @@ function PastMatchCard({ match, revealSpoiler }: { match: MatchData; revealSpoil
       <Link
         href={`/matches/${match.id}`}
         aria-label={`${match.teamA} vs ${match.teamB} 경기 상세 보기`}
-        className="mt-4 inline-flex min-h-12 w-full items-center justify-center rounded-[12px] border border-[#5B21B6] bg-[#7C3AED] px-4 text-[22px] font-semibold text-white shadow-[0_4px_0_#5B21B6] transition-all duration-150 hover:translate-y-[2px] hover:shadow-[0_2px_0_#5B21B6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A78BFA] focus-visible:ring-offset-2 focus-visible:ring-offset-[#31313C]"
+        className="mt-4 flex min-h-12 w-full min-w-0 items-center justify-center rounded-[12px] border border-[#5B21B6] bg-[#7C3AED] px-4 py-3 text-center text-[18px] leading-tight font-semibold whitespace-normal break-keep text-white shadow-[0_4px_0_#5B21B6] transition-all duration-150 hover:translate-y-[2px] hover:shadow-[0_2px_0_#5B21B6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#A78BFA] focus-visible:ring-offset-2 focus-visible:ring-offset-[#31313C] sm:text-[22px]"
       >
         평점 확인하기
       </Link>
@@ -689,9 +694,10 @@ export default function HupuScheduleHome({
           notifications={initialData.notifications}
           unreadNotificationCount={initialData.unreadNotificationCount}
         />
-      <div className="bg-[#7C3AED]">
-        <div className="mobile-tab-scroll mx-auto max-w-5xl px-4 sm:px-6">
-        <nav className="flex min-w-max items-center gap-1 whitespace-nowrap">
+      <div className="overflow-hidden bg-[#7C3AED]">
+        <div className="mx-auto w-full max-w-5xl px-4 sm:px-6">
+        <div className="mobile-tab-scroll">
+        <nav className="inline-flex min-w-full items-center gap-1 whitespace-nowrap">
           <Link
             href="/"
             className={cn(
@@ -769,6 +775,7 @@ export default function HupuScheduleHome({
             게임
           </Link>
         </nav>
+        </div>
         </div>
       </div>
       <main className="w-full bg-[#1C1C1F] py-6">

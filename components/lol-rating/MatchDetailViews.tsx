@@ -357,7 +357,7 @@ function PredictionGamePanel({ match }: { match: MatchData }) {
                 value={comment}
                 onChange={(e) => setComment(e.target.value.slice(0, 50))}
                 placeholder='응원 한마디 or 예측 사유 (선택)'
-                className='flex-1 rounded-[12px] border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:border-slate-300 focus:bg-white transition'
+                className='prediction-comment-input flex-1 rounded-[12px] px-3 py-2.5 text-sm outline-none transition'
               />
               <span className='shrink-0 text-[11px] text-slate-400'>{comment.length}/50</span>
             </div>
@@ -538,6 +538,11 @@ function PredictionReactionFeed({ data }: { data: MatchDetailData }) {
     () => new Set(match.predictionComments.filter((c) => c.viewerLiked).map((c) => c.id)),
   );
   const [filterTeam, setFilterTeam] = useState<string | null>(null);
+
+  useEffect(() => {
+    setPredComments(match.predictionComments);
+    setLikedIds(new Set(match.predictionComments.filter((c) => c.viewerLiked).map((c) => c.id)));
+  }, [match.predictionComments]);
   const [shareCommentId, setShareCommentId] = useState<string | null>(null);
   const [shareCopied, setShareCopied] = useState(false);
   const shareCardRef = useRef<HTMLDivElement | null>(null);
@@ -576,7 +581,7 @@ function PredictionReactionFeed({ data }: { data: MatchDetailData }) {
 
   const filtered = predComments.filter((c) => filterTeam === null || c.selectedTeam === filterTeam);
   const pillCls = (active: boolean) =>
-    cn('rounded-full px-2.5 py-1 text-[11px] font-semibold transition', active ? 'bg-[#8B5CF6] text-white' : 'bg-[#3A3A47] !text-[#9AA6C9] hover:bg-[#474756]');
+    cn('inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold transition', active ? 'bg-[#8B5CF6] text-white' : 'bg-[#3A3A47] !text-[#9AA6C9] hover:bg-[#474756]');
   const teams = [...new Set(predComments.map((c) => c.selectedTeam))];
 
   const shareComment = predComments.find((c) => c.id === shareCommentId);
@@ -594,10 +599,7 @@ function PredictionReactionFeed({ data }: { data: MatchDetailData }) {
               <button type='button' onClick={() => setFilterTeam(null)} className={pillCls(filterTeam === null)}>전체</button>
               {teams.map((t) => (
                 <button key={t} type='button' onClick={() => setFilterTeam(t)} className={pillCls(filterTeam === t)}>
-                  <span className='inline-flex items-center gap-1'>
-                    <TeamLogo team={t} size={14} imageClassName='p-0' />
-                    {t}
-                  </span>
+                  {t}
                 </button>
               ))}
             </div>
@@ -622,7 +624,7 @@ function PredictionReactionFeed({ data }: { data: MatchDetailData }) {
                         'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold',
                         isTeamA ? 'bg-[#1a3a5c] text-[#7ec8f0]' : 'bg-[#4a2020] text-[#f08080]',
                       )}>
-                        <TeamLogo team={c.selectedTeam} size={13} imageClassName='p-0' />
+                        <TeamLogo team={c.selectedTeam} size={28} imageClassName='p-0' />
                         {c.selectedTeam}
                       </span>
                       <span className='text-[11px] text-[#6B6B80]'>{c.user}</span>
