@@ -110,61 +110,80 @@ export function AccountActions({
 
   return (
     <>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="space-y-4">
         {showNickname ? (
-          <>
-            <button
-              type="button"
-              aria-label={nicknameLabel}
-              onClick={() => setIsEditingNickname((value) => !value)}
-              className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-sky-200 hover:bg-sky-50 hover:text-sky-700"
-            >
-              {nicknameLabel}
-            </button>
-            {isEditingNickname ? (
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={nicknameInput}
-                  onChange={(event) => setNicknameInput(event.target.value)}
-                  maxLength={10}
-                  placeholder="2~10자, 한글/영문/숫자"
-                  className="h-10 w-[240px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-sky-400"
-                />
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-400">닉네임</div>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                aria-label={nicknameLabel}
+                onClick={() => setIsEditingNickname((value) => !value)}
+                className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-sky-200 hover:bg-sky-50 hover:text-sky-700"
+              >
+                {nicknameLabel}
+              </button>
+              {isEditingNickname ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={nicknameInput}
+                    onChange={(event) => setNicknameInput(event.target.value)}
+                    maxLength={10}
+                    placeholder="2~10자, 한글/영문/숫자"
+                    className="h-10 w-[240px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-sky-400"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSaveNickname}
+                    disabled={isSavingNickname}
+                    className="inline-flex h-10 items-center justify-center rounded-lg bg-[#8B5CF6] px-3 text-sm font-medium text-white transition hover:bg-[#7C3AED] disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    {isSavingNickname ? "저장중..." : "확인"}
+                  </button>
+                  {nicknameMessage ? <span className="text-xs font-medium text-[#AFC1F7]">{nicknameMessage}</span> : null}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+
+        {showLogout ? (
+          <div>
+            {showNickname ? <div className="border-t border-slate-100" /> : null}
+            <div className="mt-4">
+              <div className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-400">세션</div>
+              <div className="mt-2">
                 <button
                   type="button"
-                  onClick={handleSaveNickname}
-                  disabled={isSavingNickname}
-                  className="inline-flex h-10 items-center justify-center rounded-lg bg-[#8B5CF6] px-3 text-sm font-medium text-white transition hover:bg-[#7C3AED] disabled:cursor-not-allowed disabled:opacity-70"
+                  aria-label="로그아웃"
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                  className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700"
                 >
-                  {isSavingNickname ? "저장중..." : "확인"}
+                  로그아웃
                 </button>
-                {nicknameMessage ? <span className="text-xs font-medium text-[#AFC1F7]">{nicknameMessage}</span> : null}
               </div>
-            ) : null}
-          </>
+            </div>
+          </div>
         ) : null}
-        {showLogout ? (
-          <button
-            type="button"
-            aria-label="로그아웃"
-            onClick={() => signOut({ callbackUrl: "/" })}
-            className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700"
-          >
-            로그아웃
-          </button>
-        ) : null}
+
         {showDelete ? (
-          <div className="mt-2 w-full">
-            <button
-              type="button"
-              aria-label="회원탈퇴"
-              onClick={() => setIsDeleteModalOpen(true)}
-              disabled={isDeleting}
-              className="inline-flex min-h-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              {isDeleting ? "탈퇴 처리 중..." : "회원탈퇴"}
-            </button>
+          <div>
+            <div className="border-t border-slate-100" />
+            <div className="mt-4">
+              <div className="text-xs font-semibold uppercase tracking-[0.1em] text-rose-400">위험 구역</div>
+              <div className="mt-2">
+                <button
+                  type="button"
+                  aria-label="회원탈퇴"
+                  onClick={() => setIsDeleteModalOpen(true)}
+                  disabled={isDeleting}
+                  className="inline-flex min-h-9 items-center justify-center rounded-lg bg-red-500 px-3 text-xs font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {isDeleting ? "탈퇴 처리 중..." : "회원탈퇴"}
+                </button>
+              </div>
+            </div>
           </div>
         ) : null}
       </div>

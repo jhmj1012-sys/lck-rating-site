@@ -32,7 +32,9 @@
       "Bash(grep -r \"any\\\\|@ts-ignore\\\\|any\\\\[\\\\]\\\\|unknown\" C:Usersjhmj1lol-rating-siteappapi --include=*.ts --include=*.tsx)",
       "Bash(grep -r \"coin\\\\|shop\\\\|purchase\\\\|store\" C:Usersjhmj1lol-rating-sitelib --include=*.ts --include=*.tsx)",
       "Bash(grep -r \"profileStoreItems\\\\|ProfileStoreItem\" C:Usersjhmj1lol-rating-sitelib --include=*.ts)",
-      "Bash(xargs -0 grep -l shop)"
+      "Bash(xargs -0 grep -l shop)",
+      "Bash(xargs cat:*)",
+      "Bash(grep -E \"^-.*\\\\.\\(ts|tsx|js\\)$\")"
     ]
   }
 }

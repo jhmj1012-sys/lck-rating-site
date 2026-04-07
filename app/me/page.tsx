@@ -6,8 +6,9 @@ import { getCurrentUser } from "@/lib/authz";
 import { getMyPageData, getScheduleHubData } from "@/lib/service";
 import { AccountActions } from "./AccountActions";
 import { BioEditor } from "./BioEditor";
+import { equipStoreItemAction } from "./actions";
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 type TabKey = "profile" | "metrics" | "predictions" | "season" | "coins" | "history" | "account";
 type HistoryType = "all" | "rating" | "comment";
@@ -15,12 +16,21 @@ type HistoryType = "all" | "rating" | "comment";
 type HistoryItem = {
   kind: "rating" | "comment";
   id: string;
+  matchId: string;
   matchLabel: string;
   createdAt: string;
   score?: number;
   playerName?: string;
   team?: string;
   text?: string;
+};
+
+const SEASON_STATUS_LABEL: Record<string, string> = {
+  draft: "준비중",
+  open: "진행중",
+  locked: "마감",
+  resolved: "결과발표",
+  canceled: "취소",
 };
 
 const TAB_LIST: Array<{ key: TabKey; label: string; description: string }> = [
@@ -208,6 +218,7 @@ export default async function MyPage({
     ...data.ratings.map((rating): HistoryItem => ({
       kind: "rating",
       id: rating.id,
+      matchId: rating.matchId,
       matchLabel: rating.matchLabel,
       createdAt: rating.updatedAt ?? rating.createdAt,
       score: rating.score,
@@ -217,6 +228,7 @@ export default async function MyPage({
     ...data.comments.map((comment): HistoryItem => ({
       kind: "comment",
       id: comment.id,
+      matchId: comment.matchId,
       matchLabel: comment.matchLabel,
       createdAt: comment.createdAt,
       text: comment.text,
@@ -245,17 +257,6 @@ export default async function MyPage({
       />
     <main className="mypage-theme min-h-screen bg-[#1C1C1F] px-4 py-8 sm:px-6">
       <div className="mx-auto max-w-5xl space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div />
-          <div className="flex flex-wrap items-center gap-2">
-            <AccountActions
-              hasNickname={Boolean(data.profile.hasNickname)}
-              showNickname={false}
-              showDelete={false}
-              showLogout={true}
-            />
-          </div>
-        </div>
         <section className="rounded-2xl bg-[#31313C] px-5 py-4">
           <p className="text-base font-medium text-[#FFFFFF]">환영합니다, {welcomeName}님!</p>
           <p className="mt-1 text-sm text-[#D4DCFF]">오늘도 예측과 평점을 재미있게 즐겨보세요.</p>
@@ -287,6 +288,7 @@ export default async function MyPage({
                     }
                   >
                     <div className={currentTab === tab.key ? "text-sm font-bold text-white" : "text-sm font-semibold text-slate-800 group-hover:text-white"}>{tab.label}</div>
+                    <div className={currentTab === tab.key ? "mt-0.5 text-[11px] text-purple-200" : "mt-0.5 text-[11px] text-slate-400 group-hover:text-purple-200"}>{tab.description}</div>
                   </Link>
                 ))}
               </div>
@@ -313,14 +315,24 @@ export default async function MyPage({
             {currentTab === "profile" ? (
               <div className="space-y-5">
                 <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-5 py-5">
-                  <div className="text-3xl font-black text-slate-950">{data.profile.nickname}</div>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                  <div className="flex items-center gap-4">
+                    {data.profile.image ? (
+                      <img src={data.profile.image} alt="프로필" className="h-14 w-14 shrink-0 rounded-full object-cover ring-2 ring-purple-200" />
+                    ) : (
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-purple-100 text-2xl font-black text-purple-600">
+                        {(data.profile.nickname ?? "?")[0]}
+                      </div>
+                    )}
+                    <div>
+                      <div className="text-3xl font-black text-slate-950">{data.profile.nickname}</div>
+                      {data.predictionStyleLabel ? (
+                        <span className="mt-1 inline-flex rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-semibold text-purple-700">{data.predictionStyleLabel}</span>
+                      ) : null}
+                    </div>
+                  </div>
+                  <p className="mt-4 text-sm leading-6 text-slate-600">
                     {data.profile.bio ?? "아직 소개문구가 없습니다. 나를 한 줄로 소개해 보세요."}
                   </p>
-                </div>
-
-                <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-5 py-5">
-                  <div className="text-sm font-semibold text-slate-950">소개문구 작성하기</div>
                   <BioEditor initialBio={data.profile.bio ?? ""} />
                 </div>
 
@@ -332,6 +344,9 @@ export default async function MyPage({
                   <div className="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4">
                     <div className="text-[11px] uppercase tracking-[0.12em] text-slate-500">레벨</div>
                     <div className="mt-2 text-2xl font-black text-slate-950">Lv.{data.profile.level}</div>
+                    <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+                      <div className="h-full rounded-full bg-purple-500" style={{ width: `${(data.profile.level % 10) * 10}%` }} />
+                    </div>
                   </div>
                   <div className="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4">
                     <div className="text-[11px] uppercase tracking-[0.12em] text-slate-500">총 예측</div>
@@ -350,6 +365,32 @@ export default async function MyPage({
                     <div className="mt-2 text-2xl font-black text-slate-950">{data.profile.predictionStats.streak}</div>
                   </div>
                 </div>
+
+                {data.storeItems.some((item) => item.owned) ? (
+                  <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-5 py-5">
+                    <div className="text-sm font-semibold text-slate-950">보유 아이템</div>
+                    <div className="mt-3 space-y-2">
+                      {data.storeItems.filter((item) => item.owned).map((item) => (
+                        <div key={item.id} className="flex items-center justify-between gap-3 rounded-[14px] border border-slate-200 bg-white px-4 py-2.5">
+                          <div>
+                            <div className="text-sm font-semibold text-slate-950">{item.label}</div>
+                            <div className="text-xs text-slate-400">{item.description}</div>
+                          </div>
+                          {item.equipped ? (
+                            <span className="shrink-0 rounded-full bg-purple-100 px-2.5 py-1 text-xs font-semibold text-purple-700">적용중</span>
+                          ) : (
+                            <form action={equipStoreItemAction}>
+                              <input type="hidden" name="storeItemId" value={item.id} />
+                              <button type="submit" className="inline-flex shrink-0 items-center justify-center rounded-lg border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-50">
+                                적용
+                              </button>
+                            </form>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </div>
             ) : null}
 
@@ -363,6 +404,21 @@ export default async function MyPage({
                     </div>
                   ))}
                 </div>
+
+                {data.predictionInsights.length > 0 ? (
+                  <div>
+                    <div className="mb-3 text-sm font-semibold text-slate-700">예측 인사이트</div>
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                      {data.predictionInsights.map((insight) => (
+                        <div key={insight.label} className="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4">
+                          <div className="text-[11px] uppercase tracking-[0.12em] text-slate-500">{insight.label}</div>
+                          <div className="mt-2 text-xl font-black text-slate-950">{insight.value}</div>
+                          <div className="mt-1 text-xs text-slate-400">{insight.description}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
 
                 {accuracyGraphData ? (
                   <div className="rounded-[22px] border border-slate-200 bg-slate-50 px-5 py-5">
@@ -398,6 +454,38 @@ export default async function MyPage({
                     예측에 참여하면 내 예측 지표가 표시됩니다.
                   </div>
                 )}
+
+                {hasPredictionData && data.predictionComparison.filter((item) => item.label !== "적중률").length > 0 ? (
+                  <div className="space-y-3">
+                    <div className="text-sm font-semibold text-slate-700">나 vs 전체 비교</div>
+                    {data.predictionComparison.filter((item) => item.label !== "적중률").map((item) => (
+                      <div key={item.label} className="rounded-[20px] border border-slate-200 bg-slate-50 px-5 py-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="font-semibold text-slate-950">{item.label}</div>
+                          <div className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-sky-700">{item.delta}</div>
+                        </div>
+                        <div className="mt-1 text-sm text-slate-500">{item.summary}</div>
+                        <div className="mt-3 flex gap-6 text-sm">
+                          <div>
+                            <div className="text-[11px] text-slate-400">내 기록</div>
+                            <div className="font-bold text-[#7C3AED]">{item.myValue}</div>
+                          </div>
+                          <div>
+                            <div className="text-[11px] text-slate-400">참여자 평균</div>
+                            <div className="font-bold text-slate-600">{item.averageValue}</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+
+                {data.predictionStyleLabel ? (
+                  <div className="rounded-[20px] border border-slate-200 bg-slate-50 px-5 py-4">
+                    <div className="text-sm text-slate-500">예측 스타일</div>
+                    <div className="mt-2 inline-flex rounded-full bg-purple-100 px-3 py-1 text-sm font-bold text-purple-700">{data.predictionStyleLabel}</div>
+                  </div>
+                ) : null}
               </div>
             ) : null}
 
@@ -409,14 +497,25 @@ export default async function MyPage({
                 <div className="mt-4 space-y-2.5">
                   {predictionSlice.items.map((prediction) => (
                     <div key={prediction.id} className="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-3">
-                      <div className="font-semibold text-slate-950">{prediction.matchLabel}</div>
+                      <Link href={`/matches/${prediction.matchId}`} className="font-semibold text-slate-950 hover:text-[#7C3AED] hover:underline">{prediction.matchLabel}</Link>
                       <div className="mt-1 text-sm text-slate-600">{prediction.selectedTeam} 선택 · {prediction.resultLabel}</div>
                       <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-500">
                         <span>{formatDateTime(prediction.submittedAt)}</span>
                         {prediction.lockedOddsPercent ? <span>확정 배당 {prediction.lockedOddsPercent}%</span> : null}
                         {prediction.wasUnderdogPick ? <span>언더독 선택</span> : null}
                       </div>
-                      <div className="mt-2 text-sm font-semibold text-emerald-700">+{10 + prediction.settlementCoins} Coin</div>
+                      {prediction.resultLabel === "결과 대기" ? (
+                        <div className="mt-2 text-sm font-medium text-slate-400">코인 정산 대기중</div>
+                      ) : prediction.resultLabel === "적중" ? (
+                        <div className="mt-2 text-sm font-semibold text-emerald-700">
+                          +{10 + prediction.settlementCoins} Coin
+                          {prediction.settlementCoins > 0 ? (
+                            <span className="ml-1 text-xs font-normal text-emerald-600">(제출 +10 · 적중 보상 +{prediction.settlementCoins})</span>
+                          ) : null}
+                        </div>
+                      ) : (
+                        <div className="mt-2 text-sm font-semibold text-slate-500">+10 Coin (제출)</div>
+                      )}
                     </div>
                   ))}
                   {data.predictions.length === 0 ? (
@@ -473,11 +572,11 @@ export default async function MyPage({
                 <div className="mt-4 space-y-2.5">
                   {seasonPredictionSlice.items.map((item) => (
                     <div key={item.id} className="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-3">
-                      <div className="font-semibold text-slate-950">{item.title}</div>
+                      <Link href={`/season-predictions`} className="font-semibold text-slate-950 hover:text-[#7C3AED] hover:underline">{item.title}</Link>
                       <div className="mt-1 text-sm text-slate-600">{item.category} · {item.season}</div>
                       <div className="mt-2 text-sm text-slate-700">내 선택 {item.selectedOptionLabel}</div>
                       <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-500">
-                        <span>{item.status}</span>
+                        <span>{SEASON_STATUS_LABEL[item.status] ?? item.status}</span>
                         <span>{item.resultLabel ? `정답 ${item.resultLabel}` : "결과 대기"}</span>
                         <span>{item.hitStatus === "hit" ? "적중" : item.hitStatus === "miss" ? "미적중" : item.hitStatus === "canceled" ? "취소" : "진행중"}</span>
                         <span>코인 {item.rewardAmount ?? "-"}</span>
@@ -548,7 +647,7 @@ export default async function MyPage({
                 <div className="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4">
                   <AccountActions
                     hasNickname={Boolean(data.profile.hasNickname)}
-                    showLogout={false}
+                    showLogout={true}
                     showNickname={true}
                     showDelete={true}
                     currentNickname={data.profile.nickname ?? ""}
@@ -591,13 +690,13 @@ export default async function MyPage({
                   {historySlice.items.map((item) => (
                     <div key={`${item.kind}_${item.id}`} className="rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-3">
                       <div className="flex items-center justify-between gap-3">
-                        <div className="font-semibold text-slate-950">{item.matchLabel}</div>
+                        <Link href={`/matches/${item.matchId}`} className="font-semibold text-slate-950 hover:text-[#7C3AED] hover:underline">{item.matchLabel}</Link>
                         <div className="text-xs text-slate-500">{formatDateTime(item.createdAt)}</div>
                       </div>
 
                       {item.kind === "rating" ? (
                         <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-slate-700">
-                          <span className="inline-flex rounded-full bg-sky-100 px-2.5 py-1 text-xs font-semibold text-sky-700">평점</span>
+                          <span className="inline-flex rounded-full bg-sky-500 px-2.5 py-1 text-xs font-semibold text-white">평점</span>
                           <span>{item.playerName}</span>
                           <span className="text-slate-500">{item.team}</span>
                           <span className="font-bold text-slate-950">{item.score?.toFixed(1)}</span>
