@@ -6,7 +6,6 @@ import { getAdminPanelData } from "@/lib/service";
 import {
   cancelSeasonPredictionQuestionAction,
   resolveSeasonPredictionQuestionAction,
-  syncAllMatchRostersAction,
   toggleCommentVisibilityAction,
   updateMatchResultAction,
   updateMatchRosterAction,
@@ -14,8 +13,9 @@ import {
   upsertMatchAction,
   upsertSeasonPredictionQuestionAction,
 } from "./actions";
+import RiotSyncPanel from "./RiotSyncPanel";
 
-type AdminTab = "status" | "result" | "roster" | "new-match" | "season" | "comments" | "team-roster";
+type AdminTab = "status" | "result" | "roster" | "new-match" | "season" | "comments" | "team-roster" | "riot-sync";
 const ROLE_ORDER = ["TOP", "JGL", "MID", "ADC", "SUP"] as const;
 
 function toInputDate(value: string) {
@@ -39,7 +39,8 @@ function getTab(value: string | undefined): AdminTab {
     value === "new-match" ||
     value === "season" ||
     value === "comments" ||
-    value === "team-roster"
+    value === "team-roster" ||
+    value === "riot-sync"
   ) {
     return value;
   }
@@ -79,6 +80,7 @@ export default async function AdminPage({
   const tabs: { key: AdminTab; label: string }[] = [
     { key: "status", label: "경기 상태" },
     { key: "result", label: "경기 결과" },
+    { key: "riot-sync", label: "🤖 Riot 자동입력" },
     { key: "roster", label: "출전 멤버" },
     { key: "new-match", label: "경기 추가" },
     { key: "season", label: "시즌 예측" },
@@ -220,21 +222,12 @@ export default async function AdminPage({
           </section>
         )}
 
+        {/* ── Riot 자동입력 ── */}
+        {currentTab === "riot-sync" && <RiotSyncPanel />}
+
         {/* ── 출전 멤버 ── */}
         {currentTab === "roster" && (
           <section className="space-y-4">
-            <form action={syncAllMatchRostersAction} className="rounded-[20px] bg-[#31313C] p-5 text-white shadow-[0_10px_24px_rgba(2,6,23,0.24)]">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <div className="text-xs font-semibold uppercase tracking-[0.2em] text-[#B7C7FF]">AUTO SYNC</div>
-                  <div className="mt-1 text-base font-black text-white">모든 경기 로스터를 팀 로스터 기준으로 자동 동기화</div>
-                  <div className="mt-1 text-xs text-[#D4DCFF]">각 경기마다 TOP/JGL/MID/ADC/SUP 1명씩 자동 반영합니다.</div>
-                </div>
-                <button type="submit" className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#8B5CF6] px-4 text-sm font-semibold text-white transition hover:bg-[#7C3AED]">
-                  전체 경기 자동 동기화
-                </button>
-              </div>
-            </form>
 
             {data.matches.map((match) => {
               const teamA = data.teams.find((t) => t.id === match.teamAId);

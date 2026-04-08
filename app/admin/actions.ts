@@ -13,6 +13,41 @@ import {
   upsertSeasonPredictionQuestion,
   upsertMatch,
 } from "@/lib/service";
+import { readStore } from "@/lib/store";
+import { fetchLckCompletedMatches, fetchMatchLineup, type RiotCompletedMatch } from "@/lib/riot-api";
+import { normalizePlayerName } from "@/lib/riot-player-map";
+
+// ── Riot 동기화 타입 ──────────────────────────────────────────────
+
+export type RiotSyncLineupEntry = {
+  teamCode: string;
+  role: string;
+  playerName: string;
+};
+
+export type RiotSyncItem = {
+  matchId: string;
+  /** 라인업 조회에 쓸 Riot 경기 ID */
+  riotMatchId: string;
+  teamACode: string;
+  teamBCode: string;
+  scheduledAt: string;
+  riotScoreA: number;
+  riotScoreB: number;
+  dbStatus: "scheduled" | "finished";
+  dbScoreA: number | null;
+  dbScoreB: number | null;
+  /** Riot 결과가 이미 DB에 반영된 상태 */
+  alreadyApplied: boolean;
+  /** Riot에서 가져온 출전 선수 (null이면 조회 실패) */
+  riotLineup: RiotSyncLineupEntry[] | null;
+};
+
+export type RiotSyncPreview = {
+  matched: RiotSyncItem[];
+  unmatched: RiotCompletedMatch[];
+  fetchedAt: string;
+};
 
 function toNumber(value: FormDataEntryValue | null) {
   if (typeof value !== "string" || value.trim() === "") {
@@ -230,4 +265,233 @@ export async function cancelSeasonPredictionQuestionAction(formData: FormData) {
   revalidatePath(`/season-predictions/${questionId}`);
   revalidatePath("/me");
   revalidatePath("/admin");
+}
+
+// ── Riot API 동기화 액션 ─────────────────────────────────────────
+
+/**
+ * Riot API에서 LCK 완료 경기 결과를 가져와 DB와 비교한 미리보기를 반환합니다.
+ * - 매칭된 경기: 양 팀 코드 + 날짜(±24h)가 일치하는 경기
+ * - 미매칭: Riot에는 결과가 있으나 DB에 해당 경기가 없는 경우
+ */
+export async function fetchRiotResultsAction(): Promise<RiotSyncPreview> {
+  await requireAdmin();
+
+  const [riotMatches, store] = await Promise.all([
+    fetchLckCompletedMatches(),
+    readStore(),
+  ]);
+
+  const matched: RiotSyncItem[] = [];
+  const unmatched: RiotCompletedMatch[] = [];
+
+  for (const riot of riotMatches) {
+    // 팀 코드(순서 무관) + 날짜(±24h) 기준으로 DB 경기 탐색
+    const dbMatch = store.matches.find((m) => {
+      const tA = store.teams.find((t) => t.id === m.teamAId);
+      const tB = store.teams.find((t) => t.id === m.teamBId);
+      if (!tA || !tB) return false;
+
+      const codesMatch =
+        (tA.code === riot.teamACode && tB.code === riot.teamBCode) ||
+        (tA.code === riot.teamBCode && tB.code === riot.teamACode);
+
+      const diffMs = Math.abs(
+        new Date(m.scheduledAt).getTime() - new Date(riot.startTime).getTime(),
+      );
+      return codesMatch && diffMs < 24 * 60 * 60 * 1000;
+    });
+
+    if (!dbMatch) {
+      unmatched.push(riot);
+      continue;
+    }
+
+    const tA = store.teams.find((t) => t.id === dbMatch.teamAId)!;
+    const tB = store.teams.find((t) => t.id === dbMatch.teamBId)!;
+
+    // Riot 팀 순서가 DB와 반대일 경우 스코어 교환
+    const isFlipped = tA.code === riot.teamBCode;
+    const riotScoreA = isFlipped ? riot.scoreB : riot.scoreA;
+    const riotScoreB = isFlipped ? riot.scoreA : riot.scoreB;
+
+    const alreadyApplied =
+      dbMatch.status === "finished" &&
+      dbMatch.scoreA === riotScoreA &&
+      dbMatch.scoreB === riotScoreB;
+
+    matched.push({
+      matchId: dbMatch.id,
+      riotMatchId: riot.riotMatchId,
+      teamACode: tA.code,
+      teamBCode: tB.code,
+      scheduledAt: dbMatch.scheduledAt,
+      riotScoreA,
+      riotScoreB,
+      dbStatus: dbMatch.status,
+      dbScoreA: dbMatch.scoreA,
+      dbScoreB: dbMatch.scoreB,
+      alreadyApplied,
+      riotLineup: null, // 아래에서 채움
+    });
+  }
+
+  // 미적용 경기의 라인업을 병렬로 조회
+  const pendingItems = matched.filter((item) => !item.alreadyApplied);
+  const lineupResults = await Promise.allSettled(
+    pendingItems.map((item) => fetchMatchLineup(item.riotMatchId)),
+  );
+
+  for (let i = 0; i < pendingItems.length; i++) {
+    const result = lineupResults[i];
+    if (result.status === "fulfilled" && result.value) {
+      pendingItems[i].riotLineup = result.value.players.map((p) => ({
+        teamCode: p.teamCode,
+        role: p.role,
+        playerName: p.playerName,
+      }));
+    }
+  }
+
+  return { matched, unmatched, fetchedAt: new Date().toISOString() };
+}
+
+/**
+ * Riot 선수 목록에서 DB 선수 ID 배열을 만드는 헬퍼
+ * - summonerName의 팀 접두사 제거 후 이름 정규화
+ * - DB에서 팀 코드 + 이름으로 선수 탐색
+ */
+async function resolveLineupPlayerIds(
+  riotMatchId: string,
+  store: Awaited<ReturnType<typeof readStore>>,
+): Promise<{ playerIds: string[]; lineupFound: boolean }> {
+  const lineup = await fetchMatchLineup(riotMatchId);
+  if (!lineup || lineup.players.length === 0) {
+    return { playerIds: [], lineupFound: false };
+  }
+
+  const playerIds: string[] = [];
+
+  for (const entry of lineup.players) {
+    const team = store.teams.find((t) => t.code === entry.teamCode);
+    if (!team) continue;
+
+    const dbName = normalizePlayerName(entry.playerName);
+    const player = store.players.find(
+      (p) => p.teamId === team.id && p.name.toLowerCase() === dbName.toLowerCase(),
+    );
+    if (!player) continue;
+
+    playerIds.push(player.id);
+  }
+
+  return { playerIds, lineupFound: playerIds.length > 0 };
+}
+
+/**
+ * 단일 경기의 결과 + 라인업을 Riot 데이터 기준으로 DB에 적용합니다.
+ * 라인업 조회에 실패해도 결과는 반드시 적용합니다.
+ */
+export async function applyRiotResultAction(
+  matchId: string,
+  riotMatchId: string,
+  scoreA: number,
+  scoreB: number,
+): Promise<{ lineupApplied: boolean }> {
+  await requireAdmin();
+
+  const store = await readStore();
+  const match = store.matches.find((m) => m.id === matchId);
+  if (!match) throw new Error("경기를 찾을 수 없습니다.");
+
+  const teamA = store.teams.find((t) => t.id === match.teamAId);
+  const teamB = store.teams.find((t) => t.id === match.teamBId);
+  if (!teamA || !teamB) throw new Error("팀 정보를 찾을 수 없습니다.");
+
+  // 결과 + 라인업을 병렬로 처리
+  const [, { playerIds, lineupFound }] = await Promise.all([
+    upsertMatch({
+      matchId: match.id,
+      league: match.league,
+      stage: match.stage,
+      patch: match.patch,
+      status: "finished",
+      scheduledAt: match.scheduledAt,
+      teamACode: teamA.code,
+      teamBCode: teamB.code,
+      scoreA,
+      scoreB,
+      predictionLocked: true,
+    }),
+    resolveLineupPlayerIds(riotMatchId, store),
+  ]);
+
+  if (lineupFound && playerIds.length > 0) {
+    await updateMatchRoster(matchId, playerIds);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/schedule");
+  revalidatePath(`/matches/${matchId}`);
+  revalidatePath("/admin");
+  refresh();
+
+  return { lineupApplied: lineupFound };
+}
+
+/**
+ * 미리보기에서 확인된 모든 미적용 경기를 한번에 결과 + 라인업 반영합니다.
+ */
+export async function applyAllRiotResultsAction(
+  items: Array<{ matchId: string; riotMatchId: string; scoreA: number; scoreB: number }>,
+): Promise<{ applied: number; lineupApplied: number }> {
+  await requireAdmin();
+
+  const store = await readStore();
+  let applied = 0;
+  let lineupApplied = 0;
+
+  // 결과 적용 + 라인업 조회를 병렬로 실행
+  const tasks = items.map(async (item) => {
+    const match = store.matches.find((m) => m.id === item.matchId);
+    if (!match) return;
+
+    const teamA = store.teams.find((t) => t.id === match.teamAId);
+    const teamB = store.teams.find((t) => t.id === match.teamBId);
+    if (!teamA || !teamB) return;
+
+    const [, { playerIds, lineupFound }] = await Promise.all([
+      upsertMatch({
+        matchId: match.id,
+        league: match.league,
+        stage: match.stage,
+        patch: match.patch,
+        status: "finished",
+        scheduledAt: match.scheduledAt,
+        teamACode: teamA.code,
+        teamBCode: teamB.code,
+        scoreA: item.scoreA,
+        scoreB: item.scoreB,
+        predictionLocked: true,
+      }),
+      resolveLineupPlayerIds(item.riotMatchId, store),
+    ]);
+
+    applied++;
+
+    if (lineupFound && playerIds.length > 0) {
+      await updateMatchRoster(item.matchId, playerIds);
+      lineupApplied++;
+    }
+  });
+
+  await Promise.all(tasks);
+
+  revalidatePath("/");
+  revalidatePath("/schedule");
+  revalidatePath("/matches/[matchId]", "page");
+  revalidatePath("/admin");
+  refresh();
+
+  return { applied, lineupApplied };
 }

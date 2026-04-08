@@ -34,7 +34,16 @@
       "Bash(grep -r \"profileStoreItems\\\\|ProfileStoreItem\" C:Usersjhmj1lol-rating-sitelib --include=*.ts)",
       "Bash(xargs -0 grep -l shop)",
       "Bash(xargs cat:*)",
-      "Bash(grep -E \"^-.*\\\\.\\(ts|tsx|js\\)$\")"
+      "Bash(grep -E \"^-.*\\\\.\\(ts|tsx|js\\)$\")",
+      "WebFetch(domain:developer.riotgames.com)",
+      "WebFetch(domain:esports-api.lolesports.com)",
+      "Bash(curl -s -H \"x-api-key: 0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z\" \"https://esports-api.lolesports.com/persisted/gw/getSchedule?hl=ko-KR&leagueId=98767991310872058\")",
+      "Bash(python -m json.tool)",
+      "Bash(curl -v -H \"x-api-key: 0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z\" \"https://esports-api.lolesports.com/persisted/gw/getSchedule?hl=ko-KR&leagueId=98767991310872058\")",
+      "Bash(curl -s -H 'x-api-key: 0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z' \"https://esports-api.lolesports.com/persisted/gw/getEventDetails?hl=ko-KR&id=115848316064229817\")",
+      "Bash(curl -s -H \"x-api-key: 0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z\" \"https://esports-api.lolesports.com/persisted/gw/getGames?hl=ko-KR&id=115848316064229817\")",
+      "Bash(curl -s \"https://feed.lolesports.com/livestats/v1/window/115548128962906296\")",
+      "Bash(curl -s \"https://feed.lolesports.com/livestats/v1/window/115548128962840668\")"
     ]
   }
 }
