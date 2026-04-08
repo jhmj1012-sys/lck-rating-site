@@ -21,14 +21,14 @@ export default async function FifteenDollarChallengePage({
 
   const [hubData, posts, store] = await Promise.all([
     getScheduleHubData(userId),
-    listBudgetChallengePosts(),
+    listBudgetChallengePosts(userId),
     readStore(),
   ]);
 
   const user = userId ? (store.users.find((u) => u.id === userId) ?? null) : null;
 
   return (
-    <div>
+    <div className="min-h-screen bg-[#1C1C1F]">
       <TopSiteNav
         active="games"
         notifications={hubData.notifications}

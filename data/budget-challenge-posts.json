@@ -1,6 +1,57 @@
 {
-  "posts": [],
+  "posts": [
+    {
+      "id": "budget_post_1",
+      "title": "ㅎㅎ",
+      "body": "ㅎㅎㅋㅋㅋ",
+      "authorId": "user_14",
+      "authorNickname": "미니언웨이브14",
+      "createdAt": "2026-04-08T14:38:57.026Z",
+      "encodedSelection": "VE9QJTNBY2xlYXIlMkNKVU5HTEUlM0FyYXB0b3IlMkNNSUQlM0F2aWNsYSUyQ0FEQyUzQWRpYWJsZSUyQ1NVUFBPUlQlM0FrZWxsaW4",
+      "usedBudget": 7,
+      "slots": [
+        {
+          "position": "TOP",
+          "playerId": "clear",
+          "playerName": "Clear",
+          "team": "BFX",
+          "price": 1
+        },
+        {
+          "position": "JUNGLE",
+          "playerId": "raptor",
+          "playerName": "Raptor",
+          "team": "BFX",
+          "price": 1
+        },
+        {
+          "position": "MID",
+          "playerId": "vicla",
+          "playerName": "VicLa",
+          "team": "BFX",
+          "price": 1
+        },
+        {
+          "position": "ADC",
+          "playerId": "diable",
+          "playerName": "Diable",
+          "team": "BFX",
+          "price": 1
+        },
+        {
+          "position": "SUPPORT",
+          "playerId": "kellin",
+          "playerName": "Kellin",
+          "team": "BFX",
+          "price": 3
+        }
+      ],
+      "likeUserIds": [],
+      "comments": []
+    }
+  ],
   "nextIds": {
-    "posts": 1
+    "posts": 2,
+    "comments": 1
   }
 }

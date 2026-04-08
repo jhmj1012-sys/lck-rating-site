@@ -2,10 +2,13 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
 import { authOptions } from "@/auth";
-import { createBudgetChallengePost } from "@/lib/games/budget-challenge-posts";
+import { addBudgetChallengePostComment } from "@/lib/games/budget-challenge-posts";
 import { readStore } from "@/lib/store";
 
-export async function POST(request: Request) {
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ postId: string }> },
+) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
@@ -17,21 +20,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "닉네임을 먼저 설정해 주세요." }, { status: 400 });
   }
 
-  const body = (await request.json()) as { title?: string; body?: string; encodedSelection?: string };
+  const { postId } = await params;
+  const body = (await request.json()) as { body?: string };
 
   try {
-    const post = await createBudgetChallengePost({
-      authorId: user.id,
-      authorNickname: user.nickname,
-      title: body.title ?? "",
+    const post = await addBudgetChallengePostComment({
+      postId,
+      userId: user.id,
+      userNickname: user.nickname,
       body: body.body ?? "",
-      encodedSelection: body.encodedSelection ?? "",
     });
 
     return NextResponse.json({ post });
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "게시글 저장에 실패했습니다." },
+      { error: error instanceof Error ? error.message : "댓글 저장에 실패했습니다." },
       { status: 400 },
     );
   }

@@ -58,8 +58,9 @@ export const budgetChallengePlayers: ChallengePlayer[] = [
   { id: "jiwoo", name: "Jiwoo", shortLabel: "Jiwoo", team: "KRX", position: "ADC", price: 3, image: "/icons/leagues/lck.webp", active: true, order: 6 },
   { id: "teddy", name: "Teddy", shortLabel: "Teddy", team: "BRO", position: "ADC", price: 2, image: "/icons/leagues/lck.webp", active: true, order: 7 },
   { id: "taeyoon", name: "Taeyoon", shortLabel: "Taeyoon", team: "NS", position: "ADC", price: 2, image: "/icons/leagues/lck.webp", active: true, order: 8 },
-  { id: "diable", name: "Diable", shortLabel: "Diable", team: "BFX", position: "ADC", price: 1, image: "/icons/leagues/lck.webp", active: true, order: 9 },
-  { id: "deokdam", name: "deokdam", shortLabel: "deokdam", team: "DNS", position: "ADC", price: 1, image: "/icons/leagues/lck.webp", active: true, order: 10 },
+  { id: "lazyfeel", name: "LazyFeel", shortLabel: "LazyFeel", team: "KRX", position: "ADC", price: 1, image: "/icons/leagues/lck.webp", active: true, order: 9 },
+  { id: "diable", name: "Diable", shortLabel: "Diable", team: "BFX", position: "ADC", price: 1, image: "/icons/leagues/lck.webp", active: true, order: 10 },
+  { id: "deokdam", name: "deokdam", shortLabel: "deokdam", team: "DNS", position: "ADC", price: 1, image: "/icons/leagues/lck.webp", active: true, order: 11 },
 
   { id: "keria", name: "Keria", shortLabel: "Keria", team: "T1", position: "SUPPORT", price: 5, image: "/icons/leagues/lck.webp", active: true, order: 1 },
   { id: "delight", name: "Delight", shortLabel: "Delight", team: "HLE", position: "SUPPORT", price: 5, image: "/icons/leagues/lck.webp", active: true, order: 2 },
@@ -69,6 +70,8 @@ export const budgetChallengePlayers: ChallengePlayer[] = [
   { id: "kellin", name: "Kellin", shortLabel: "Kellin", team: "BFX", position: "SUPPORT", price: 3, image: "/icons/leagues/lck.webp", active: true, order: 6 },
   { id: "pollu", name: "Pollu", shortLabel: "Pollu", team: "KT", position: "SUPPORT", price: 2, image: "/icons/leagues/lck.webp", active: true, order: 7 },
   { id: "life", name: "Life", shortLabel: "Life", team: "DNS", position: "SUPPORT", price: 2, image: "/icons/leagues/lck.webp", active: true, order: 8 },
-  { id: "andil", name: "Andil", shortLabel: "Andil", team: "KRX", position: "SUPPORT", price: 1, image: "/icons/leagues/lck.webp", active: true, order: 9 },
-  { id: "namgung", name: "Namgung", shortLabel: "Namgung", team: "BRO", position: "SUPPORT", price: 1, image: "/icons/leagues/lck.webp", active: true, order: 10 },
+  { id: "effort", name: "Effort", shortLabel: "Effort", team: "KT", position: "SUPPORT", price: 1, image: "/icons/leagues/lck.webp", active: true, order: 9 },
+  { id: "peter", name: "Peter", shortLabel: "Peter", team: "DNS", position: "SUPPORT", price: 1, image: "/icons/leagues/lck.webp", active: true, order: 10 },
+  { id: "andil", name: "Andil", shortLabel: "Andil", team: "KRX", position: "SUPPORT", price: 1, image: "/icons/leagues/lck.webp", active: true, order: 11 },
+  { id: "namgung", name: "Namgung", shortLabel: "Namgung", team: "BRO", position: "SUPPORT", price: 1, image: "/icons/leagues/lck.webp", active: true, order: 12 },
 ];

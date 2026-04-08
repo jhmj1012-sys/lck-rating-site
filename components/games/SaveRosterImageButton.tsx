@@ -44,9 +44,9 @@ export function SaveRosterImageButton({
         type="button"
         onClick={handleSave}
         disabled={disabled || saving}
-        className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#3B82F6]/50 bg-[#3B82F6] px-4 text-sm font-semibold text-[#E6E8EB] transition hover:bg-[#2563EB] disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-[#1C2128] disabled:text-[#6B7280]"
+        className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-[#76a8ff]/40 bg-[#2f5fa6] px-4 text-sm font-semibold text-white transition hover:bg-[#2a568f] disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-[#1C2128] disabled:text-[#6B7280]"
       >
-        {saving ? "저장 중..." : "이미지 저장"}
+        {saving ? "이미지 저장 중..." : "이미지 저장"}
       </button>
       {errorMessage ? <p className="mt-2 text-xs text-[#AAB0B6]">{errorMessage}</p> : null}
     </div>

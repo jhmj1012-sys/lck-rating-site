@@ -80,7 +80,7 @@ export function canSelectPlayer({
   const projectedBudget = usedBudget - (currentPlayer?.price ?? 0) + player.price;
 
   if (projectedBudget > config.budget) {
-    return { canSelect: false, reason: "예산 초과" };
+    return { canSelect: false, reason: "budget-exceeded" };
   }
 
   return { canSelect: true };

@@ -3,7 +3,7 @@ export const CHALLENGE_POSITIONS = ["TOP", "JUNGLE", "MID", "ADC", "SUPPORT"] as
 export type ChallengePosition = (typeof CHALLENGE_POSITIONS)[number];
 export type ChallengeMode = "position-lock";
 
-export type SelectionFailureReason = "예산 초과";
+export type SelectionFailureReason = "budget-exceeded";
 
 export interface ChallengeSlotRule {
   position: ChallengePosition;
@@ -55,6 +55,14 @@ export interface BudgetChallengePostSlot {
   price: number;
 }
 
+export interface BudgetChallengeComment {
+  id: string;
+  authorId: string;
+  authorNickname: string;
+  body: string;
+  createdAt: string;
+}
+
 export interface BudgetChallengePost {
   id: string;
   title: string;
@@ -65,4 +73,13 @@ export interface BudgetChallengePost {
   encodedSelection: string;
   usedBudget: number;
   slots: BudgetChallengePostSlot[];
+  comments: BudgetChallengeComment[];
+  commentCount: number;
+  likeCount: number;
+  likedByMe: boolean;
+}
+
+export interface BudgetChallengePostRecord
+  extends Omit<BudgetChallengePost, "commentCount" | "likeCount" | "likedByMe"> {
+  likeUserIds: string[];
 }
