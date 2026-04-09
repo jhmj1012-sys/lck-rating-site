@@ -32,7 +32,7 @@ const securityHeaders = [
     value: [
       "default-src 'self'",
       // Next.js 인라인 스크립트 + Google OAuth 팝업
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://va.vercel-scripts.com",
       // 스타일: 인라인 허용 (Tailwind CSS 동작에 필요)
       "style-src 'self' 'unsafe-inline'",
       // 이미지: 자체 + data URI + 외부 https (팀/선수 이미지)

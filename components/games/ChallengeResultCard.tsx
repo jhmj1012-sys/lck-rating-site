@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { SaveRosterImageButton } from "@/components/games/SaveRosterImageButton";
+import { CopyRosterImageButton } from "@/components/games/CopyRosterImageButton";
 import { CHALLENGE_POSITIONS, type ChallengeConfig, type ChallengePlayer, type ChallengeSelection } from "@/lib/games/budget-challenge-types";
 
 export function ChallengeResultCard({
@@ -46,7 +46,7 @@ export function ChallengeResultCard({
           <p className="mt-2 text-sm text-[#AAB0B6]">가성비 vs 슈퍼팀, 당신의 선택을 이미지로 저장하고 공유해보세요.</p>
         </div>
         <div className="flex items-center gap-2">
-          <SaveRosterImageButton targetRef={resultRef} disabled={!isComplete} />
+          <CopyRosterImageButton targetRef={resultRef} disabled={!isComplete} />
           <button
             type="button"
             onClick={handleCopy}

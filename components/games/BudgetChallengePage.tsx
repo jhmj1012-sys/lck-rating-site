@@ -3,11 +3,10 @@
 import Image from "next/image";
 import { useMemo, useRef, useState } from "react";
 
-import { SaveRosterImageButton } from "@/components/games/SaveRosterImageButton";
+import { CopyRosterImageButton } from "@/components/games/CopyRosterImageButton";
 import { cn } from "@/components/lol-rating/utils";
 import { budgetChallengeConfig, budgetChallengePlayers } from "@/lib/games/budget-challenge-data";
 import type {
-  BudgetChallengePost,
   ChallengePlayer,
   ChallengePosition,
   ChallengeSelection,
@@ -15,12 +14,6 @@ import type {
 } from "@/lib/games/budget-challenge-types";
 import { CHALLENGE_POSITIONS } from "@/lib/games/budget-challenge-types";
 import { canSelectPlayer, createChallengeSummary, decodeSelection, encodeSelection } from "@/lib/games/budget-challenge-utils";
-
-type ViewerState = {
-  isAuthenticated: boolean;
-  hasNickname: boolean;
-  nickname: string | null;
-};
 
 type PlayerPoolView = "name" | "price" | "team" | "position";
 type TooltipPlacement = "left" | "center" | "right";
@@ -36,7 +29,7 @@ type HoveredSynergyTooltip = {
   top: number;
   placement: TooltipPlacement;
 };
-type SpecialTraitId = "veteran" | "rookie" | "winner" | "worlds_fmvp" | "lpl";
+type SpecialTraitId = "veteran" | "rookie" | "winner" | "mvp" | "goat" | "lpl_return" | "super_rookie" | "national_team";
 type SynergyItem = {
   id: string;
   label: string;
@@ -193,75 +186,54 @@ const SPECIAL_TRAIT_META: Record<SpecialTraitId, { label: string; iconText: stri
   veteran: { label: "베테랑", iconText: "V" },
   rookie: { label: "루키", iconText: "R" },
   winner: { label: "위너", iconText: "W" },
-  worlds_fmvp: { label: "월즈파엠", iconText: "F" },
-  lpl: { label: "LPL", iconText: "L" },
+  mvp: { label: "MVP", iconText: "M" },
+  goat: { label: "GOAT", iconText: "G" },
+  lpl_return: { label: "LPL 리턴", iconText: "L" },
+  super_rookie: { label: "슈퍼루키", iconText: "S" },
+  national_team: { label: "국가대표", iconText: "N" },
 };
 
 const PLAYER_SPECIAL_TRAITS: Partial<Record<string, SpecialTraitId[]>> = {
-  aiming: ["veteran", "lpl"],
-  andil: ["rookie"],
-  bdd: ["veteran", "winner"],
-  canyon: ["veteran", "winner"],
-  career: ["veteran", "winner"],
+  aiming: ["veteran"],
+  bdd: ["veteran"],
+  canyon: ["veteran", "winner", "mvp"],
+  career: ["rookie"],
   casting: ["rookie"],
-  chovy: ["veteran", "winner"],
-  clear: ["rookie"],
-  clozer: ["veteran"],
-  cuzz: ["veteran", "winner"],
-  delight: ["veteran", "winner"],
-  deokdam: ["veteran"],
-  diable: ["rookie"],
+  chovy: ["veteran", "winner", "mvp", "national_team"],
+  cuzz: ["veteran"],
+  delight: ["winner"],
+  diable: ["rookie", "super_rookie"],
   doran: ["veteran", "winner"],
-  dudu: ["veteran"],
-  duro: ["rookie"],
-  effort: ["veteran", "winner"],
-  faker: ["veteran", "winner"],
-  fisher: ["rookie"],
-  gideon: ["rookie"],
-  gumayusi: ["veteran", "winner"],
-  jiwoo: ["veteran"],
-  kanavi: ["veteran", "winner", "lpl"],
-  kellin: ["veteran"],
-  keria: ["veteran", "winner"],
-  kiin: ["veteran", "winner"],
-  kingen: ["veteran", "winner", "worlds_fmvp", "lpl"],
+  duro: ["rookie", "winner"],
+  effort: ["veteran"],
+  faker: ["veteran", "winner", "mvp", "goat", "national_team"],
+  gumayusi: ["winner", "mvp"],
+  kanavi: ["veteran", "lpl_return", "national_team"],
+  keria: ["winner", "super_rookie", "national_team"],
+  kiin: ["veteran", "winner", "national_team"],
+  kingen: ["veteran", "winner", "mvp"],
   lazyfeel: ["rookie"],
-  lehends: ["veteran", "winner"],
-  life: ["veteran", "winner", "lpl"],
-  lucid: ["rookie", "winner"],
+  lehends: ["veteran", "winner", "mvp"],
+  life: ["veteran"],
+  lucid: ["super_rookie"],
   namgung: ["rookie"],
-  oner: ["veteran", "winner"],
-  perfect: ["rookie"],
-  peter: ["rookie"],
-  peyz: ["veteran", "winner"],
+  oner: ["winner"],
+  peyz: ["winner", "lpl_return", "super_rookie"],
   pollu: ["rookie"],
-  pyosik: ["veteran", "winner"],
+  pyosik: ["winner"],
   raptor: ["rookie"],
-  rich: ["veteran", "lpl"],
-  ruler: ["veteran", "winner", "lpl"],
-  scout: ["veteran", "winner", "lpl"],
-  showmaker: ["veteran", "winner"],
+  ruler: ["veteran", "winner", "mvp", "lpl_return", "national_team"],
+  scout: ["veteran", "winner", "mvp", "lpl_return"],
+  showmaker: ["veteran", "winner", "super_rookie"],
   siwoo: ["rookie"],
-  smash: ["rookie", "winner"],
-  taeyoon: ["veteran"],
-  teddy: ["veteran", "winner"],
-  ucal: ["veteran", "winner"],
-  vicla: ["veteran"],
-  zeka: ["veteran", "winner", "lpl"],
-  zeus: ["veteran", "winner"],
-  krx_willer: ["veteran"],
-  ns_willer: ["veteran"],
+  smash: ["rookie"],
+  taeyoon: ["lpl_return"],
+  teddy: ["veteran"],
+  ucal: ["veteran"],
+  vicla: ["super_rookie"],
+  zeka: ["winner", "mvp"],
+  zeus: ["winner", "mvp", "national_team"],
 };
-
-function formatCreatedAt(value: string) {
-  return new Intl.DateTimeFormat("ko-KR", {
-    month: "numeric",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(new Date(value));
-}
 
 function getTeamLogo(team: string) {
   return `/teams/${team}.svg`;
@@ -284,10 +256,6 @@ function sanitizeSelection(encodedSelection?: string) {
     }
     return acc;
   }, {});
-}
-
-function replacePostInList(list: BudgetChallengePost[], updatedPost: BudgetChallengePost) {
-  return list.map((post) => (post.id === updatedPost.id ? updatedPost : post));
 }
 
 function TeamLogo({ team, className }: { team: string; className?: string }) {
@@ -319,27 +287,52 @@ function getPlayerSynergyClass(player: ChallengePlayer) {
 
 function getSynergyDescription(synergy: SynergyItem) {
   if (synergy.type === "team" && synergy.team) {
-    return `${synergy.team} 선수로 맞춰 가는 기본 팀 시너지입니다. 같은 팀 선수가 많아질수록 조합 정체성이 더 선명해집니다.`;
+    const teamDescriptions: Record<string, string> = {
+      T1: "불멸의 왕조",
+      GEN: "체급의 젠지",
+      HLE: "오렌지전차군단",
+      DK: "담원의 유산",
+      KT: "롤러코스터 올라갑니다",
+      KRX: "중꺾마의 상징",
+      DNS: "동부의 맹주",
+      NS: "라면은 역시",
+      BRO: "거함킬러",
+      BFX: "모래폭풍이 온다",
+    };
+
+    return teamDescriptions[synergy.team] ?? `${synergy.team} 팀 시너지`;
   }
 
   if (synergy.id === "veteran") {
-    return "큰 경기 경험과 장기 리그 적응력을 갖춘 선수들입니다. 안정감 있는 조합을 만들 때 잘 어울립니다.";
+    return "수많은 전장을 건너온 자. 흔들림 없는 판단과 경험으로 게임의 무게를 지탱한다.";
   }
 
   if (synergy.id === "rookie") {
-    return "신예 중심의 날카로운 변수 카드입니다. 저비용으로 높은 기대치를 노릴 때 재미가 있습니다.";
+    return "아직 거칠지만 두려움 없는 칼날. 판을 흔드는 패기로 존재를 각인시킨다.";
   }
 
   if (synergy.id === "winner") {
-    return "우승 경험이 있는 선수들입니다. 큰 무대에서 검증된 선택지라는 느낌의 특성입니다.";
+    return "세계의 끝에서 증명한 자. 가장 큰 무대에서 결국 정상에 선 이름.";
   }
 
-  if (synergy.id === "worlds_fmvp") {
-    return "월즈 파이널 MVP를 받은 초희귀 특성입니다. 한 명만으로도 조합의 상징성이 강합니다.";
+  if (synergy.id === "mvp") {
+    return "결승의 심장. 모든 시선이 모인 순간, 승리를 직접 만들어낸 주인공.";
   }
 
-  if (synergy.id === "lpl") {
-    return "LPL 무대를 경험한 선수들입니다. 해외 리그 경험과 다른 메타 적응력을 상징하는 특성입니다.";
+  if (synergy.id === "goat") {
+    return "시대를 정의한 기준. 비교가 아니라, 그 자체로 정답이 되는 존재.";
+  }
+
+  if (synergy.id === "lpl_return") {
+    return "타지에서 단련되고 돌아온 칼날. 더 넓은 전장을 경험한 후 한층 날카로워졌다.";
+  }
+
+  if (synergy.id === "super_rookie") {
+    return "등장과 동시에 판을 뒤엎는 재능. 미래가 아닌 현재를 위협하는 신인.";
+  }
+
+  if (synergy.id === "national_team") {
+    return "한 팀이 아닌 한 나라를 짊어진 이름. 승패에 자존심이 걸린 자리의 주인.";
   }
 
   return "조합 방향성을 보여주는 특성입니다.";
@@ -347,33 +340,18 @@ function getSynergyDescription(synergy: SynergyItem) {
 
 export function BudgetChallengePage({
   initialEncodedSelection,
-  initialPosts,
-  viewer,
 }: {
   initialEncodedSelection?: string;
-  initialPosts: BudgetChallengePost[];
-  viewer: ViewerState;
 }) {
   const [selection, setSelection] = useState<ChallengeSelection>(() => sanitizeSelection(initialEncodedSelection));
-  const [posts, setPosts] = useState(initialPosts);
   const [playerPoolView, setPlayerPoolView] = useState<PlayerPoolView>("name");
   const [search, setSearch] = useState("");
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
   const [draggingPlayerId, setDraggingPlayerId] = useState<string | null>(null);
-  const [expandedPosts, setExpandedPosts] = useState<Record<string, boolean>>({});
-  const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
-  const [postErrors, setPostErrors] = useState<Record<string, string | null>>({});
-  const [pendingLikePostId, setPendingLikePostId] = useState<string | null>(null);
-  const [pendingCommentPostId, setPendingCommentPostId] = useState<string | null>(null);
   const [hoveredTooltip, setHoveredTooltip] = useState<HoveredTooltip | null>(null);
   const [hoveredSynergyTooltip, setHoveredSynergyTooltip] = useState<HoveredSynergyTooltip | null>(null);
   const resultRef = useRef<HTMLDivElement>(null);
   const noticeTimerRef = useRef<number | null>(null);
-  const composeSectionRef = useRef<HTMLDivElement>(null);
 
   const summary = createChallengeSummary(budgetChallengeConfig, selection, PLAYERS_BY_ID);
   const encodedSelection = encodeSelection(selection);
@@ -509,10 +487,6 @@ export function BudgetChallengePage({
     }
   }
 
-  function clearPostError(postId: string) {
-    setPostErrors((current) => ({ ...current, [postId]: null }));
-  }
-
   function assignPlayer(player: ChallengePlayer, source: "click" | "drop") {
     const currentId = selection[player.position];
     if (currentId === player.id) {
@@ -601,139 +575,6 @@ export function BudgetChallengePage({
     setHoveredSynergyTooltip((current) => (current?.synergyId === synergyId ? null : current));
   }
 
-  function loadPost(post: BudgetChallengePost) {
-    setSelection(sanitizeSelection(post.encodedSelection));
-    setExpandedPosts((current) => ({ ...current, [post.id]: true }));
-    window.history.replaceState(null, "", `${window.location.pathname}?c=${encodeURIComponent(post.encodedSelection)}`);
-    showNotice(`"${post.title}" 조합을 불러왔습니다.`);
-    resultRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-  }
-
-  async function savePost() {
-    if (!viewer.isAuthenticated) {
-      setSaveError("게시글을 저장하려면 로그인이 필요합니다.");
-      return;
-    }
-
-    if (!viewer.hasNickname) {
-      setSaveError("게시글을 저장하려면 닉네임을 먼저 설정해 주세요.");
-      return;
-    }
-
-    if (!summary.isComplete) {
-      setSaveError("5개 포지션을 모두 채운 뒤 저장해 주세요.");
-      return;
-    }
-
-    setSaveError(null);
-    setIsSaving(true);
-
-    try {
-      const response = await fetch("/api/games/15-dollar-challenge/posts", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title,
-          body,
-          encodedSelection,
-        }),
-      });
-
-      const payload = (await response.json()) as { error?: string; post?: BudgetChallengePost };
-      if (!response.ok || !payload.post) {
-        throw new Error(payload.error ?? "게시글 저장에 실패했습니다.");
-      }
-
-      const savedPost = payload.post;
-      setPosts((current) => [savedPost, ...current]);
-      setExpandedPosts((current) => ({ ...current, [savedPost.id]: true }));
-      setTitle("");
-      setBody("");
-      window.history.replaceState(null, "", `${window.location.pathname}?c=${encodeURIComponent(savedPost.encodedSelection)}`);
-      showNotice("조합을 커뮤니티에 공유했습니다.");
-    } catch (error) {
-      setSaveError(error instanceof Error ? error.message : "게시글 저장에 실패했습니다.");
-    } finally {
-      setIsSaving(false);
-    }
-  }
-
-  async function toggleLike(postId: string) {
-    if (!viewer.isAuthenticated) {
-      setPostErrors((current) => ({ ...current, [postId]: "좋아요를 누르려면 로그인이 필요합니다." }));
-      return;
-    }
-
-    setPendingLikePostId(postId);
-    clearPostError(postId);
-
-    try {
-      const response = await fetch(`/api/games/15-dollar-challenge/posts/${postId}/likes`, {
-        method: "POST",
-      });
-      const payload = (await response.json()) as { error?: string; post?: BudgetChallengePost };
-      if (!response.ok || !payload.post) {
-        throw new Error(payload.error ?? "좋아요 처리에 실패했습니다.");
-      }
-
-      const updatedPost = payload.post;
-      setPosts((current) => replacePostInList(current, updatedPost));
-    } catch (error) {
-      setPostErrors((current) => ({
-        ...current,
-        [postId]: error instanceof Error ? error.message : "좋아요 처리에 실패했습니다.",
-      }));
-    } finally {
-      setPendingLikePostId(null);
-    }
-  }
-
-  async function submitComment(postId: string) {
-    if (!viewer.isAuthenticated) {
-      setPostErrors((current) => ({ ...current, [postId]: "댓글을 작성하려면 로그인이 필요합니다." }));
-      return;
-    }
-
-    if (!viewer.hasNickname) {
-      setPostErrors((current) => ({ ...current, [postId]: "댓글을 작성하려면 닉네임을 먼저 설정해 주세요." }));
-      return;
-    }
-
-    setPendingCommentPostId(postId);
-    clearPostError(postId);
-
-    try {
-      const response = await fetch(`/api/games/15-dollar-challenge/posts/${postId}/comments`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          body: commentDrafts[postId] ?? "",
-        }),
-      });
-      const payload = (await response.json()) as { error?: string; post?: BudgetChallengePost };
-      if (!response.ok || !payload.post) {
-        throw new Error(payload.error ?? "댓글 저장에 실패했습니다.");
-      }
-
-      const updatedPost = payload.post;
-      setPosts((current) => replacePostInList(current, updatedPost));
-      setCommentDrafts((current) => ({ ...current, [postId]: "" }));
-      setExpandedPosts((current) => ({ ...current, [postId]: true }));
-      showNotice("댓글을 남겼습니다.");
-    } catch (error) {
-      setPostErrors((current) => ({
-        ...current,
-        [postId]: error instanceof Error ? error.message : "댓글 저장에 실패했습니다.",
-      }));
-    } finally {
-      setPendingCommentPostId(null);
-    }
-  }
-
   function renderPlayerTile(player: ChallengePlayer) {
     const availability = canSelectPlayer({
       config: budgetChallengeConfig,
@@ -751,6 +592,10 @@ export function BudgetChallengePage({
           type="button"
           draggable={!isDisabled}
           onClick={() => assignPlayer(player, "click")}
+          onMouseEnter={(event) => showPlayerTooltip(player, event.currentTarget)}
+          onFocus={(event) => showPlayerTooltip(player, event.currentTarget)}
+          onMouseLeave={() => hidePlayerTooltip(player.id)}
+          onBlur={() => hidePlayerTooltip(player.id)}
           onDragStart={(event) => {
             event.dataTransfer.setData("text/plain", player.id);
             event.dataTransfer.effectAllowed = "move";
@@ -779,13 +624,7 @@ export function BudgetChallengePage({
             ${player.price}
           </span>
           <div className="flex min-h-[30px] w-full items-end justify-center bg-[linear-gradient(180deg,transparent_0%,rgba(9,11,15,0.84)_55%,rgba(9,11,15,0.96)_100%)] px-1 py-1 text-center">
-            <span
-              className="block max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-[10px] font-black leading-none text-white sm:text-[11px]"
-              onMouseEnter={(event) => showPlayerTooltip(player, event.currentTarget)}
-              onFocus={(event) => showPlayerTooltip(player, event.currentTarget)}
-              onMouseLeave={() => hidePlayerTooltip(player.id)}
-              onBlur={() => hidePlayerTooltip(player.id)}
-            >
+            <span className="block max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-[10px] font-black leading-none text-white sm:text-[11px]">
               {player.name}
             </span>
           </div>
@@ -1000,16 +839,9 @@ export function BudgetChallengePage({
                       onClick={() => copySelectionLink(encodedSelection, { syncUrl: true, successMessage: "현재 조합 링크를 복사했습니다." })}
                       className="inline-flex min-h-10 items-center justify-center rounded-[12px] bg-[#2f5fa6] px-3 text-sm font-semibold text-white transition hover:bg-[#2a568f]"
                     >
-                      현재 조합 공유
+                      조합 링크 복사
                     </button>
-                    <SaveRosterImageButton targetRef={resultRef} disabled={!summary.isComplete} />
-                    <button
-                      type="button"
-                      onClick={() => composeSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
-                      className="inline-flex min-h-10 items-center justify-center rounded-[12px] bg-[#202735] px-3 text-sm font-medium text-[#d5ddeb] transition hover:bg-[#263043]"
-                    >
-                      글 쓰러 가기
-                    </button>
+                    <CopyRosterImageButton targetRef={resultRef} disabled={!summary.isComplete} />
                     <button
                       type="button"
                       onClick={resetSelection}
@@ -1193,216 +1025,6 @@ export function BudgetChallengePage({
           );
         })() : null}
 
-        <section ref={composeSectionRef} className="ui-card overflow-hidden">
-          <div className="grid gap-0 lg:grid-cols-[minmax(0,1.1fr)_360px]">
-            <div className="p-5 sm:p-6">
-              <div className="text-xs font-semibold uppercase tracking-[0.22em] text-[#2f5fa6]">Compose</div>
-              <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] text-[#202d37]">조합 설명을 쓰고 커뮤니티에 공유하기</h2>
-              <p className="mt-2 text-sm text-[#64748b]">5개 포지션을 모두 채우면 글과 함께 저장할 수 있습니다. 저장된 글은 아래 피드에서 좋아요와 댓글을 받을 수 있습니다.</p>
-
-              <div className="mt-5 space-y-4">
-                <input
-                  className="ui-input"
-                  placeholder="예: 15달러 안에서 맞춘 가장 공격적인 조합"
-                  value={title}
-                  onChange={(event) => setTitle(event.target.value)}
-                />
-                <textarea
-                  className="ui-textarea"
-                  placeholder="왜 이 조합을 골랐는지, 운영 포인트나 한타 기대값을 적어 주세요."
-                  value={body}
-                  onChange={(event) => setBody(event.target.value)}
-                />
-                <div className="flex flex-wrap gap-3">
-                  <button type="button" onClick={savePost} disabled={isSaving} className="ui-action-primary disabled:opacity-60">
-                    {isSaving ? "저장 중..." : "게시글 저장"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => copySelectionLink(encodedSelection, { syncUrl: true, successMessage: "작성 중인 조합 링크를 복사했습니다." })}
-                    className="ui-action-secondary"
-                  >
-                    작성 중 조합 공유
-                  </button>
-                </div>
-                {!viewer.isAuthenticated ? <p className="rounded-2xl border border-[#d6deea] bg-[#f7f9fc] px-4 py-3 text-sm text-[#64748b]">게시글 저장과 커뮤니티 반응 기능은 로그인 후 사용할 수 있습니다.</p> : null}
-                {viewer.isAuthenticated && !viewer.hasNickname ? <p className="rounded-2xl border border-[#d6deea] bg-[#f7f9fc] px-4 py-3 text-sm text-[#64748b]">게시글과 댓글을 남기려면 닉네임을 먼저 설정해 주세요.</p> : null}
-                {saveError ? <p className="rounded-2xl border border-[#f4c8c0] bg-[#fff5f2] px-4 py-3 text-sm text-[#9f4c3e]">{saveError}</p> : null}
-                {notice ? <p className="rounded-2xl border border-[#d6deea] bg-[#f7f9fc] px-4 py-3 text-sm text-[#64748b]">{notice}</p> : null}
-              </div>
-            </div>
-
-            <div className="border-t border-[#edf1f6] bg-[linear-gradient(180deg,#f8fafc_0%,#eef3f7_100%)] p-5 sm:p-6 lg:border-l lg:border-t-0">
-              <div className="text-xs font-semibold uppercase tracking-[0.22em] text-[#2f5fa6]">Preview</div>
-              <div className="mt-4 rounded-[24px] border border-[#dde5ef] bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
-                <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[#7b8ba0]">My 15 Dollar Roster</div>
-                <div className="mt-2 text-xl font-black tracking-[-0.04em] text-[#202d37]">{title || "제목을 입력하면 여기에서 미리 볼 수 있습니다."}</div>
-                <p className="mt-2 text-sm text-[#64748b]">{body || "조합 설명을 적으면 게시글 카드가 어떻게 보이는지 바로 확인할 수 있습니다."}</p>
-                <div className="mt-4 space-y-2">
-                  {CHALLENGE_POSITIONS.map((position) => {
-                    const playerId = selection[position];
-                    const player = playerId ? PLAYERS_BY_ID.get(playerId) : undefined;
-                    const priceTheme = player ? PRICE_THEMES[player.price] : null;
-                    return (
-                      <div key={position} className="grid grid-cols-[56px_minmax(0,1fr)_48px] items-center rounded-2xl border border-[#e4eaf2] bg-[#f9fbfd] px-3 py-2">
-                        <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[#7b8ba0]">{POSITION_META[position].short}</div>
-                        <div className="truncate text-sm font-bold text-[#202d37]">{player ? player.name : "미선택"}</div>
-                        <div className={cn("text-right text-sm font-black", player ? priceTheme?.lightText : "text-[#7b8ba0]")}>{player ? `$${player.price}` : "-"}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="ui-card p-5 sm:p-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.22em] text-[#2f5fa6]">Community Feed</div>
-              <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] text-[#202d37]">좋아요와 댓글이 달리는 챌린지 피드</h2>
-            </div>
-            <div className="rounded-full border border-[#d8e0ea] bg-[#f7f9fc] px-4 py-2 text-sm font-semibold text-[#64748b]">게시글 {posts.length}개</div>
-          </div>
-
-          {posts.length === 0 ? (
-            <div className="ui-empty mt-5">아직 저장된 조합이 없습니다. 첫 번째 챌린지 글을 남겨 보세요.</div>
-          ) : (
-            <div className="mt-5 grid gap-4 xl:grid-cols-2">
-              {posts.map((post) => {
-                const isExpanded = expandedPosts[post.id] ?? false;
-
-                return (
-                  <article key={post.id} className="rounded-[26px] border border-[#dde5ef] bg-[linear-gradient(180deg,#ffffff_0%,#f9fbfd_100%)] p-4 shadow-[0_18px_34px_rgba(15,23,42,0.06)]">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[#2f5fa6]">{post.authorNickname}</div>
-                        <h3 className="mt-1 text-xl font-black tracking-[-0.04em] text-[#202d37]">{post.title}</h3>
-                        <p className="mt-2 text-sm leading-6 text-[#64748b]">{post.body}</p>
-                      </div>
-                      <div className="rounded-2xl border border-[#e1e8f0] bg-white px-3 py-2 text-right">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7b8ba0]">Budget</div>
-                        <div className="text-lg font-black text-[#202d37]">${post.usedBudget}</div>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                      {post.slots.map((slot) => {
-                        const priceTheme = PRICE_THEMES[slot.price];
-                        return (
-                          <div key={`${post.id}-${slot.position}`} className={cn("rounded-2xl border px-3 py-3", priceTheme.ring, priceTheme.soft)}>
-                            <div className="flex items-center justify-between gap-2">
-                              <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#64748b]">{POSITION_META[slot.position].short}</div>
-                              <span className={cn("rounded-full border px-2 py-0.5 text-[11px] font-bold", priceTheme.chip, priceTheme.lightText)}>${slot.price}</span>
-                            </div>
-                            <div className="mt-2 text-sm font-black text-[#202d37]">{slot.playerName}</div>
-                            <div className="mt-1 flex items-center gap-1.5 text-xs text-[#64748b]">
-                              <TeamLogo team={slot.team} className="h-3.5 w-3.5" />
-                              <span>{slot.team}</span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[#edf1f6] pt-4">
-                      <div className="text-xs text-[#7b8ba0]">{formatCreatedAt(post.createdAt)}</div>
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          onClick={() => loadPost(post)}
-                          className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#d8e0ea] bg-white px-4 text-sm font-semibold text-[#44566c] transition hover:border-[#b6c8e6] hover:bg-[#f7fbff]"
-                        >
-                          조합 불러오기
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => copySelectionLink(post.encodedSelection, { successMessage: "이 게시글 조합 링크를 복사했습니다." })}
-                          className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#d8e0ea] bg-white px-4 text-sm font-semibold text-[#44566c] transition hover:border-[#b6c8e6] hover:bg-[#f7fbff]"
-                        >
-                          공유
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 flex flex-wrap items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => toggleLike(post.id)}
-                        disabled={pendingLikePostId === post.id}
-                        className={cn(
-                          "inline-flex min-h-10 items-center justify-center rounded-xl border px-4 text-sm font-semibold transition",
-                          post.likedByMe
-                            ? "border-[#2f5fa6]/25 bg-[#edf5ff] text-[#2f5fa6]"
-                            : "border-[#d8e0ea] bg-white text-[#44566c] hover:border-[#b6c8e6] hover:bg-[#f7fbff]",
-                        )}
-                      >
-                        {post.likedByMe ? "좋아요 취소" : "좋아요"} {post.likeCount}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setExpandedPosts((current) => ({ ...current, [post.id]: !isExpanded }))}
-                        className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#d8e0ea] bg-white px-4 text-sm font-semibold text-[#44566c] transition hover:border-[#b6c8e6] hover:bg-[#f7fbff]"
-                      >
-                        댓글 {post.commentCount}
-                      </button>
-                    </div>
-
-                    {postErrors[post.id] ? <p className="mt-3 rounded-2xl border border-[#f4c8c0] bg-[#fff5f2] px-4 py-3 text-sm text-[#9f4c3e]">{postErrors[post.id]}</p> : null}
-
-                    {isExpanded ? (
-                      <div className="mt-4 rounded-[22px] border border-[#edf1f6] bg-[#f8fafc] p-4">
-                        <div className="space-y-3">
-                          {post.comments.length === 0 ? (
-                            <div className="rounded-2xl border border-dashed border-[#d8e0ea] bg-white px-4 py-5 text-center text-sm text-[#7b8ba0]">아직 댓글이 없습니다. 첫 반응을 남겨 보세요.</div>
-                          ) : (
-                            post.comments.map((comment) => (
-                              <div key={comment.id} className="rounded-2xl border border-[#e1e8f0] bg-white px-4 py-3">
-                                <div className="flex items-center justify-between gap-3">
-                                  <div className="text-sm font-bold text-[#202d37]">{comment.authorNickname}</div>
-                                  <div className="text-xs text-[#7b8ba0]">{formatCreatedAt(comment.createdAt)}</div>
-                                </div>
-                                <p className="mt-2 text-sm leading-6 text-[#64748b]">{comment.body}</p>
-                              </div>
-                            ))
-                          )}
-                        </div>
-
-                        <div className="mt-4 space-y-3">
-                          <textarea
-                            className="ui-textarea min-h-[88px]"
-                            placeholder={
-                              !viewer.isAuthenticated
-                                ? "댓글은 로그인 후 작성할 수 있습니다."
-                                : !viewer.hasNickname
-                                  ? "댓글을 남기려면 닉네임을 먼저 설정해 주세요."
-                                  : "이 조합에 대한 생각을 남겨 주세요."
-                            }
-                            value={commentDrafts[post.id] ?? ""}
-                            onChange={(event) => setCommentDrafts((current) => ({ ...current, [post.id]: event.target.value }))}
-                            disabled={!viewer.isAuthenticated || !viewer.hasNickname}
-                          />
-                          <div className="flex items-center justify-between gap-3">
-                            <div className="text-xs text-[#7b8ba0]">최대 180자까지 입력할 수 있습니다.</div>
-                            <button
-                              type="button"
-                              onClick={() => submitComment(post.id)}
-                              disabled={pendingCommentPostId === post.id || !viewer.isAuthenticated || !viewer.hasNickname}
-                              className="ui-action-primary disabled:opacity-60"
-                            >
-                              {pendingCommentPostId === post.id ? "댓글 저장 중..." : "댓글 남기기"}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ) : null}
-                  </article>
-                );
-              })}
-            </div>
-          )}
-        </section>
       </div>
     </main>
   );
