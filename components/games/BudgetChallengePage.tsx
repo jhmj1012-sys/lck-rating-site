@@ -1,9 +1,10 @@
 ﻿'use client';
 
 import Image from "next/image";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, type ComponentType } from "react";
 
 import { CopyRosterImageButton } from "@/components/games/CopyRosterImageButton";
+import { IconBase } from "@/components/lol-rating/icons";
 import { cn } from "@/components/lol-rating/utils";
 import { budgetChallengeConfig, budgetChallengePlayers } from "@/lib/games/budget-challenge-data";
 import type {
@@ -37,8 +38,10 @@ type SynergyItem = {
   max: number;
   type: "team" | "trait";
   team?: string;
-  iconText?: string;
+  traitId?: SpecialTraitId;
 };
+
+type TraitIconProps = { className?: string };
 
 const ACTIVE_PLAYERS = budgetChallengePlayers.filter((player) => player.active);
 const PLAYERS_BY_ID = new Map(ACTIVE_PLAYERS.map((player) => [player.id, player]));
@@ -182,15 +185,197 @@ const PLAYER_REAL_NAMES: Partial<Record<string, string>> = {
   ns_willer: "김정현",
 };
 
-const SPECIAL_TRAIT_META: Record<SpecialTraitId, { label: string; iconText: string }> = {
-  veteran: { label: "베테랑", iconText: "V" },
-  rookie: { label: "루키", iconText: "R" },
-  winner: { label: "위너", iconText: "W" },
-  mvp: { label: "MVP", iconText: "M" },
-  goat: { label: "GOAT", iconText: "G" },
-  lpl_return: { label: "LPL 리턴", iconText: "L" },
-  super_rookie: { label: "슈퍼루키", iconText: "S" },
-  national_team: { label: "국가대표", iconText: "N" },
+function VeteranIcon({ className }: TraitIconProps) {
+  return (
+    <IconBase className={className}>
+      <path d="M10.5 20C7.1 17.9 5 14.4 5 10.7c0-2.4.9-4.5 2.4-6.2" />
+      <path d="M13.5 20c3.4-2.1 5.5-5.6 5.5-9.3 0-2.4-.9-4.5-2.4-6.2" />
+      <path d="M10.8 20.2 8.6 22" />
+      <path d="M13.2 20.2 15.4 22" />
+      <path d="M7.4 6.2 5.8 5" />
+      <path d="M6.2 9 4.2 8.6" />
+      <path d="M5.8 12 4 12.6" />
+      <path d="M6.3 14.9 4.8 16.1" />
+      <path d="M7.6 17.3 6.3 19" />
+      <path d="M16.6 6.2 18.2 5" />
+      <path d="M17.8 9l2 .4" />
+      <path d="M18.2 12l1.8.6" />
+      <path d="M17.7 14.9l1.5 1.2" />
+      <path d="M16.4 17.3l1.3 1.7" />
+      <path d="M7.1 7.2 9 6.4" />
+      <path d="M6.2 10.2 8.2 9.8" />
+      <path d="M6.1 13.2l1.9.7" />
+      <path d="M6.8 16.1l1.6 1.2" />
+      <path d="M16.9 7.2 15 6.4" />
+      <path d="M17.8 10.2l-2-.4" />
+      <path d="M17.9 13.2l-1.9.7" />
+      <path d="M17.2 16.1l-1.6 1.2" />
+    </IconBase>
+  );
+}
+
+function RookieIcon({ className }: TraitIconProps) {
+  return (
+    <IconBase className={className}>
+      <path d="M12 20v-7" />
+      <path d="M12 13c0-3 2.2-5.5 5-6 0 3-2.2 5.5-5 6z" />
+      <path d="M12 15c0-2.5-1.8-4.7-4.5-5.5 0 2.8 1.8 5 4.5 5.5z" />
+    </IconBase>
+  );
+}
+
+function WinnerIcon({ className }: TraitIconProps) {
+  return (
+    <IconBase className={className}>
+      <path d="M5 7l2.5 8h9L19 7l-4 3-3-5-3 5-4-3z" />
+      <path d="M8 18h8" />
+    </IconBase>
+  );
+}
+
+function MvpIcon({ className }: TraitIconProps) {
+  return (
+    <IconBase className={className}>
+      <circle cx="12" cy="10" r="4.5" />
+      <path d="M10 14.5l-1 5 3-2 3 2-1-5" />
+      <path d="M12 7.8l.8 1.6 1.8.3-1.3 1.2.3 1.8-1.6-.8-1.6.8.3-1.8-1.3-1.2 1.8-.3.8-1.6z" />
+    </IconBase>
+  );
+}
+
+function GoatIcon({ className }: TraitIconProps) {
+  return (
+    <IconBase className={className}>
+      <path d="M7.5 14.5c0-3.2 2.1-5.7 5.1-5.7 2.6 0 4.6 1.9 4.6 4.5 0 3.2-2.6 5.7-6.3 5.7-2.3 0-3.9-1.4-3.9-4.5z" />
+      <path d="M8.8 9.4c-1.5-.7-2.5-2.2-2.5-3.9 1.8.2 3.2 1.5 3.7 3.2" />
+      <path d="M13.8 8.7c.1-2 1.4-3.7 3.3-4.4.4 1.9-.3 3.8-1.9 5" />
+      <path d="M16.4 13.2l1.8-.5" />
+      <path d="M10.4 12.7c.5 1 1.4 1.6 2.6 1.6" />
+      <circle cx="13.7" cy="11.1" r=".7" fill="currentColor" stroke="none" />
+    </IconBase>
+  );
+}
+
+function LplReturnIcon({ className }: TraitIconProps) {
+  return (
+    <IconBase className={className}>
+      <path d="M7 7h7a4 4 0 1 1 0 8H7" />
+      <path d="M10 4L7 7l3 3" />
+    </IconBase>
+  );
+}
+
+function SuperRookieIcon({ className }: TraitIconProps) {
+  return (
+    <IconBase className={className}>
+      <path d="M12 4l1.3 3.7L17 9l-3.7 1.3L12 14l-1.3-3.7L7 9l3.7-1.3L12 4z" />
+      <path d="M18.5 13.5l.7 2 .3.1-2 .7-.7 2-.7-2-2-.7 2-.7.7-2z" />
+      <path d="M6 14.5l.8 2.2L9 17.5l-2.2.8L6 20.5l-.8-2.2L3 17.5l2.2-.8L6 14.5z" />
+    </IconBase>
+  );
+}
+
+function NationalTeamIcon({ className }: TraitIconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      aria-hidden="true"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <g stroke="#111111" transform="rotate(-35 7 7)">
+        <path d="M5 5.6h4" />
+        <path d="M5 7h4" />
+        <path d="M5 8.4h4" />
+      </g>
+      <g stroke="#111111" transform="rotate(35 17 7)">
+        <path d="M15 5.6h4" />
+        <path d="M15 7h1.7" />
+        <path d="M17.3 7H19" />
+        <path d="M15 8.4h4" />
+      </g>
+      <g stroke="#111111" transform="rotate(35 7 17)">
+        <path d="M5 15.6h1.7" />
+        <path d="M7.3 15.6H9" />
+        <path d="M5 17h4" />
+        <path d="M5 18.4h1.7" />
+        <path d="M7.3 18.4H9" />
+      </g>
+      <g stroke="#111111" transform="rotate(-35 17 17)">
+        <path d="M15 15.6h4" />
+        <path d="M15 17h1.7" />
+        <path d="M17.3 17H19" />
+        <path d="M15 18.4h4" />
+      </g>
+      <circle cx="12" cy="10.8" r="4.2" fill="#d92d43" stroke="none" />
+      <path d="M7.8 10.8a4.2 4.2 0 0 0 8.4 0c0 1.6-1.3 2.8-2.8 2.8S10.6 12 9 12s-1.2.4-1.2 1.4a4.2 4.2 0 0 1 0-2.6z" fill="#2556a8" stroke="none" />
+      <circle cx="13.35" cy="12.2" r="2.1" fill="#2556a8" stroke="none" />
+      <circle cx="10.65" cy="9.4" r="2.1" fill="#d92d43" stroke="none" />
+    </svg>
+  );
+}
+
+const SPECIAL_TRAIT_META: Record<
+  SpecialTraitId,
+  {
+    label: string;
+    Icon: ComponentType<TraitIconProps>;
+    iconClassName: string;
+    badgeClassName: string;
+  }
+> = {
+  veteran: {
+    label: "베테랑",
+    Icon: VeteranIcon,
+    iconClassName: "text-[#9ad67a]",
+    badgeClassName: "border-[#3f6b36] bg-[#12200f] text-[#d8f1c9]",
+  },
+  rookie: {
+    label: "루키",
+    Icon: RookieIcon,
+    iconClassName: "text-[#86efac]",
+    badgeClassName: "border-[#2f5d3d] bg-[#102316] text-[#b8f3cb]",
+  },
+  winner: {
+    label: "위너",
+    Icon: WinnerIcon,
+    iconClassName: "text-[#f6d365]",
+    badgeClassName: "border-[#6a5321] bg-[#281d08] text-[#ffe6a3]",
+  },
+  mvp: {
+    label: "MVP",
+    Icon: MvpIcon,
+    iconClassName: "text-[#fdba74]",
+    badgeClassName: "border-[#6b3d1c] bg-[#26140a] text-[#ffd2a8]",
+  },
+  goat: {
+    label: "GOAT",
+    Icon: GoatIcon,
+    iconClassName: "text-[#fda4af]",
+    badgeClassName: "border-[#68333a] bg-[#251115] text-[#ffc7cf]",
+  },
+  lpl_return: {
+    label: "LPL 리턴",
+    Icon: LplReturnIcon,
+    iconClassName: "text-[#93c5fd]",
+    badgeClassName: "border-[#264d72] bg-[#0c1a27] text-[#c3e0ff]",
+  },
+  super_rookie: {
+    label: "슈퍼루키",
+    Icon: SuperRookieIcon,
+    iconClassName: "text-[#c4b5fd]",
+    badgeClassName: "border-[#493b72] bg-[#171126] text-[#e4dcff]",
+  },
+  national_team: {
+    label: "국가대표",
+    Icon: NationalTeamIcon,
+    iconClassName: "text-[#fca5a5]",
+    badgeClassName: "border-[#714145] bg-[#241215] text-[#ffd2d2]",
+  },
 };
 
 const PLAYER_SPECIAL_TRAITS: Partial<Record<string, SpecialTraitId[]>> = {
@@ -270,9 +455,13 @@ function getPlayerTraitIds(player: ChallengePlayer) {
   return [`team:${player.team}`, ...(PLAYER_SPECIAL_TRAITS[player.id] ?? [])];
 }
 
+function getPlayerSpecialTraitIds(player: ChallengePlayer): SpecialTraitId[] {
+  return PLAYER_SPECIAL_TRAITS[player.id] ?? [];
+}
+
 function getTraitLabel(traitId: string) {
   if (traitId.startsWith("team:")) {
-    return `${traitId.replace("team:", "")} 특성`;
+    return traitId.replace("team:", "");
   }
 
   const trait = SPECIAL_TRAIT_META[traitId as SpecialTraitId];
@@ -283,6 +472,38 @@ function getPlayerSynergyClass(player: ChallengePlayer) {
   return getPlayerTraitIds(player)
     .map((traitId) => getTraitLabel(traitId))
     .join(" · ");
+}
+
+function TraitBadge({ traitId, compact = false }: { traitId: SpecialTraitId; compact?: boolean }) {
+  const meta = SPECIAL_TRAIT_META[traitId];
+  const Icon = meta.Icon;
+
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full border font-semibold",
+        compact ? "gap-1 px-2 py-0.5 text-[10px]" : "gap-1.5 px-2.5 py-1 text-[11px]",
+        meta.badgeClassName,
+      )}
+    >
+      <Icon className={cn(compact ? "h-[18px] w-[18px]" : "h-[21px] w-[21px]", meta.iconClassName)} />
+      <span>{meta.label}</span>
+    </span>
+  );
+}
+
+function TeamSynergyBadge({ team, compact = false }: { team: string; compact?: boolean }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full border border-white/10 bg-white/5 font-semibold text-[#e2e8f0]",
+        compact ? "gap-1 px-2 py-0.5 text-[10px]" : "gap-1.5 px-2.5 py-1 text-[11px]",
+      )}
+    >
+      <TeamLogo team={team} className={cn(compact ? "h-[18px] w-[18px]" : "h-[21px] w-[21px]")} />
+      <span>{team}</span>
+    </span>
+  );
 }
 
 function getSynergyDescription(synergy: SynergyItem) {
@@ -440,7 +661,7 @@ export function BudgetChallengePage({
 
     const teamSynergyItems: SynergyItem[] = TEAM_ORDER.map((team) => ({
       id: `team:${team}`,
-      label: `${team} 특성`,
+      label: team,
       current: selectedCounts[`team:${team}`] ?? 0,
       max: 5,
       type: "team",
@@ -453,7 +674,7 @@ export function BudgetChallengePage({
       current: selectedCounts[traitId] ?? 0,
       max: specialTraitMaxCounts[traitId] ?? 0,
       type: "trait",
-      iconText: SPECIAL_TRAIT_META[traitId].iconText,
+      traitId,
     }));
 
     return [...teamSynergyItems, ...specialSynergyItems]
@@ -656,14 +877,18 @@ export function BudgetChallengePage({
                         <div
                           className={cn(
                             "flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px]",
-                            synergy.type === "team" ? "bg-white/10" : "bg-black/25 text-[11px] font-medium text-[#d9e2ef]",
+                            synergy.type === "team" ? "bg-white/10" : "bg-black/25",
                           )}
                         >
                           {synergy.type === "team" && synergy.team ? (
                             <TeamLogo team={synergy.team} className="h-4.5 w-4.5" />
-                          ) : (
-                            <span>{synergy.iconText}</span>
-                          )}
+                          ) : synergy.traitId ? (
+                            (() => {
+                              const meta = SPECIAL_TRAIT_META[synergy.traitId];
+                              const Icon = meta.Icon;
+                              return <Icon className={cn("h-6 w-6", meta.iconClassName)} />;
+                            })()
+                          ) : null}
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="truncate text-[13px] font-semibold text-white">{synergy.label}</div>
@@ -973,7 +1198,14 @@ export function BudgetChallengePage({
                 </div>
                 <div>
                   <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6f8098]">Synergy Class</div>
-                  <div className="mt-0.5 text-xs font-medium text-white">{playerSynergyClass}</div>
+                  <div className="mt-1 flex flex-wrap gap-1.5">
+                    <TeamSynergyBadge team={player.team} compact />
+                    {getPlayerSpecialTraitIds(player).length > 0 ? (
+                      getPlayerSpecialTraitIds(player).map((traitId) => (
+                        <TraitBadge key={`${player.id}-${traitId}`} traitId={traitId} compact />
+                      ))
+                    ) : null}
+                  </div>
                 </div>
               </div>
               {isDisabled ? <div className="mt-3 text-[11px] font-semibold text-[#F3B6A8]">{getFailureMessage(availability.reason)}</div> : null}
