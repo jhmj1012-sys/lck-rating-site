@@ -1,12 +1,9 @@
 ﻿import Image from "next/image";
 import Link from "next/link";
-import { getServerSession } from "next-auth";
-
-import { authOptions } from "@/auth";
 import { TeamLogo } from "@/components/lol-rating/TeamLogo";
 import { TopSiteNav } from "@/components/TopSiteNav";
 import type { PlayerRole, TeamRosterSummary } from "@/components/lol-rating/types";
-import { getScheduleHubData, getTeamRosterHubData } from "@/lib/service";
+import { getTeamRosterHubData } from "@/lib/service";
 
 const ROLE_ORDER: PlayerRole[] = ["TOP", "JGL", "MID", "ADC", "SUP"];
 const ROLE_ICON: Record<PlayerRole, string> = {
@@ -51,12 +48,8 @@ export default async function TeamsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const session = await getServerSession(authOptions);
   const params = await searchParams;
-  const [teams, hubData] = await Promise.all([
-    getTeamRosterHubData(),
-    getScheduleHubData(session?.user?.id ?? null),
-  ]);
+  const teams = await getTeamRosterHubData();
 
   const sortedTeams = teams.slice().sort((a, b) => a.teamCode.localeCompare(b.teamCode, "en"));
   const selectedTeamCodeParam = Array.isArray(params.team) ? params.team[0] : params.team;
@@ -68,11 +61,7 @@ export default async function TeamsPage({
   if (!selectedTeam) {
     return (
       <div>
-        <TopSiteNav
-          active="none"
-          notifications={hubData.notifications}
-          unreadNotificationCount={hubData.unreadNotificationCount}
-        />
+        <TopSiteNav active="none" />
         <main className="min-h-screen bg-[#1C1C1F] px-4 py-8 sm:px-6">
           <div className="mx-auto max-w-5xl rounded-3xl bg-[#31313C] px-6 py-12 text-center text-sm text-[#FFFFFF]">
             로스터 데이터가 없습니다.
@@ -91,11 +80,7 @@ export default async function TeamsPage({
 
   return (
     <div>
-      <TopSiteNav
-        active="none"
-        notifications={hubData.notifications}
-        unreadNotificationCount={hubData.unreadNotificationCount}
-      />
+      <TopSiteNav active="none" />
       <main className="min-h-screen bg-[#1C1C1F] px-4 py-8 sm:px-6">
         <div className="mx-auto max-w-5xl space-y-5">
           <section className="rounded-[24px] bg-[#31313C] p-3">

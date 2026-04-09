@@ -1,9 +1,7 @@
 import Link from "next/link";
-import { getServerSession } from "next-auth";
 
-import { authOptions } from "@/auth";
 import { TopSiteNav } from "@/components/TopSiteNav";
-import { getGlobalSearchData, getScheduleHubData } from "@/lib/service";
+import { getGlobalSearchData } from "@/lib/service";
 
 function getTypeLabel(type: "team" | "player" | "match") {
   if (type === "team") return "팀";
@@ -20,19 +18,11 @@ export default async function SearchPage({
   const qParam = Array.isArray(params.q) ? params.q[0] : params.q;
   const query = (qParam ?? "").trim();
 
-  const session = await getServerSession(authOptions);
-  const [hubData, searchData] = await Promise.all([
-    getScheduleHubData(session?.user?.id ?? null),
-    getGlobalSearchData(query),
-  ]);
+  const searchData = await getGlobalSearchData(query);
 
   return (
     <div>
-      <TopSiteNav
-        active="match"
-        notifications={hubData.notifications}
-        unreadNotificationCount={hubData.unreadNotificationCount}
-      />
+      <TopSiteNav active="match" />
       <main className="app-shell px-4 py-8 sm:px-6">
         <div className="mx-auto max-w-6xl space-y-5">
           <section className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_12px_28px_rgba(15,23,42,0.08)]">

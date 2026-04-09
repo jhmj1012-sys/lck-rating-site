@@ -1,6 +1,7 @@
 ﻿import "server-only";
 
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 
 import type {
   NotificationType,
@@ -65,6 +66,7 @@ import type {
   SeasonPredictionQuestionCard,
   SeasonPredictionQuestionStatus,
   ScheduleHubData,
+  SiteChromeData,
   TeamStandingItem,
   UserProfile,
   WeekSchedule,
@@ -2322,41 +2324,100 @@ export const getDashboardData = cache(async (viewerId: string | null): Promise<D
   };
 });
 
-export const getScheduleHubData = cache(async (viewerId: string | null): Promise<ScheduleHubData> => {
-  const store = await readStoreWithPredictionLifecycle();
-  const viewer = viewerId ? store.users.find((user) => user.id === viewerId) ?? null : null;
-  const months = buildScheduleGroups(store);
-  const seasonPredictionPreview = store.seasonPredictionQuestions
-    .filter((question) => question.visibility === "public" && getSeasonQuestionStatus(question) !== "draft")
-    .slice()
-    .sort((a, b) => new Date(a.closeAt).getTime() - new Date(b.closeAt).getTime())
-    .slice(0, 5)
-    .map((question) => buildSeasonPredictionCard(store, question, viewerId));
-  const notifications = buildNotificationItems(store, viewerId, 5);
-  const unreadNotificationCount = viewerId
-    ? store.notifications.filter((notification) => notification.userId === viewerId && !notification.isRead).length
-    : 0;
+type PublicScheduleHubData = Omit<ScheduleHubData, "notifications" | "unreadNotificationCount" | "userProfile"> & {
+  userProfile: UserProfile;
+};
+
+function buildSiteChromeData(store: StoreShape, viewerId: string | null): SiteChromeData {
+  if (!viewerId) {
+    return {
+      notifications: [],
+      unreadNotificationCount: 0,
+    };
+  }
 
   return {
-    months,
-    selectedMonthId: months[0]?.id ?? null,
-    selectedWeekId: months[0]?.weeks[0]?.id ?? null,
-    featuredMatchId:
-      store.matches.find((match) => match.status === "finished")?.id ??
-      store.matches[0]?.id ??
-      null,
+    notifications: buildNotificationItems(store, viewerId, 5),
+    unreadNotificationCount: store.notifications.filter((notification) => notification.userId === viewerId && !notification.isRead).length,
+  };
+}
+
+const getPublicScheduleHubData = unstable_cache(
+  async (): Promise<PublicScheduleHubData> => {
+    const store = await readStoreWithPredictionLifecycle();
+    const months = buildScheduleGroups(store);
+    const seasonPredictionPreview = store.seasonPredictionQuestions
+      .filter((question) => question.visibility === "public" && getSeasonQuestionStatus(question) !== "draft")
+      .slice()
+      .sort((a, b) => new Date(a.closeAt).getTime() - new Date(b.closeAt).getTime())
+      .slice(0, 5)
+      .map((question) => buildSeasonPredictionCard(store, question, null));
+
+    return {
+      months,
+      selectedMonthId: months[0]?.id ?? null,
+      selectedWeekId: months[0]?.weeks[0]?.id ?? null,
+      featuredMatchId:
+        store.matches.find((match) => match.status === "finished")?.id ??
+        store.matches[0]?.id ??
+        null,
+      userProfile: buildProfile(store, null),
+      standings: buildTeamStandings(store),
+      predictionLeaderboard: buildPredictionLeaderboard(store),
+      heroStats: buildHeroStats(store),
+      featuredMatch: buildFeaturedMatch(store, null),
+      todayMatches: buildTodayMatches(store, null),
+      recentFinishedMatches: buildRecentFinishedMatches(store, null),
+      recentComments: buildRecentCommentsFeed(store),
+      playerLeaderboard: buildPlayerLeaderboard(store),
+      seasonPredictionPreview,
+    };
+  },
+  ["schedule-hub-public"],
+  { revalidate: 60 },
+);
+
+export const getSiteChromeData = cache(async (viewerId: string | null): Promise<SiteChromeData> => {
+  if (!viewerId) {
+    return {
+      notifications: [],
+      unreadNotificationCount: 0,
+    };
+  }
+
+  const store = await readStoreWithPredictionLifecycle();
+  return buildSiteChromeData(store, viewerId);
+});
+
+export const getScheduleHubData = cache(async (viewerId: string | null): Promise<ScheduleHubData> => {
+  const publicData = await getPublicScheduleHubData();
+
+  if (!viewerId) {
+    return {
+      ...publicData,
+      notifications: [],
+      unreadNotificationCount: 0,
+    };
+  }
+
+  const store = await readStoreWithPredictionLifecycle();
+  const viewer = store.users.find((user) => user.id === viewerId) ?? null;
+  const chromeData = buildSiteChromeData(store, viewerId);
+
+  return {
+    ...publicData,
     userProfile: buildProfile(store, viewer),
-    standings: buildTeamStandings(store),
-    predictionLeaderboard: buildPredictionLeaderboard(store),
-    heroStats: buildHeroStats(store),
     featuredMatch: buildFeaturedMatch(store, viewerId),
     todayMatches: buildTodayMatches(store, viewerId),
     recentFinishedMatches: buildRecentFinishedMatches(store, viewerId),
-    recentComments: buildRecentCommentsFeed(store),
-    playerLeaderboard: buildPlayerLeaderboard(store),
-    seasonPredictionPreview,
-    notifications,
-    unreadNotificationCount,
+    seasonPredictionPreview: store.seasonPredictionQuestions
+      .filter((question) => question.visibility === "public" && getSeasonQuestionStatus(question) !== "draft")
+      .slice()
+      .sort((a, b) => new Date(a.closeAt).getTime() - new Date(b.closeAt).getTime())
+      .slice(0, 5)
+      .map((question) => buildSeasonPredictionCard(store, question, viewerId)),
+    notifications: chromeData.notifications,
+    unreadNotificationCount: chromeData.unreadNotificationCount,
   };
 });
 

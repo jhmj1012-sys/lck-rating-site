@@ -1,11 +1,9 @@
 import Link from "next/link";
-import { getServerSession } from "next-auth";
 import { notFound } from "next/navigation";
 
-import { authOptions } from "@/auth";
 import { BackNavButton } from "@/components/BackNavButton";
 import { TopSiteNav } from "@/components/TopSiteNav";
-import { getPlayerDetailPageData, getScheduleHubData } from "@/lib/service";
+import { getPlayerDetailPageData } from "@/lib/service";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -23,8 +21,6 @@ function ResultBadge({ result }: { result: "W" | "L" | "-" }) {
 
 export default async function PlayerDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const session = await getServerSession(authOptions);
-  const hubData = await getScheduleHubData(session?.user?.id ?? null);
   let player = null;
 
   try {
@@ -39,11 +35,7 @@ export default async function PlayerDetailPage({ params }: PageProps) {
 
   return (
     <div>
-      <TopSiteNav
-        active="ratings"
-        notifications={hubData.notifications}
-        unreadNotificationCount={hubData.unreadNotificationCount}
-      />
+      <TopSiteNav active="ratings" />
       <main className="min-h-screen bg-[#1C1C1F] px-4 py-8 sm:px-6">
         <div className="mx-auto max-w-5xl space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3">

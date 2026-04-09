@@ -4,7 +4,7 @@ import Image from "next/image";
 
 import { authOptions } from "@/auth";
 import { TopSiteNav } from "@/components/TopSiteNav";
-import { getScheduleHubData, getSeasonPredictionListData } from "@/lib/service";
+import { getSeasonPredictionListData } from "@/lib/service";
 
 function getStatusLabel(status: string) {
   if (status === "open") return "진행중";
@@ -39,18 +39,11 @@ export default async function SeasonPredictionsPage({
   const category = Array.isArray(params.category) ? params.category[0] : params.category;
   const status = Array.isArray(params.status) ? params.status[0] : params.status;
 
-  const [data, hubData] = await Promise.all([
-    getSeasonPredictionListData(session?.user?.id ?? null, { category, status }),
-    getScheduleHubData(session?.user?.id ?? null),
-  ]);
+  const data = await getSeasonPredictionListData(session?.user?.id ?? null, { category, status });
 
   return (
     <div>
-      <TopSiteNav
-        active="season"
-        notifications={hubData.notifications}
-        unreadNotificationCount={hubData.unreadNotificationCount}
-      />
+      <TopSiteNav active="season" />
 
       <main className="min-h-screen bg-[#1C1C1F] px-4 py-8 sm:px-6">
         <div className="mx-auto max-w-5xl space-y-6">

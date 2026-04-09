@@ -1,20 +1,8 @@
-import { getServerSession } from "next-auth";
-
-import { authOptions } from "@/auth";
 import { TopSiteNav } from "@/components/TopSiteNav";
-import { getScheduleHubData } from "@/lib/service";
-
 export default async function ShopPage() {
-  const session = await getServerSession(authOptions);
-  const hubData = await getScheduleHubData(session?.user?.id ?? null);
-
   return (
     <div>
-      <TopSiteNav
-        active="none"
-        notifications={hubData.notifications}
-        unreadNotificationCount={hubData.unreadNotificationCount}
-      />
+      <TopSiteNav active="none" />
 
       <main className="min-h-screen bg-[#1C1C1F] px-4 py-8 sm:px-6">
         <div className="mx-auto max-w-5xl space-y-6">

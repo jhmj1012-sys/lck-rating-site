@@ -10,13 +10,13 @@ type TopNavKey = "match" | "season" | "schedule" | "ratings" | "games" | "none";
 
 export function TopSiteNav({
   active,
-  notifications,
-  unreadNotificationCount,
+  notifications = [],
+  unreadNotificationCount = 0,
   maxWidthClass = "max-w-5xl",
 }: {
   active: TopNavKey;
-  notifications: NotificationItem[];
-  unreadNotificationCount: number;
+  notifications?: NotificationItem[];
+  unreadNotificationCount?: number;
   maxWidthClass?: string;
 }) {
   return (

@@ -1,10 +1,10 @@
-﻿import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/auth";
 import { BackNavButton } from "@/components/BackNavButton";
 import { TopSiteNav } from "@/components/TopSiteNav";
 import { SeasonPredictionEntryForm } from "@/components/lol-rating/SeasonPredictionEntryForm";
-import { getScheduleHubData, getSeasonPredictionDetailData } from "@/lib/service";
+import { getSeasonPredictionDetailData } from "@/lib/service";
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("ko-KR", {
@@ -36,19 +36,11 @@ export default async function SeasonPredictionDetailPage({
 }) {
   const session = await getServerSession(authOptions);
   const { questionId } = await params;
-
-  const [detail, hubData] = await Promise.all([
-    getSeasonPredictionDetailData(questionId, session?.user?.id ?? null),
-    getScheduleHubData(session?.user?.id ?? null),
-  ]);
+  const detail = await getSeasonPredictionDetailData(questionId, session?.user?.id ?? null);
 
   return (
     <div>
-      <TopSiteNav
-        active="season"
-        notifications={hubData.notifications}
-        unreadNotificationCount={hubData.unreadNotificationCount}
-      />
+      <TopSiteNav active="season" />
 
       <main className="min-h-screen bg-[#1C1C1F] px-4 py-8 sm:px-6">
         <div className="mx-auto max-w-5xl space-y-6">

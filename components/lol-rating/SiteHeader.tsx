@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 
-import type { GlobalSearchResultGroup, GlobalSearchResultItem, NotificationItem } from "./types";
+import type { GlobalSearchResultGroup, GlobalSearchResultItem, NotificationItem, SiteChromeData } from "./types";
 import { BellIcon, SearchIcon, ShieldIcon, ShopIcon, TeamIcon, UserIcon } from "./icons";
 import { Input } from "./ui";
 import { cn } from "./utils";
@@ -351,7 +351,7 @@ function MobileMoreMenu({ isAdmin }: { isAdmin: boolean }) {
   );
 }
 
-export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: SiteHeaderProps) {
+function SiteHeaderContent({ notifications = [], unreadNotificationCount = 0 }: SiteHeaderProps) {
   const { data: session, status } = useSession();
   const isLoggedIn = status === "authenticated";
   const isAdmin = session?.user?.role === "admin";
@@ -371,12 +371,56 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const [chromeData, setChromeData] = useState<SiteChromeData>({
+    notifications,
+    unreadNotificationCount,
+  });
   const searchWrapRef = useRef<HTMLDivElement | null>(null);
+  const hasServerChrome = notifications.length > 0 || unreadNotificationCount > 0;
 
   const flatResults = useMemo(
     () => searchGroups.flatMap((group) => group.items),
     [searchGroups],
   );
+
+  useEffect(() => {
+    setChromeData({
+      notifications,
+      unreadNotificationCount,
+    });
+  }, [notifications, unreadNotificationCount]);
+
+  useEffect(() => {
+    if (!isLoggedIn || hasServerChrome) {
+      return;
+    }
+
+    let active = true;
+
+    fetch("/api/site-chrome", { cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error("헤더 데이터 조회 실패");
+        }
+
+        const payload = (await response.json()) as SiteChromeData;
+        if (active) {
+          setChromeData(payload);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setChromeData({
+            notifications: [],
+            unreadNotificationCount: 0,
+          });
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [hasServerChrome, isLoggedIn]);
 
   useEffect(() => {
     const currentQuery = searchParams.get("q") ?? "";
@@ -534,7 +578,7 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
             </Link>
 
             <div className="mobile-header-actions flex shrink-0 items-center gap-1.5 sm:gap-2 lg:hidden">
-              {isLoggedIn ? <NotificationButton notifications={notifications} unreadCount={unreadNotificationCount} /> : null}
+              {isLoggedIn ? <NotificationButton notifications={chromeData.notifications} unreadCount={chromeData.unreadNotificationCount} /> : null}
               <AccountEntryButton isLoggedIn={isLoggedIn} label={accountLabel} email={accountEmail} compact />
               <MobileMoreMenu isAdmin={isAdmin} />
             </div>
@@ -591,7 +635,7 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
             </div>
 
             <div className="hidden items-center gap-2 lg:flex">
-              {isLoggedIn ? <NotificationButton notifications={notifications} unreadCount={unreadNotificationCount} /> : null}
+              {isLoggedIn ? <NotificationButton notifications={chromeData.notifications} unreadCount={chromeData.unreadNotificationCount} /> : null}
               <IconNavLink href="/shop" label={HEADER_LABELS.shop}>
               <ShopIcon className="h-4 w-4 text-white" />
               </IconNavLink>
@@ -609,5 +653,13 @@ export function SiteHeader({ notifications = [], unreadNotificationCount = 0 }: 
         </div>
       </div>
     </header>
+  );
+}
+
+export function SiteHeader(props: SiteHeaderProps) {
+  return (
+    <Suspense fallback={null}>
+      <SiteHeaderContent {...props} />
+    </Suspense>
   );
 }

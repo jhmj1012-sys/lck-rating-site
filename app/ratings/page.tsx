@@ -1,24 +1,13 @@
-import { getServerSession } from "next-auth";
-
-import { authOptions } from "@/auth";
 import { PlayerRankingBoard } from "@/components/PlayerRankingBoard";
 import { TopSiteNav } from "@/components/TopSiteNav";
-import { getPlayerRankingPageData, getScheduleHubData } from "@/lib/service";
+import { getPlayerRankingPageData } from "@/lib/service";
 
 export default async function RatingsPage() {
-  const session = await getServerSession(authOptions);
-  const [data, hubData] = await Promise.all([
-    getPlayerRankingPageData(),
-    getScheduleHubData(session?.user?.id ?? null),
-  ]);
+  const data = await getPlayerRankingPageData();
 
   return (
     <div>
-      <TopSiteNav
-        active="ratings"
-        notifications={hubData.notifications}
-        unreadNotificationCount={hubData.unreadNotificationCount}
-      />
+      <TopSiteNav active="ratings" />
       <PlayerRankingBoard data={data} />
     </div>
   );

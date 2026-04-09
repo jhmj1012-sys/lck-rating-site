@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { SpeedInsights } from '@vercel/speed-insights/next';
-import { getServerSession } from "next-auth";
 
-import { authOptions } from "@/auth";
 import { AuthSessionProvider } from "@/components/AuthSessionProvider";
 import { SiteFooter } from "@/components/SiteFooter";
 import "./globals.css";
@@ -25,12 +23,10 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(authOptions);
-
   return (
     <html lang="ko" className={`h-full antialiased ${pretendard.variable}`}>
       <body className="min-h-full overflow-x-hidden" suppressHydrationWarning>
-        <AuthSessionProvider session={session}>
+        <AuthSessionProvider>
           <div className="flex min-h-screen flex-col">
             <div className="flex-1">{children}</div>
             <SiteFooter />

@@ -457,6 +457,11 @@ export interface ScheduleHubData {
   unreadNotificationCount: number;
 }
 
+export interface SiteChromeData {
+  notifications: NotificationItem[];
+  unreadNotificationCount: number;
+}
+
 export interface RosterPlayerItem {
   playerId: string;
   playerSlug: string;

@@ -1,11 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getServerSession } from "next-auth";
-
-import { authOptions } from "@/auth";
 import { TeamLogo } from "@/components/lol-rating/TeamLogo";
 import { TopSiteNav } from "@/components/TopSiteNav";
-import { getScheduleHubData, getTeamRosterDetailData } from "@/lib/service";
+import { getTeamRosterDetailData } from "@/lib/service";
 
 function formatUpdatedAt(value: string) {
   return new Intl.DateTimeFormat("ko-KR", {
@@ -23,12 +20,8 @@ export default async function TeamRosterDetailPage({
 }: {
   params: Promise<{ teamCode: string }>;
 }) {
-  const session = await getServerSession(authOptions);
   const { teamCode } = await params;
-  const [data, hubData] = await Promise.all([
-    getTeamRosterDetailData(teamCode.toUpperCase()).catch(() => null),
-    getScheduleHubData(session?.user?.id ?? null),
-  ]);
+  const data = await getTeamRosterDetailData(teamCode.toUpperCase()).catch(() => null);
 
   if (!data) {
     notFound();
@@ -36,11 +29,7 @@ export default async function TeamRosterDetailPage({
 
   return (
     <div>
-      <TopSiteNav
-        active="schedule"
-        notifications={hubData.notifications}
-        unreadNotificationCount={hubData.unreadNotificationCount}
-      />
+      <TopSiteNav active="schedule" />
 
       <main className="min-h-screen bg-[#1C1C1F] px-4 py-8 sm:px-6">
         <div className="mx-auto max-w-5xl space-y-6">
