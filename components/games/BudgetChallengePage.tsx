@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import { useMemo, useRef, useState, type ComponentType } from "react";
+import { createPortal } from "react-dom";
+import { toBlob } from "html-to-image";
 
-import { CopyRosterImageButton } from "@/components/games/CopyRosterImageButton";
 import { IconBase } from "@/components/lol-rating/icons";
 import { cn } from "@/components/lol-rating/utils";
 import { budgetChallengeConfig, budgetChallengePlayers } from "@/lib/games/budget-challenge-data";
@@ -129,6 +130,9 @@ const PRICE_THEMES: Record<
   },
 };
 
+const SYNERGY_BADGE_CLASS = "border-white/10 bg-white/[0.06] text-[#d7e1ef]";
+const SYNERGY_ICON_CLASS = "text-[#9fb0c8]";
+
 const PLAYER_REAL_NAMES: Partial<Record<string, string>> = {
   aiming: "김하람",
   andil: "문관빈",
@@ -245,14 +249,20 @@ function MvpIcon({ className }: TraitIconProps) {
 
 function GoatIcon({ className }: TraitIconProps) {
   return (
-    <IconBase className={className}>
-      <path d="M7.5 14.5c0-3.2 2.1-5.7 5.1-5.7 2.6 0 4.6 1.9 4.6 4.5 0 3.2-2.6 5.7-6.3 5.7-2.3 0-3.9-1.4-3.9-4.5z" />
-      <path d="M8.8 9.4c-1.5-.7-2.5-2.2-2.5-3.9 1.8.2 3.2 1.5 3.7 3.2" />
-      <path d="M13.8 8.7c.1-2 1.4-3.7 3.3-4.4.4 1.9-.3 3.8-1.9 5" />
-      <path d="M16.4 13.2l1.8-.5" />
-      <path d="M10.4 12.7c.5 1 1.4 1.6 2.6 1.6" />
-      <circle cx="13.7" cy="11.1" r=".7" fill="currentColor" stroke="none" />
-    </IconBase>
+    <span
+      aria-hidden="true"
+      className={cn("inline-block bg-current", className)}
+      style={{
+        WebkitMaskImage: "url(/icons/goat-user.svg)",
+        maskImage: "url(/icons/goat-user.svg)",
+        WebkitMaskRepeat: "no-repeat",
+        maskRepeat: "no-repeat",
+        WebkitMaskPosition: "center",
+        maskPosition: "center",
+        WebkitMaskSize: "contain",
+        maskSize: "contain",
+      }}
+    />
   );
 }
 
@@ -325,56 +335,47 @@ const SPECIAL_TRAIT_META: Record<
     label: string;
     Icon: ComponentType<TraitIconProps>;
     iconClassName: string;
-    badgeClassName: string;
   }
 > = {
   veteran: {
     label: "베테랑",
     Icon: VeteranIcon,
     iconClassName: "text-[#9ad67a]",
-    badgeClassName: "border-[#3f6b36] bg-[#12200f] text-[#d8f1c9]",
   },
   rookie: {
     label: "루키",
     Icon: RookieIcon,
     iconClassName: "text-[#86efac]",
-    badgeClassName: "border-[#2f5d3d] bg-[#102316] text-[#b8f3cb]",
   },
   winner: {
     label: "위너",
     Icon: WinnerIcon,
     iconClassName: "text-[#f6d365]",
-    badgeClassName: "border-[#6a5321] bg-[#281d08] text-[#ffe6a3]",
   },
   mvp: {
     label: "MVP",
     Icon: MvpIcon,
     iconClassName: "text-[#fdba74]",
-    badgeClassName: "border-[#6b3d1c] bg-[#26140a] text-[#ffd2a8]",
   },
   goat: {
     label: "GOAT",
     Icon: GoatIcon,
     iconClassName: "text-[#fda4af]",
-    badgeClassName: "border-[#68333a] bg-[#251115] text-[#ffc7cf]",
   },
   lpl_return: {
     label: "LPL 리턴",
     Icon: LplReturnIcon,
     iconClassName: "text-[#93c5fd]",
-    badgeClassName: "border-[#264d72] bg-[#0c1a27] text-[#c3e0ff]",
   },
   super_rookie: {
     label: "슈퍼루키",
     Icon: SuperRookieIcon,
     iconClassName: "text-[#c4b5fd]",
-    badgeClassName: "border-[#493b72] bg-[#171126] text-[#e4dcff]",
   },
   national_team: {
     label: "국가대표",
     Icon: NationalTeamIcon,
     iconClassName: "text-[#fca5a5]",
-    badgeClassName: "border-[#714145] bg-[#241215] text-[#ffd2d2]",
   },
 };
 
@@ -468,12 +469,6 @@ function getTraitLabel(traitId: string) {
   return trait?.label ?? traitId;
 }
 
-function getPlayerSynergyClass(player: ChallengePlayer) {
-  return getPlayerTraitIds(player)
-    .map((traitId) => getTraitLabel(traitId))
-    .join(" · ");
-}
-
 function TraitBadge({ traitId, compact = false }: { traitId: SpecialTraitId; compact?: boolean }) {
   const meta = SPECIAL_TRAIT_META[traitId];
   const Icon = meta.Icon;
@@ -483,10 +478,10 @@ function TraitBadge({ traitId, compact = false }: { traitId: SpecialTraitId; com
       className={cn(
         "inline-flex items-center rounded-full border font-semibold",
         compact ? "gap-1 px-2 py-0.5 text-[10px]" : "gap-1.5 px-2.5 py-1 text-[11px]",
-        meta.badgeClassName,
+        SYNERGY_BADGE_CLASS,
       )}
     >
-      <Icon className={cn(compact ? "h-[18px] w-[18px]" : "h-[21px] w-[21px]", meta.iconClassName)} />
+      <Icon className={cn(compact ? "h-[18px] w-[18px]" : "h-[21px] w-[21px]", SYNERGY_ICON_CLASS)} />
       <span>{meta.label}</span>
     </span>
   );
@@ -496,8 +491,9 @@ function TeamSynergyBadge({ team, compact = false }: { team: string; compact?: b
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full border border-white/10 bg-white/5 font-semibold text-[#e2e8f0]",
+        "inline-flex items-center rounded-full border font-semibold",
         compact ? "gap-1 px-2 py-0.5 text-[10px]" : "gap-1.5 px-2.5 py-1 text-[11px]",
+        SYNERGY_BADGE_CLASS,
       )}
     >
       <TeamLogo team={team} className={cn(compact ? "h-[18px] w-[18px]" : "h-[21px] w-[21px]")} />
@@ -571,12 +567,15 @@ export function BudgetChallengePage({
   const [draggingPlayerId, setDraggingPlayerId] = useState<string | null>(null);
   const [hoveredTooltip, setHoveredTooltip] = useState<HoveredTooltip | null>(null);
   const [hoveredSynergyTooltip, setHoveredSynergyTooltip] = useState<HoveredSynergyTooltip | null>(null);
-  const resultRef = useRef<HTMLDivElement>(null);
+  const [showShareCard, setShowShareCard] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
+  const shareCardRef = useRef<HTMLDivElement | null>(null);
   const noticeTimerRef = useRef<number | null>(null);
 
   const summary = createChallengeSummary(budgetChallengeConfig, selection, PLAYERS_BY_ID);
   const encodedSelection = encodeSelection(selection);
   const draggingPlayer = draggingPlayerId ? PLAYERS_BY_ID.get(draggingPlayerId) : undefined;
+  const tooltipPortalTarget = typeof document !== "undefined" ? document.body : null;
 
   const filteredPlayers = useMemo(() => {
     return ACTIVE_PLAYERS.filter((player) => {
@@ -612,6 +611,16 @@ export function BudgetChallengePage({
   }, [filteredPlayers, playerPoolView]);
 
   const groupedPlayers = useMemo(() => {
+    if (playerPoolView === "price") {
+      return [5, 4, 3, 2, 1]
+        .map((price) => ({
+          key: `price-${price}`,
+          label: `${price}달러`,
+          players: orderedPlayers.filter((player) => player.price === price),
+        }))
+        .filter((section) => section.players.length > 0);
+    }
+
     if (playerPoolView === "team") {
       return TEAM_ORDER.map((team) => ({
         key: team,
@@ -693,18 +702,43 @@ export function BudgetChallengePage({
     }, 2200);
   }
 
-  async function copySelectionLink(selectionCode: string, options?: { syncUrl?: boolean; successMessage?: string }) {
+  function openShareCard(selectionCode: string) {
     const query = selectionCode ? `?c=${encodeURIComponent(selectionCode)}` : "";
-    const url = `${window.location.origin}/games/15-dollar-challenge${query}`;
+    window.history.replaceState(null, "", `${window.location.pathname}${query}`);
+    setShareCopied(false);
+    setShowShareCard(true);
+  }
+
+  function makeBlobFromElement(el: HTMLDivElement, borderRadius: string) {
+    const rect = el.getBoundingClientRect();
+    return toBlob(el, {
+      cacheBust: true,
+      pixelRatio: Math.max(2, window.devicePixelRatio || 1),
+      width: Math.round(rect.width),
+      height: Math.round(rect.height),
+      fetchRequestInit: { cache: "no-store" },
+      style: { margin: "0", transform: "none", borderRadius, overflow: "hidden" },
+    }).then((blob) => blob ?? new Blob([], { type: "image/png" }));
+  }
+
+  async function copyShareCardImage() {
+    const cardElement = shareCardRef.current;
+    if (!cardElement || !navigator.clipboard || typeof window.ClipboardItem === "undefined") {
+      showNotice("이미지 복사를 지원하지 않는 환경입니다.");
+      return;
+    }
 
     try {
-      await navigator.clipboard.writeText(url);
-      if (options?.syncUrl) {
-        window.history.replaceState(null, "", `${window.location.pathname}${query}`);
+      if (typeof document !== "undefined" && "fonts" in document) {
+        await (document as Document & { fonts?: FontFaceSet }).fonts?.ready;
       }
-      showNotice(options?.successMessage ?? "공유 링크를 복사했습니다.");
+
+      const blobPromise = makeBlobFromElement(cardElement, "22px");
+      await navigator.clipboard.write([new window.ClipboardItem({ "image/png": blobPromise })]);
+      setShareCopied(true);
+      window.setTimeout(() => setShareCopied(false), 1200);
     } catch {
-      showNotice("링크 복사에 실패했습니다. 다시 시도해 주세요.");
+      showNotice("이미지 복사에 실패했습니다. 다시 시도해 주세요.");
     }
   }
 
@@ -755,16 +789,18 @@ export function BudgetChallengePage({
   function showPlayerTooltip(player: ChallengePlayer, target: HTMLElement) {
     const rect = target.getBoundingClientRect();
     const tooltipWidth = 224;
+    const tooltipHeight = 180;
     const viewportPadding = 16;
     const centeredLeft = rect.left + rect.width / 2 - tooltipWidth / 2;
     const centeredRight = rect.left + rect.width / 2 + tooltipWidth / 2;
 
     const placement: TooltipPlacement =
       centeredLeft < viewportPadding ? "left" : centeredRight > window.innerWidth - viewportPadding ? "right" : "center";
+    const top = Math.max(viewportPadding, rect.top - tooltipHeight - 12);
 
     setHoveredTooltip({
       playerId: player.id,
-      top: rect.top - 8,
+      top,
       left: placement === "left" ? rect.left : placement === "right" ? rect.right : rect.left + rect.width / 2,
       placement,
     });
@@ -777,16 +813,18 @@ export function BudgetChallengePage({
   function showSynergyTooltip(synergy: SynergyItem, target: HTMLElement) {
     const rect = target.getBoundingClientRect();
     const tooltipWidth = 240;
+    const tooltipHeight = 116;
     const viewportPadding = 16;
     const centeredLeft = rect.left + rect.width / 2 - tooltipWidth / 2;
     const centeredRight = rect.left + rect.width / 2 + tooltipWidth / 2;
 
     const placement: TooltipPlacement =
       centeredLeft < viewportPadding ? "left" : centeredRight > window.innerWidth - viewportPadding ? "right" : "center";
+    const top = Math.max(viewportPadding, rect.top - tooltipHeight - 12);
 
     setHoveredSynergyTooltip({
       synergyId: synergy.id,
-      top: rect.top - 8,
+      top,
       left: placement === "left" ? rect.left : placement === "right" ? rect.right : rect.left + rect.width / 2,
       placement,
     });
@@ -877,7 +915,7 @@ export function BudgetChallengePage({
                         <div
                           className={cn(
                             "flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px]",
-                            synergy.type === "team" ? "bg-white/10" : "bg-black/25",
+                            "bg-transparent",
                           )}
                         >
                           {synergy.type === "team" && synergy.team ? (
@@ -903,11 +941,10 @@ export function BudgetChallengePage({
               </aside>
 
               <div
-                ref={resultRef}
                 className="overflow-hidden rounded-[28px] bg-[linear-gradient(180deg,#171b22_0%,#0f1318_100%)]"
               >
-                <div className="p-4 sm:p-5">
-                  <div className="overflow-hidden rounded-[24px] bg-[linear-gradient(180deg,#171d25_0%,#10151b_100%)]">
+                <div className="p-1.5 sm:p-2">
+                  <div className="overflow-hidden rounded-[26px] bg-[linear-gradient(180deg,#171d25_0%,#10151b_100%)]">
                     <div className="grid min-h-[430px] grid-rows-5">
                       {CHALLENGE_POSITIONS.map((position, index) => {
                         const playerId = selection[position];
@@ -1035,25 +1072,6 @@ export function BudgetChallengePage({
                       </div>
                     </div>
                   </div>
-                  <div className="mt-3 grid grid-cols-5 gap-1.5">
-                    {CHALLENGE_POSITIONS.map((position) => {
-                      const playerId = selection[position];
-                      const player = playerId ? PLAYERS_BY_ID.get(playerId) : undefined;
-                      const priceTheme = player ? PRICE_THEMES[player.price] : null;
-                      return (
-                        <div
-                          key={position}
-                          className={cn(
-                            "flex min-h-11 flex-col items-center justify-center rounded-[12px] px-1.5 py-1.5 text-center",
-                            player ? cn("bg-black/20", priceTheme?.soft) : "bg-black/15",
-                          )}
-                        >
-                          <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-[#8ea0ba]">{POSITION_META[position].short}</div>
-                          <div className={cn("mt-1 h-2 w-2 rounded-full", player ? priceTheme?.text?.replace("text-", "bg-") ?? "bg-[#76a8ff]" : "bg-white/15")} />
-                        </div>
-                      );
-                    })}
-                  </div>
                 </div>
 
                 <div className="rounded-[18px] bg-white/[0.04] p-3">
@@ -1061,12 +1079,16 @@ export function BudgetChallengePage({
                   <div className="mt-3 grid gap-2">
                     <button
                       type="button"
-                      onClick={() => copySelectionLink(encodedSelection, { syncUrl: true, successMessage: "현재 조합 링크를 복사했습니다." })}
+                      onClick={() => openShareCard(encodedSelection)}
                       className="inline-flex min-h-10 items-center justify-center rounded-[12px] bg-[#2f5fa6] px-3 text-sm font-semibold text-white transition hover:bg-[#2a568f]"
                     >
-                      조합 링크 복사
+                      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" className="mr-2 h-4 w-4">
+                        <path d="M15 7l-5-4-5 4" />
+                        <path d="M10 3v10" />
+                        <path d="M4 13v3h12v-3" />
+                      </svg>
+                      공유하기
                     </button>
-                    <CopyRosterImageButton targetRef={resultRef} disabled={!summary.isComplete} />
                     <button
                       type="button"
                       onClick={resetSelection}
@@ -1118,7 +1140,7 @@ export function BudgetChallengePage({
               </div>
 
               <div className="px-4 py-4">
-                {playerPoolView === "team" || playerPoolView === "position" ? (
+                {playerPoolView === "price" || playerPoolView === "team" || playerPoolView === "position" ? (
                   <div className="space-y-4">
                     {groupedPlayers.map((section) => (
                       <section key={section.key} className="space-y-2">
@@ -1153,7 +1175,7 @@ export function BudgetChallengePage({
             </section>
         </div>
 
-        {hoveredTooltip ? (() => {
+        {tooltipPortalTarget && hoveredTooltip ? createPortal((() => {
           const player = PLAYERS_BY_ID.get(hoveredTooltip.playerId);
           if (!player) {
             return null;
@@ -1169,15 +1191,12 @@ export function BudgetChallengePage({
           const isDisabled = !availability.canSelect && !isSelected;
           const priceTheme = PRICE_THEMES[player.price];
           const playerRealName = getPlayerRealName(player);
-          const playerSynergyClass = getPlayerSynergyClass(player);
-
           return (
             <div
               className={cn(
                 "pointer-events-none fixed z-[80] w-56 rounded-[12px] border border-white/10 bg-[rgba(7,9,14,0.96)] p-3 text-left shadow-[0_16px_40px_rgba(0,0,0,0.45)]",
-                hoveredTooltip.placement === "center" && "-translate-x-1/2 -translate-y-full",
-                hoveredTooltip.placement === "left" && "-translate-y-full",
-                hoveredTooltip.placement === "right" && "-translate-x-full -translate-y-full",
+                hoveredTooltip.placement === "center" && "-translate-x-1/2",
+                hoveredTooltip.placement === "right" && "-translate-x-full",
               )}
               style={{
                 left: hoveredTooltip.left,
@@ -1198,7 +1217,7 @@ export function BudgetChallengePage({
                 </div>
                 <div>
                   <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6f8098]">Synergy Class</div>
-                  <div className="mt-1 flex flex-wrap gap-1.5">
+                  <div className="mt-1 flex flex-col items-start gap-1.5">
                     <TeamSynergyBadge team={player.team} compact />
                     {getPlayerSpecialTraitIds(player).length > 0 ? (
                       getPlayerSpecialTraitIds(player).map((traitId) => (
@@ -1219,9 +1238,9 @@ export function BudgetChallengePage({
               />
             </div>
           );
-        })() : null}
+        })(), tooltipPortalTarget) : null}
 
-        {hoveredSynergyTooltip ? (() => {
+        {tooltipPortalTarget && hoveredSynergyTooltip ? createPortal((() => {
           const synergy = activeSynergies.find((item) => item.id === hoveredSynergyTooltip.synergyId);
           if (!synergy) {
             return null;
@@ -1231,9 +1250,8 @@ export function BudgetChallengePage({
             <div
               className={cn(
                 "pointer-events-none fixed z-[80] w-60 rounded-[12px] border border-white/10 bg-[rgba(7,9,14,0.96)] p-3 text-left shadow-[0_16px_40px_rgba(0,0,0,0.45)]",
-                hoveredSynergyTooltip.placement === "center" && "-translate-x-1/2 -translate-y-full",
-                hoveredSynergyTooltip.placement === "left" && "-translate-y-full",
-                hoveredSynergyTooltip.placement === "right" && "-translate-x-full -translate-y-full",
+                hoveredSynergyTooltip.placement === "center" && "-translate-x-1/2",
+                hoveredSynergyTooltip.placement === "right" && "-translate-x-full",
               )}
               style={{
                 left: hoveredSynergyTooltip.left,
@@ -1255,7 +1273,117 @@ export function BudgetChallengePage({
               />
             </div>
           );
-        })() : null}
+        })(), tooltipPortalTarget) : null}
+
+        {showShareCard ? (
+          <div
+            className="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+            onClick={() => {
+              setShowShareCard(false);
+              setShareCopied(false);
+            }}
+          >
+            <div className="mx-4 w-full max-w-[392px]" onClick={(event) => event.stopPropagation()}>
+              <div
+                ref={shareCardRef}
+                className="relative mx-auto w-full overflow-hidden rounded-[22px] border border-[#2a2a3a] text-white"
+                style={{ background: "linear-gradient(145deg, #12121a 0%, #1a1230 50%, #0e1a2e 100%)" }}
+              >
+                <div
+                  className="pointer-events-none absolute inset-0"
+                  style={{ background: "radial-gradient(ellipse at top right, rgba(124,58,237,0.18) 0%, transparent 60%)" }}
+                />
+                <div className="relative p-5">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="inline-flex min-w-0 items-center gap-2">
+                      <Image src="/logo.svg" alt="LPR" width={32} height={32} className="h-8 w-8" unoptimized />
+                      <span className="text-xs font-bold text-slate-100">LOL PRO RATING</span>
+                    </div>
+                    <div className="shrink-0 text-right text-[10px] text-slate-400">15 DOLLAR CHALLENGE</div>
+                  </div>
+
+                  <div className="mt-4 rounded-[16px] border border-white/10 bg-white/5 p-4">
+                    <div className="flex items-end justify-between gap-3">
+                      <div>
+                        <div className="text-[10px] font-semibold tracking-[0.18em] text-[#83b0ff]">REMAINING BUDGET</div>
+                        <div className="mt-1 text-[26px] font-black tracking-[-0.03em] text-white">${summary.remainingBudget}</div>
+                      </div>
+                      <div className="text-right text-sm font-semibold text-slate-300">
+                        ${summary.usedBudget} / {budgetChallengeConfig.budget}
+                      </div>
+                    </div>
+
+                    <div className="mt-4 space-y-2.5">
+                      {CHALLENGE_POSITIONS.map((position) => {
+                        const playerId = selection[position];
+                        const player = playerId ? PLAYERS_BY_ID.get(playerId) : undefined;
+                        const priceTheme = player ? PRICE_THEMES[player.price] : null;
+
+                        return (
+                          <div
+                            key={`share-${position}`}
+                            className={cn(
+                              "grid grid-cols-[56px_minmax(0,1fr)_52px] items-center gap-2 rounded-[12px] border border-white/10 px-3 py-2.5",
+                              player ? "bg-white/[0.06]" : "bg-white/[0.03]",
+                            )}
+                          >
+                            <div className="text-[11px] font-bold tracking-[0.14em] text-slate-300">{POSITION_META[position].short}</div>
+                            <div className="min-w-0">
+                              <div className="truncate text-sm font-black text-white">{player?.name ?? "미선택"}</div>
+                              <div className="mt-0.5 truncate text-[11px] text-slate-400">{player?.team ?? "선수를 골라주세요"}</div>
+                            </div>
+                            <div className="flex justify-end">
+                              <span
+                                className={cn(
+                                  "rounded-full border px-2 py-1 text-[11px] font-black",
+                                  player && priceTheme ? cn(priceTheme.chip, priceTheme.text) : "border-white/10 bg-white/[0.04] text-slate-400",
+                                )}
+                              >
+                                {player ? `$${player.price}` : "-"}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    {activeSynergies.slice(0, 5).map((synergy) =>
+                      synergy.type === "team" && synergy.team ? (
+                        <TeamSynergyBadge key={`share-badge-${synergy.id}`} team={synergy.team} compact />
+                      ) : synergy.traitId ? (
+                        <TraitBadge key={`share-badge-${synergy.id}`} traitId={synergy.traitId} compact />
+                      ) : null,
+                    )}
+                  </div>
+
+                  <div className="mt-4 text-right text-[11px] text-slate-400">{budgetChallengeConfig.shareWatermark}</div>
+                </div>
+              </div>
+
+              <div className="mt-3 flex gap-2">
+                <button
+                  type="button"
+                  onClick={copyShareCardImage}
+                  className="flex-1 rounded-xl bg-[#8B5CF6] py-2.5 text-sm font-bold text-white transition hover:bg-[#7C3AED]"
+                >
+                  {shareCopied ? "복사됨!" : "이미지 복사"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowShareCard(false);
+                    setShareCopied(false);
+                  }}
+                  className="rounded-xl bg-[#3A3A47] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#474756]"
+                >
+                  닫기
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
 
       </div>
     </main>

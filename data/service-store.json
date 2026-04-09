@@ -2783,13 +2783,26 @@
       "teamBId": "team_drx",
       "scoreA": null,
       "scoreB": null,
-      "predictionLocked": false,
-      "predictionLockedAt": null,
-      "lockedDistribution": null,
-      "lockedOdds": null,
+      "predictionLocked": true,
+      "predictionLockedAt": "2026-04-09T07:50:00.000Z",
+      "lockedDistribution": {
+        "teamA": 50,
+        "teamB": 50,
+        "totalVotes": 0
+      },
+      "lockedOdds": {
+        "teamA": {
+          "oddsPercent": 160,
+          "hitBonusCoins": 40
+        },
+        "teamB": {
+          "oddsPercent": 160,
+          "hitBonusCoins": 40
+        }
+      },
       "predictionSettledAt": null,
       "createdAt": "2026-03-27T10:00:00+09:00",
-      "updatedAt": "2026-03-27T10:00:00+09:00"
+      "updatedAt": "2026-04-09T10:57:37.299Z"
     },
     {
       "id": "match_14",
@@ -2802,13 +2815,26 @@
       "teamBId": "team_ns",
       "scoreA": null,
       "scoreB": null,
-      "predictionLocked": false,
-      "predictionLockedAt": null,
-      "lockedDistribution": null,
-      "lockedOdds": null,
+      "predictionLocked": true,
+      "predictionLockedAt": "2026-04-09T09:50:00.000Z",
+      "lockedDistribution": {
+        "teamA": 50,
+        "teamB": 50,
+        "totalVotes": 0
+      },
+      "lockedOdds": {
+        "teamA": {
+          "oddsPercent": 160,
+          "hitBonusCoins": 40
+        },
+        "teamB": {
+          "oddsPercent": 160,
+          "hitBonusCoins": 40
+        }
+      },
       "predictionSettledAt": null,
       "createdAt": "2026-03-27T10:00:00+09:00",
-      "updatedAt": "2026-03-27T10:00:00+09:00"
+      "updatedAt": "2026-04-09T10:57:37.299Z"
     },
     {
       "id": "match_15",
