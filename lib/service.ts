@@ -2328,6 +2328,17 @@ type PublicScheduleHubData = Omit<ScheduleHubData, "notifications" | "unreadNoti
   userProfile: UserProfile;
 };
 
+type PublicHomePageData = Pick<
+  ScheduleHubData,
+  | "standings"
+  | "predictionLeaderboard"
+  | "heroStats"
+  | "featuredMatch"
+  | "todayMatches"
+  | "recentFinishedMatches"
+  | "playerLeaderboard"
+>;
+
 function buildSiteChromeData(store: StoreShape, viewerId: string | null): SiteChromeData {
   if (!viewerId) {
     return {
@@ -2377,6 +2388,24 @@ const getPublicScheduleHubData = unstable_cache(
   { revalidate: 60 },
 );
 
+const getPublicHomePageData = unstable_cache(
+  async (): Promise<PublicHomePageData> => {
+    const store = await readStoreWithPredictionLifecycle();
+
+    return {
+      standings: buildTeamStandings(store),
+      predictionLeaderboard: buildPredictionLeaderboard(store),
+      heroStats: buildHeroStats(store),
+      featuredMatch: buildFeaturedMatch(store, null),
+      todayMatches: buildTodayMatches(store, null),
+      recentFinishedMatches: buildRecentFinishedMatches(store, null),
+      playerLeaderboard: buildPlayerLeaderboard(store),
+    };
+  },
+  ["home-page-public"],
+  { revalidate: 60 },
+);
+
 export const getSiteChromeData = cache(async (viewerId: string | null): Promise<SiteChromeData> => {
   if (!viewerId) {
     return {
@@ -2420,6 +2449,12 @@ export const getScheduleHubData = cache(async (viewerId: string | null): Promise
     unreadNotificationCount: chromeData.unreadNotificationCount,
   };
 });
+
+export const getHomePageData = cache(async (): Promise<PublicHomePageData & SiteChromeData> => ({
+  ...(await getPublicHomePageData()),
+  notifications: [],
+  unreadNotificationCount: 0,
+}));
 
 export const getPlayerRankingPageData = cache(async (): Promise<PlayerRankingPageData> => {
   const store = await readStoreWithPredictionLifecycle();

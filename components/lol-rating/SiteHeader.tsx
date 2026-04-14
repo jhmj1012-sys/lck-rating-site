@@ -5,6 +5,7 @@ import { signOut, useSession } from "next-auth/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 
+import { AuthSessionProvider } from "@/components/AuthSessionProvider";
 import type { GlobalSearchResultGroup, GlobalSearchResultItem, NotificationItem, SiteChromeData } from "./types";
 import { BellIcon, SearchIcon, ShieldIcon, ShopIcon, TeamIcon, UserIcon } from "./icons";
 import { Input } from "./ui";
@@ -658,8 +659,10 @@ function SiteHeaderContent({ notifications = [], unreadNotificationCount = 0 }: 
 
 export function SiteHeader(props: SiteHeaderProps) {
   return (
-    <Suspense fallback={null}>
-      <SiteHeaderContent {...props} />
-    </Suspense>
+    <AuthSessionProvider>
+      <Suspense fallback={null}>
+        <SiteHeaderContent {...props} />
+      </Suspense>
+    </AuthSessionProvider>
   );
 }

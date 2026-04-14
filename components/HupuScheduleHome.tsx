@@ -1,16 +1,28 @@
 import Link from "next/link";
 
 import {
-  HupuScheduleExplorer,
   HupuSchedulePastMatches,
   HupuScheduleTodaySection,
-} from "@/components/HupuScheduleInteractive";
+} from "@/components/HupuHomeInteractive";
 import { TopSiteNav } from "@/components/TopSiteNav";
 import { PublicUserTrigger } from "@/components/lol-rating/PublicUserTrigger";
 import { TeamLogo } from "@/components/lol-rating/TeamLogo";
 import type { ScheduleHubData } from "@/components/lol-rating/types";
 
-function ActionPanel({ data }: { data: ScheduleHubData }) {
+type HomeScheduleData = Pick<
+  ScheduleHubData,
+  | "standings"
+  | "predictionLeaderboard"
+  | "heroStats"
+  | "featuredMatch"
+  | "todayMatches"
+  | "recentFinishedMatches"
+  | "playerLeaderboard"
+  | "notifications"
+  | "unreadNotificationCount"
+>;
+
+function ActionPanel({ data }: { data: HomeScheduleData }) {
   const { standings, predictionLeaderboard } = data;
 
   return (
@@ -73,7 +85,7 @@ function ActionPanel({ data }: { data: ScheduleHubData }) {
   );
 }
 
-function PlayerLeaderboardSection({ data }: { data: ScheduleHubData }) {
+function PlayerLeaderboardSection({ data }: { data: HomeScheduleData }) {
   const topThree = data.playerLeaderboard.filter((player) => player.rank >= 1 && player.rank <= 3);
   const nextThree = data.playerLeaderboard.filter((player) => player.rank >= 4 && player.rank <= 6);
 
@@ -173,48 +185,36 @@ function ChallengePromoSection() {
 
 export default function HupuScheduleHome({
   initialData,
-  mode = "home",
 }: {
-  initialData: ScheduleHubData;
-  mode?: "home" | "schedule";
+  initialData: HomeScheduleData;
 }) {
-  const isSchedulePage = mode === "schedule";
-
   return (
     <div className="min-h-screen bg-[#1C1C1F]">
       <TopSiteNav
-        active={isSchedulePage ? "schedule" : "match"}
+        active="match"
         notifications={initialData.notifications}
         unreadNotificationCount={initialData.unreadNotificationCount}
       />
 
       <main className="w-full bg-[#1C1C1F] py-6">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
-          {isSchedulePage ? (
-            <HupuScheduleExplorer
-              months={initialData.months}
-              selectedMonthId={initialData.selectedMonthId}
-              mode="schedule"
-            />
-          ) : (
-            <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_220px]">
-              <div className="space-y-6">
-                <HupuScheduleTodaySection
-                  todayMatches={initialData.todayMatches}
-                  featuredMatch={initialData.featuredMatch}
-                  todayMatchesCount={initialData.heroStats.todayMatches}
-                />
-                <QuickLinksSection />
-                <ChallengePromoSection />
-                <HupuSchedulePastMatches matches={initialData.recentFinishedMatches} />
-                <PlayerLeaderboardSection data={initialData} />
-              </div>
-
-              <div className="hidden xl:block">
-                <ActionPanel data={initialData} />
-              </div>
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_220px]">
+            <div className="space-y-6">
+              <HupuScheduleTodaySection
+                todayMatches={initialData.todayMatches}
+                featuredMatch={initialData.featuredMatch}
+                todayMatchesCount={initialData.heroStats.todayMatches}
+              />
+              <QuickLinksSection />
+              <ChallengePromoSection />
+              <HupuSchedulePastMatches matches={initialData.recentFinishedMatches} />
+              <PlayerLeaderboardSection data={initialData} />
             </div>
-          )}
+
+            <div className="hidden xl:block">
+              <ActionPanel data={initialData} />
+            </div>
+          </div>
         </div>
       </main>
     </div>

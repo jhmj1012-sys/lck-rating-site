@@ -1,5 +1,3 @@
-﻿'use client';
-
 import Link from "next/link";
 
 import { SiteHeader } from "@/components/lol-rating/SiteHeader";
@@ -33,15 +31,8 @@ export function TopSiteNav({
             href="/"
             className={cn(
               "relative whitespace-nowrap px-3 py-2 text-[15px] font-bold tracking-[-0.02em] transition sm:px-5 sm:text-[17px]",
-              "text-[#E2E8F0]",
+              "text-[#E2E8F0] hover:text-[#E9D5FF]",
             )}
-            style={{ color: "#E2E8F0" }}
-            onMouseEnter={(event) => {
-              event.currentTarget.style.color = "#E9D5FF";
-            }}
-            onMouseLeave={(event) => {
-              event.currentTarget.style.color = "#E2E8F0";
-            }}
           >
             홈
             {active === "match" ? <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-[#C4B5FD] sm:inset-x-4" /> : null}
@@ -50,15 +41,8 @@ export function TopSiteNav({
             href="/schedule"
             className={cn(
               "relative whitespace-nowrap px-3 py-2 text-[15px] font-bold tracking-[-0.02em] transition sm:px-5 sm:text-[17px]",
-              "text-[#E2E8F0]",
+              "text-[#E2E8F0] hover:text-[#E9D5FF]",
             )}
-            style={{ color: "#E2E8F0" }}
-            onMouseEnter={(event) => {
-              event.currentTarget.style.color = "#E9D5FF";
-            }}
-            onMouseLeave={(event) => {
-              event.currentTarget.style.color = "#E2E8F0";
-            }}
           >
             경기일정
             {active === "schedule" ? <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-[#C4B5FD] sm:inset-x-4" /> : null}
@@ -67,15 +51,8 @@ export function TopSiteNav({
             href="/ratings"
             className={cn(
               "relative whitespace-nowrap px-3 py-2 text-[15px] font-bold tracking-[-0.02em] transition sm:px-5 sm:text-[17px]",
-              "text-[#E2E8F0]",
+              "text-[#E2E8F0] hover:text-[#E9D5FF]",
             )}
-            style={{ color: "#E2E8F0" }}
-            onMouseEnter={(event) => {
-              event.currentTarget.style.color = "#E9D5FF";
-            }}
-            onMouseLeave={(event) => {
-              event.currentTarget.style.color = "#E2E8F0";
-            }}
           >
             평점순위
             {active === "ratings" ? <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-[#C4B5FD] sm:inset-x-4" /> : null}
@@ -84,15 +61,8 @@ export function TopSiteNav({
             href="/season-predictions"
             className={cn(
               "relative whitespace-nowrap px-3 py-2 text-[15px] font-bold tracking-[-0.02em] transition sm:px-5 sm:text-[17px]",
-              "text-[#E2E8F0]",
+              "text-[#E2E8F0] hover:text-[#E9D5FF]",
             )}
-            style={{ color: "#E2E8F0" }}
-            onMouseEnter={(event) => {
-              event.currentTarget.style.color = "#E9D5FF";
-            }}
-            onMouseLeave={(event) => {
-              event.currentTarget.style.color = "#E2E8F0";
-            }}
           >
             시즌예측
             {active === "season" ? <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-[#C4B5FD] sm:inset-x-4" /> : null}
@@ -101,15 +71,8 @@ export function TopSiteNav({
             href="/games/15-dollar-challenge"
             className={cn(
               "relative whitespace-nowrap px-3 py-2 text-[15px] font-bold tracking-[-0.02em] transition sm:px-5 sm:text-[17px]",
-              "text-[#E2E8F0]",
+              "text-[#E2E8F0] hover:text-[#E9D5FF]",
             )}
-            style={{ color: "#E2E8F0" }}
-            onMouseEnter={(event) => {
-              event.currentTarget.style.color = "#E9D5FF";
-            }}
-            onMouseLeave={(event) => {
-              event.currentTarget.style.color = "#E2E8F0";
-            }}
           >
             게임
             {active === "games" ? <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-[#C4B5FD] sm:inset-x-4" /> : null}

@@ -1,8 +1,8 @@
 import HupuScheduleHome from "@/components/HupuScheduleHome";
-import { getScheduleHubData } from "@/lib/service";
+import { getHomePageData } from "@/lib/service";
 
 export default async function Page() {
-  const initialData = await getScheduleHubData(null);
+  const initialData = await getHomePageData();
 
   return <HupuScheduleHome initialData={initialData} />;
 }
