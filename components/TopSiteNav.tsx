@@ -31,7 +31,7 @@ export function TopSiteNav({
             href="/"
             className={cn(
               "relative whitespace-nowrap px-3 py-2 text-[15px] font-bold tracking-[-0.02em] transition sm:px-5 sm:text-[17px]",
-              "text-[#E2E8F0] hover:text-[#E9D5FF]",
+              "!text-[#E2E8F0] hover:!text-[#E9D5FF]",
             )}
           >
             홈
@@ -41,7 +41,7 @@ export function TopSiteNav({
             href="/schedule"
             className={cn(
               "relative whitespace-nowrap px-3 py-2 text-[15px] font-bold tracking-[-0.02em] transition sm:px-5 sm:text-[17px]",
-              "text-[#E2E8F0] hover:text-[#E9D5FF]",
+              "!text-[#E2E8F0] hover:!text-[#E9D5FF]",
             )}
           >
             경기일정
@@ -51,7 +51,7 @@ export function TopSiteNav({
             href="/ratings"
             className={cn(
               "relative whitespace-nowrap px-3 py-2 text-[15px] font-bold tracking-[-0.02em] transition sm:px-5 sm:text-[17px]",
-              "text-[#E2E8F0] hover:text-[#E9D5FF]",
+              "!text-[#E2E8F0] hover:!text-[#E9D5FF]",
             )}
           >
             평점순위
@@ -61,7 +61,7 @@ export function TopSiteNav({
             href="/season-predictions"
             className={cn(
               "relative whitespace-nowrap px-3 py-2 text-[15px] font-bold tracking-[-0.02em] transition sm:px-5 sm:text-[17px]",
-              "text-[#E2E8F0] hover:text-[#E9D5FF]",
+              "!text-[#E2E8F0] hover:!text-[#E9D5FF]",
             )}
           >
             시즌예측
@@ -71,7 +71,7 @@ export function TopSiteNav({
             href="/games/15-dollar-challenge"
             className={cn(
               "relative whitespace-nowrap px-3 py-2 text-[15px] font-bold tracking-[-0.02em] transition sm:px-5 sm:text-[17px]",
-              "text-[#E2E8F0] hover:text-[#E9D5FF]",
+              "!text-[#E2E8F0] hover:!text-[#E9D5FF]",
             )}
           >
             게임
