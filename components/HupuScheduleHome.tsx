@@ -7,20 +7,21 @@ import {
 import { TopSiteNav } from "@/components/TopSiteNav";
 import { PublicUserTrigger } from "@/components/lol-rating/PublicUserTrigger";
 import { TeamLogo } from "@/components/lol-rating/TeamLogo";
-import type { ScheduleHubData } from "@/components/lol-rating/types";
+import type { HomeMatchData, ScheduleHubData } from "@/components/lol-rating/types";
 
 type HomeScheduleData = Pick<
   ScheduleHubData,
   | "standings"
   | "predictionLeaderboard"
   | "heroStats"
-  | "featuredMatch"
-  | "todayMatches"
-  | "recentFinishedMatches"
   | "playerLeaderboard"
   | "notifications"
   | "unreadNotificationCount"
->;
+> & {
+  featuredMatch: HomeMatchData | null;
+  todayMatches: HomeMatchData[];
+  recentFinishedMatches: HomeMatchData[];
+};
 
 function ActionPanel({ data }: { data: HomeScheduleData }) {
   const { standings, predictionLeaderboard } = data;

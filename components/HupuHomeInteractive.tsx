@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { TeamLogo } from "@/components/lol-rating/TeamLogo";
-import type { MatchData } from "@/components/lol-rating/types";
+import type { HomeMatchData } from "@/components/lol-rating/types";
 import { cn } from "@/components/lol-rating/utils";
 
 const LABELS = {
@@ -21,7 +21,7 @@ const LABELS = {
   previousMatchTitle: "지난 경기",
 } as const;
 
-function isLiveMatch(match: MatchData) {
+function isLiveMatch(match: HomeMatchData) {
   if (match.status === "finished") {
     return false;
   }
@@ -29,7 +29,7 @@ function isLiveMatch(match: MatchData) {
   return new Date(match.scheduledAt).getTime() <= new Date(match.serverNow).getTime();
 }
 
-function getKickoffLabel(match: MatchData) {
+function getKickoffLabel(match: HomeMatchData) {
   if (match.status === "finished") {
     return LABELS.matchEnded;
   }
@@ -47,7 +47,7 @@ function getKickoffLabel(match: MatchData) {
     : `${Math.max(1, minutes)}${LABELS.minutesAfter}`;
 }
 
-function getStatusTone(status: MatchData["status"], liveLike = false) {
+function getStatusTone(status: HomeMatchData["status"], liveLike = false) {
   if (status === "finished") {
     return "bg-[#4A4A59] text-[#E2E8F0]";
   }
@@ -69,7 +69,7 @@ function LiveBadge({ compact = false }: { compact?: boolean }) {
   );
 }
 
-function getPrimaryActionLabel(match: MatchData) {
+function getPrimaryActionLabel(match: HomeMatchData) {
   if (match.teamA === "TBD" || match.teamB === "TBD") {
     return LABELS.matchView;
   }
@@ -81,7 +81,7 @@ function getPrimaryActionLabel(match: MatchData) {
   return match.predictionLocked ? LABELS.matchView : LABELS.predictNow;
 }
 
-function getSecondaryActionLabel(match: MatchData) {
+function getSecondaryActionLabel(match: HomeMatchData) {
   return match.status === "finished" ? LABELS.setRatingsView : LABELS.reactionsView;
 }
 
@@ -93,15 +93,15 @@ function formatMatchTime(value: string) {
   }).format(new Date(value));
 }
 
-function chunkMatches(matches: MatchData[], size: number) {
-  const pages: MatchData[][] = [];
+function chunkMatches(matches: HomeMatchData[], size: number) {
+  const pages: HomeMatchData[][] = [];
   for (let index = 0; index < matches.length; index += size) {
     pages.push(matches.slice(index, index + size));
   }
   return pages;
 }
 
-function TodayMatchCard({ match, forcePredictCta = false }: { match: MatchData; forcePredictCta?: boolean }) {
+function TodayMatchCard({ match, forcePredictCta = false }: { match: HomeMatchData; forcePredictCta?: boolean }) {
   const liveLike = isLiveMatch(match);
   const isFinished = match.status === "finished";
 
@@ -159,7 +159,7 @@ function TodayMatchCard({ match, forcePredictCta = false }: { match: MatchData; 
   );
 }
 
-function PastMatchCard({ match, revealSpoiler }: { match: MatchData; revealSpoiler: boolean }) {
+function PastMatchCard({ match, revealSpoiler }: { match: HomeMatchData; revealSpoiler: boolean }) {
   const hideScore = match.status === "finished" && !revealSpoiler;
 
   return (
@@ -193,8 +193,8 @@ export function HupuScheduleTodaySection({
   featuredMatch,
   todayMatchesCount,
 }: {
-  todayMatches: MatchData[];
-  featuredMatch: MatchData | null;
+  todayMatches: HomeMatchData[];
+  featuredMatch: HomeMatchData | null;
   todayMatchesCount: number;
 }) {
   const [selectedTodayPage, setSelectedTodayPage] = useState(0);
@@ -260,7 +260,7 @@ export function HupuScheduleTodaySection({
   );
 }
 
-export function HupuSchedulePastMatches({ matches }: { matches: MatchData[] }) {
+export function HupuSchedulePastMatches({ matches }: { matches: HomeMatchData[] }) {
   const [revealPastSpoilers, setRevealPastSpoilers] = useState(false);
 
   return (

@@ -28,6 +28,7 @@ import type {
   GlobalSearchResultType,
   HomeCommentFeedItem,
   HomeHeroStats,
+  HomeMatchData,
   HomePlayerLeaderboardItem,
   PlayerDetailPageData,
   PlayerRankingItem,
@@ -1746,6 +1747,73 @@ function buildRecentFinishedMatches(store: StoreShape, viewerId: string | null):
     .map((match) => buildMatchView(store, match, viewerId));
 }
 
+function buildHomeMatchData(store: StoreShape, match: StoredMatch): HomeMatchData {
+  const teamA = getTeamById(store, match.teamAId);
+  const teamB = getTeamById(store, match.teamBId);
+  if (!teamA || !teamB) {
+    throw new Error(`Invalid match teams for ${match.id}`);
+  }
+
+  return {
+    id: match.id,
+    stage: normalizeStageLabel(match.stage, match.id),
+    status: match.status,
+    serverNow: getNowIso(),
+    scheduledAt: match.scheduledAt,
+    teamA: teamA.code,
+    teamB: teamB.code,
+    score: match.scoreA === null || match.scoreB === null ? "VS" : `${match.scoreA} : ${match.scoreB}`,
+    predictionLocked: isPredictionLocked(match),
+    predictionSummary: match.lockedDistribution ?? buildPredictionSummary(store, match),
+  };
+}
+
+function buildHomeFeaturedMatch(store: StoreShape): HomeMatchData | null {
+  const candidates = store.matches
+    .filter((match) => isSameCurrentDay(match.scheduledAt))
+    .slice()
+    .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
+  const preferred =
+    candidates.find((match) => !isPredictionLocked(match)) ??
+    candidates.find((match) => match.status !== "finished") ??
+    candidates[0] ??
+    store.matches
+      .filter((match) => match.status !== "finished" && new Date(match.scheduledAt).getTime() >= getNowMs())
+      .slice()
+      .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())[0] ??
+    null;
+
+  return preferred ? buildHomeMatchData(store, preferred) : null;
+}
+
+function buildHomeTodayMatches(store: StoreShape): HomeMatchData[] {
+  const todayMatches = store.matches
+    .filter((match) => isSameCurrentDay(match.scheduledAt))
+    .slice()
+    .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
+
+  if (todayMatches.length > 0) {
+    return todayMatches.map((match) => buildHomeMatchData(store, match));
+  }
+
+  const upcomingMatches = store.matches
+    .filter((match) => match.status !== "finished" && new Date(match.scheduledAt).getTime() >= getNowMs())
+    .slice()
+    .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
+    .slice(0, 2);
+
+  return upcomingMatches.map((match) => buildHomeMatchData(store, match));
+}
+
+function buildHomeRecentFinishedMatches(store: StoreShape): HomeMatchData[] {
+  return store.matches
+    .filter((match) => match.status === "finished" && new Date(match.scheduledAt).getTime() <= getNowMs())
+    .slice()
+    .sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime())
+    .slice(0, 3)
+    .map((match) => buildHomeMatchData(store, match));
+}
+
 function buildRecentCommentsFeed(store: StoreShape): HomeCommentFeedItem[] {
   return store.comments
     .filter((comment) => !comment.hidden)
@@ -2333,11 +2401,12 @@ type PublicHomePageData = Pick<
   | "standings"
   | "predictionLeaderboard"
   | "heroStats"
-  | "featuredMatch"
-  | "todayMatches"
-  | "recentFinishedMatches"
   | "playerLeaderboard"
->;
+> & {
+  featuredMatch: HomeMatchData | null;
+  todayMatches: HomeMatchData[];
+  recentFinishedMatches: HomeMatchData[];
+};
 
 function buildSiteChromeData(store: StoreShape, viewerId: string | null): SiteChromeData {
   if (!viewerId) {
@@ -2396,9 +2465,9 @@ const getPublicHomePageData = unstable_cache(
       standings: buildTeamStandings(store),
       predictionLeaderboard: buildPredictionLeaderboard(store),
       heroStats: buildHeroStats(store),
-      featuredMatch: buildFeaturedMatch(store, null),
-      todayMatches: buildTodayMatches(store, null),
-      recentFinishedMatches: buildRecentFinishedMatches(store, null),
+      featuredMatch: buildHomeFeaturedMatch(store),
+      todayMatches: buildHomeTodayMatches(store),
+      recentFinishedMatches: buildHomeRecentFinishedMatches(store),
       playerLeaderboard: buildPlayerLeaderboard(store),
     };
   },

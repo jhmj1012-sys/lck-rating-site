@@ -214,6 +214,19 @@ export interface MatchData {
   myPredictionTeam: string | null;
 }
 
+export interface HomeMatchData {
+  id: string;
+  stage: string;
+  status: MatchStatus;
+  serverNow: string;
+  scheduledAt: string;
+  teamA: string;
+  teamB: string;
+  score: string;
+  predictionLocked: boolean;
+  predictionSummary: PredictionSummary;
+}
+
 export interface MatchListItem {
   id: string;
   league: string;
